@@ -27,12 +27,17 @@ public class MotionPhotoConv.MotionPhoto {
     GExiv2.Metadata metadata;
     string dest;
     int64 video_offset;
+    string xmp;
 
     public MotionPhoto (string filename, string? dest = null) throws Error {
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
-        this.file = File.new_for_path (filename);
+        // Get XMP metadata of the image
+        this.xmp = this.metadata.try_get_xmp_packet ();
+        // Remove the XMP metadata of the main image since it is not a motion photo anymore
+        this.metadata.clear_xmp ();
 
+        this.file = File.new_for_path (filename);
         this.basename = Path.get_basename (filename);
         if (dest != null) {
             this.dest = dest;
@@ -125,6 +130,8 @@ public class MotionPhotoConv.MotionPhoto {
             data_input.read (buffer);
             output_stream.write (buffer);
         }
+
+        metadata.save_file (main_image_filename);
     }
 
     public void export_video (string? dest = null) throws Error {
