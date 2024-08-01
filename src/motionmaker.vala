@@ -29,6 +29,14 @@ public class MotionPhotoConv.MotionMaker {
     string dest;
     GExiv2.Metadata metadata;
     
+    /**
+     * Creates a MotionMaker object.
+     *
+     * @param main_image_path The path to the main image file.
+     * @param video_path The path to the video file.
+     * @param dest The destination path for the motion image file. If not provided, a default destination path will be generated based on the main image file.
+     * @throws Error if there is an error opening the main image file.
+     */
     public MotionMaker (string main_image_path, string video_path, string? dest = null) throws Error {
         this.main_image_path = main_image_path;
         this.video_path = video_path;
@@ -55,9 +63,18 @@ public class MotionPhotoConv.MotionMaker {
         this.metadata.open_path (main_image_path);
     }
 
-    public void make_motion_photo () throws Error {
+    /**
+     * Make a motion photo.
+     *
+     * This function creates a motion photo by combining a main image and a video file.
+     * The motion photo is saved to the specified destination path.
+     *
+     * @param dest The destination path for the motion image file. If not provided, the default destination path will be used.
+     * @throws Error if there is an error during the process.
+     */
+    public void export (string? dest = null) throws Error {
         /* Make a motion photo. */
-        var motion_file = File.new_for_path (this.dest);
+        var motion_file = File.new_for_path ((dest == null) ? this.dest : dest);
         var output_stream = motion_file.replace (null, false, FileCreateFlags.NONE);
 
         var main_file = File.new_for_path (this.main_image_path);

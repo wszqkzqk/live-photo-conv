@@ -31,6 +31,13 @@ public class MotionPhotoConv.MotionPhoto {
     int64 video_offset;
     // string xmp;
 
+    /**
+     * Creates a new instance of the MotionPhoto class.
+     *
+     * @param filename The path to the motion photo file.
+     * @param dest_dir The destination directory for the converted motion photo. If not provided, the directory of the input file will be used.
+     * @throws Error if an error occurs while retrieving the offset.
+     */
     public MotionPhoto (string filename, string? dest_dir = null) throws Error {
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
@@ -54,6 +61,13 @@ public class MotionPhotoConv.MotionPhoto {
         this.metadata.clear_xmp ();
     }
 
+    /**
+     * Get the offset of the video data in the motion photo.
+     *
+     * @throws Error if an error occurs while retrieving the offset.
+     *
+     * @returns the offset of the video data in the motion photo， if the offset is not found, return value < 0.
+     */
     inline int64 get_video_offset () throws Error {
         /* Get the offset of the video data in the motion photo. */
         try {
@@ -117,6 +131,13 @@ public class MotionPhotoConv.MotionPhoto {
         return offset - 4; // The feature of MP4: there is 4 bytes of size before the tag.
     }    
     
+    /**
+     * Export the main image of the motion photo.
+     *
+     * @param dest The destination path for the exported main image. If null, a default path will be used.
+     * @throws Error if there is an error during the export process.
+     * @returns The path of the exported main image.
+     */
     public string export_main_image (string? dest = null) throws Error {
         /* Export the main image of the motion photo. */
         // Export the bytes before `video_offset`
@@ -160,6 +181,13 @@ public class MotionPhotoConv.MotionPhoto {
         return (owned) main_image_filename;
     }
 
+    /**
+     * Export the video of the motion photo.
+     *
+     * @param dest The destination path for the exported video. If not provided, a default path will be used.
+     * @throws Error if there is an error during the export process.
+     * @returns The path of the exported video file.
+     */
     public string export_video (string? dest = null) throws Error {
         /* Export the video of the motion photo. */
         // Export the bytes after `video_offset`
@@ -202,6 +230,5 @@ public class MotionPhotoConv.MotionPhoto {
 }
 
 public errordomain MotionPhotoConv.NotMotionPhotosError {
-    /* The error domain for the offset not found error. */
-    OFFSET_NOT_FOUND_ERROR;
+    OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the motion photo is not found.
 }
