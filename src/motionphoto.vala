@@ -29,6 +29,8 @@ public class MotionPhotoConv.MotionPhoto {
     GExiv2.Metadata metadata;
     string dest_dir;
     int64 video_offset;
+    bool make_backup;
+    FileCreateFlags file_create_flags;
     // string xmp;
 
     /**
@@ -38,9 +40,12 @@ public class MotionPhotoConv.MotionPhoto {
      * @param dest_dir The destination directory for the converted motion photo. If not provided, the directory of the input file will be used.
      * @throws Error if an error occurs while retrieving the offset.
      */
-    public MotionPhoto (string filename, string? dest_dir = null) throws Error {
+    public MotionPhoto (string filename, string? dest_dir = null,
+                        FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
+        this.make_backup = make_backup;
+        this.file_create_flags = file_create_flags;
         // Get XMP metadata of the image
         // this.xmp = this.metadata.try_get_xmp_packet ();
 
@@ -162,7 +167,7 @@ public class MotionPhotoConv.MotionPhoto {
             }
         }
 
-        var output_stream = File.new_for_path (main_image_filename).replace (null, false, FileCreateFlags.NONE);
+        var output_stream = File.new_for_path (main_image_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes before `video_offset` to the main image file
         var bytes_to_write = this.video_offset;
         while (bytes_to_write > BUFFER_SIZE) {
@@ -207,7 +212,7 @@ public class MotionPhotoConv.MotionPhoto {
             }
         }
 
-        var output_stream = File.new_for_path (video_filename).replace (null, false, FileCreateFlags.NONE);
+        var output_stream = File.new_for_path (video_filename).replace (null, make_backup, file_create_flags);
         // Skip the bytes before `video_offset`
         data_input.seek (this.video_offset, GLib.SeekType.SET);
         // Write the bytes after `video_offset` to the video file

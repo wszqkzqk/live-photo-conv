@@ -28,6 +28,8 @@ public class MotionPhotoConv.MotionMaker {
     string video_path;
     string dest;
     GExiv2.Metadata metadata;
+    bool make_backup;
+    FileCreateFlags file_create_flags;
     
     /**
      * Creates a MotionMaker object.
@@ -37,9 +39,13 @@ public class MotionPhotoConv.MotionMaker {
      * @param dest The destination path for the motion image file. If not provided, a default destination path will be generated based on the main image file.
      * @throws Error if there is an error opening the main image file.
      */
-    public MotionMaker (string main_image_path, string video_path, string? dest = null) throws Error {
+    public MotionMaker (string main_image_path, string video_path,
+                        string? dest = null, FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION,
+                        bool make_backup = false) throws Error {
         this.main_image_path = main_image_path;
         this.video_path = video_path;
+        this.make_backup = make_backup;
+        this.file_create_flags = file_create_flags;
 
         if (dest != null) {
             this.dest = dest;
