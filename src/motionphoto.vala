@@ -25,6 +25,8 @@ public class MotionPhotoConv.MotionPhoto {
     const uint BUFFER_SIZE = 8192;
 
     string basename;
+    string basename_no_ext;
+    string extension_name;
     string filename;
     GExiv2.Metadata metadata;
     string dest_dir;
@@ -51,6 +53,18 @@ public class MotionPhotoConv.MotionPhoto {
 
         this.filename = filename;
         this.basename = Path.get_basename (filename);
+        var last_dot = this.basename.last_index_of_char ('.');
+        if (last_dot == -1) {
+            this.basename_no_ext = this.basename;
+            this.extension_name = "jpg"; // Default extension name
+        } else {
+            this.basename_no_ext = this.basename[:last_dot];
+            if (last_dot + 1 < this.basename.length) {
+                this.extension_name = this.basename[last_dot + 1:];
+            } else {
+                this.extension_name = "jpg"; // Default extension name
+            }
+        }
         if (dest_dir != null) {
             this.dest_dir = dest_dir;
         } else {
@@ -89,7 +103,8 @@ public class MotionPhotoConv.MotionPhoto {
             }
         } catch {
             // If the XMP metadata does not contain the video offset, search for the video tag in the motion photo
-            Reporter.warning ("XMPOffsetNotFoundWarning", "The XMP metadata does not contain the video offset. Searching for the video tag in the motion photo. Only support MP4 video.");
+            Reporter.warning ("XMPOffsetNotFoundWarning",
+                "The XMP metadata does not contain the video offset. Searching for the video tag in the motion photo.");
         }
 
         const uint8[] VIDEO_TAG = {'f', 't', 'y', 'p'}; // The tag `....ftyp` of MP4 header.
@@ -158,12 +173,7 @@ public class MotionPhotoConv.MotionPhoto {
                 main_image_filename = Path.build_filename (this.dest_dir, "IMG" + this.basename[5:]);
             } else {
                 // If the original image is xxx.yyy, the main image is xxx_0.yyy
-                var last_dot = this.basename.last_index_of_char ('.');
-                if (last_dot == -1) {
-                    main_image_filename = Path.build_filename (this.dest_dir, this.basename + "_0");
-                } else {
-                    main_image_filename = Path.build_filename (this.dest_dir, this.basename[:last_dot] + "_0" + this.basename[last_dot:]);
-                }
+                main_image_filename = Path.build_filename (this.dest_dir, this.basename_no_ext + "_0." + this.extension_name);
             }
         }
 
@@ -205,10 +215,12 @@ public class MotionPhotoConv.MotionPhoto {
         } else {
             if (this.basename.has_prefix ("MVIMG")) {
                 // The video of a motion photo is named as `VID_YYYYMMDD_HHMMSS.mp4`
-                video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename[5:]);
+                video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename_no_ext[5:] + ".mp4");
+            } else if (this.basename.has_prefix ("IMG")) {
+                // If the original image is IMG_YYYYMMDD_HHMMSS.xxx, the video is VID_YYYYMMDD_HHMMSS.mp4
+                video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename_no_ext[3:] + ".mp4");
             } else {
-                // If the original image is xxx, the video is xxx.mp4
-                video_filename = Path.build_filename (this.dest_dir, this.basename + ".mp4");
+                video_filename = Path.build_filename (this.dest_dir, "VID_" + this.basename_no_ext + ".mp4");
             }
         }
 
@@ -228,12 +240,101 @@ public class MotionPhotoConv.MotionPhoto {
         return (owned) video_filename;
     }
 
-    public void splites_images_from_video_ffmpeg (string video_filename) throws Error {
+    /**
+     * Split the video into images.
+     *
+     * @param output_format The format of the output images. If not provided, the default extension name will be used.
+     * @param video_source The path to the video source. If not provided or the file does not exist, the video will be exported from the motion photo.
+     * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
+     * @param import_metadata Whether to import metadata from the video and save it to the images. Default is true.
+     *
+     * @throws Error If FFmpeg exits with an error.
+     */
+    public void splites_images_from_video_ffmpeg (string? output_format = null, string? video_source = null,
+                                                  string? dest_dir = null, bool import_metadata = true) throws Error {
         /* Export the video of the motion photo and split the video into images. */
+        string name_to_printf;
+        string dest;
+        string video_filename;
+
+        var format = (output_format != null) ? output_format : this.extension_name;
+
+        if (this.basename.has_prefix ("MVIMG")) {
+            name_to_printf = "IMG" + this.basename_no_ext[5:] + "_%d." + format;
+        } else {
+            name_to_printf = this.basename_no_ext + "_%d." + format;
+        }
+
+        if (dest_dir != null) {
+            dest = Path.build_filename (dest_dir, name_to_printf);
+        } else {
+            dest = Path.build_filename (this.dest_dir, name_to_printf);
+        }
+
+        if (video_source == null || (FileUtils.test (video_source, FileTest.EXISTS) == false)) {
+            video_filename = this.export_video (Path.build_filename (Environment.get_tmp_dir (), "mpc-temp.mp4"));
+        } else {
+            video_filename = video_source;
+        }
+
+        string[] commands;
+        if (format.ascii_down () == "webp") {
+            // Spcify the `libwebp` encoder to avoid the `libwebp_anim` encoder in `ffmpeg`
+            commands = {"ffmpeg", "-progress", "-", // Split progress to stdout
+                        "-loglevel", "fatal",
+                        "-hwaccel", "auto",
+                        "-i", video_filename,
+                        "-f", "image2",
+                        "-c:v", "libwebp",
+                        "-y", dest};
+        } else {
+            commands = {"ffmpeg", "-progress", "-",
+                        "-loglevel", "fatal",
+                        "-hwaccel", "auto",
+                        "-i", video_filename,
+                        "-f", "image2",
+                        "-y", dest};
+        }
+
+        string subprcs_output;
+        string subprcs_error;
+        int subprcs_status;
+        Process.spawn_sync (
+            null,
+            commands,
+            null,
+            SpawnFlags.SEARCH_PATH,
+            null,
+            out subprcs_output,
+            out subprcs_error,
+            out subprcs_status);
         
+        if (subprcs_status != 0) {
+            throw new ConvertError.FFMPEG_EXIED_WITH_ERROR ("FFmpeg exit with %d - `%s'", subprcs_status, subprcs_error);
+        }
+
+        if (import_metadata) {
+            MatchInfo match_info;
+            var re_frame = /.*frame=\s*(\d+)/s;
+            re_frame.match (subprcs_output, 0, out match_info);
+            if (match_info.matches ()) {
+                // Set the metadata of the images
+                var num_frames = int64.parse (match_info.fetch (1));
+                for (int i = 1; i < num_frames + 1; i += 1) {
+                    var image_filename = Path.build_filename (this.dest_dir, name_to_printf.printf (i));
+                    metadata.save_file (image_filename);
+                }
+            } else {
+                Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
+            }
+        }
     }
 }
 
 public errordomain MotionPhotoConv.NotMotionPhotosError {
     OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the motion photo is not found.
+}
+
+public errordomain MotionPhotoConv.ConvertError {
+    FFMPEG_EXIED_WITH_ERROR, // FFmpeg failed to split the video into images.
 }
