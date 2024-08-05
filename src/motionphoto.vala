@@ -256,6 +256,7 @@ public class MotionPhotoConv.MotionPhoto {
         string name_to_printf;
         string dest;
         string video_filename;
+        bool created_tmp_video = false;
 
         var format = (output_format != null) ? output_format : this.extension_name;
 
@@ -273,6 +274,7 @@ public class MotionPhotoConv.MotionPhoto {
 
         if (video_source == null || (FileUtils.test (video_source, FileTest.EXISTS) == false)) {
             video_filename = this.export_video (get_unique_temp_filename ("mpc-XXXXXX.mp4"));
+            created_tmp_video = true;
         } else {
             video_filename = video_source;
         }
@@ -327,6 +329,10 @@ public class MotionPhotoConv.MotionPhoto {
             } else {
                 Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
             }
+        }
+
+        if (created_tmp_video) {
+            FileUtils.remove (video_filename);
         }
     }
 
