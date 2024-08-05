@@ -272,7 +272,7 @@ public class MotionPhotoConv.MotionPhoto {
         }
 
         if (video_source == null || (FileUtils.test (video_source, FileTest.EXISTS) == false)) {
-            video_filename = this.export_video (Path.build_filename (Environment.get_tmp_dir (), "mpc-temp.mp4"));
+            video_filename = this.export_video (get_unique_temp_filename ("mpc-XXXXXX.mp4"));
         } else {
             video_filename = video_source;
         }
@@ -328,6 +328,15 @@ public class MotionPhotoConv.MotionPhoto {
                 Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
             }
         }
+    }
+
+    static string get_unique_temp_filename (string tpl) throws FileError {
+        string temp_filename;
+
+        var fd = FileUtils.open_tmp (tpl, out temp_filename);
+        FileUtils.close(fd);
+
+        return temp_filename;
     }
 }
 
