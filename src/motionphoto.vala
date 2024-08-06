@@ -319,10 +319,9 @@ public class MotionPhotoConv.MotionPhoto {
         subprcs.wait ();
 
         var exit_code = subprcs.get_exit_status ();
-        var subprcs_output = get_string_from_file_input_stream (pipe_stdout);
-        var subprcs_error = get_string_from_file_input_stream (pipe_stderr);
 
         if (exit_code != 0) {
+            var subprcs_error = get_string_from_file_input_stream (pipe_stderr);
             throw new ConvertError.FFMPEG_EXIED_WITH_ERROR (
                 "Command `%s' failed with %d - `%s'",
                 string.joinv (" ", commands),
@@ -332,7 +331,10 @@ public class MotionPhotoConv.MotionPhoto {
 
         if (import_metadata) {
             MatchInfo match_info;
+
+            var subprcs_output = get_string_from_file_input_stream (pipe_stdout);
             var re_frame = /.*frame=\s*(\d+)/s;
+
             re_frame.match (subprcs_output, 0, out match_info);
             if (match_info.matches ()) {
                 // Set the metadata of the images
@@ -346,15 +348,6 @@ public class MotionPhotoConv.MotionPhoto {
             }
         }
     }
-
-    //  static string get_unique_temp_filename (string tpl) throws FileError {
-    //      string temp_filename;
-
-    //      var fd = FileUtils.open_tmp (tpl, out temp_filename);
-    //      FileUtils.close(fd);
-
-    //      return temp_filename;
-    //  }
 
     static string get_string_from_file_input_stream (InputStream input_stream) throws IOError {
         StringBuilder? builder = null;
