@@ -51,23 +51,7 @@ namespace MotionPhotoConv.Utils {
         return (builder != null) ? (!) builder.free_and_steal () : "";
     }
 
-    public void write_stream_before (OutputStream output_stream, InputStream input_stream, int64 bytes_to_write) throws IOError {
-        while (bytes_to_write > BUFFER_SIZE) {
-            uint8 buffer[BUFFER_SIZE];
-            input_stream.read (buffer);
-            output_stream.write (buffer);
-            bytes_to_write -= BUFFER_SIZE;
-        }
-        if (bytes_to_write > 0) {
-            var buffer = new uint8[bytes_to_write];
-            input_stream.read (buffer);
-            output_stream.write (buffer);
-        }
-    }
-
-    public void write_stream_after (OutputStream output_stream, FileInputStream input_stream,
-                                    int64 offset = 0, SeekType type = GLib.SeekType.SET) throws Error {
-        input_stream.seek (offset, type);
+    public void write_stream (OutputStream output_stream, FileInputStream input_stream) throws Error {
         var buffer = new uint8[BUFFER_SIZE];
         ssize_t bytes_read;
         while ((bytes_read = input_stream.read (buffer)) > 0) {
@@ -78,6 +62,23 @@ namespace MotionPhotoConv.Utils {
             } else {
                 output_stream.write (buffer);
             }
+        }
+    }
+
+    public void write_stream_before (OutputStream output_stream, InputStream input_stream, int64 bytes_to_write) throws IOError {
+        while (bytes_to_write > BUFFER_SIZE) {
+            uint8 buffer[BUFFER_SIZE];
+            var bytes_read = input_stream.read (buffer);
+            if (bytes_read == 0) {
+                break;
+            }
+            output_stream.write (buffer);
+            bytes_to_write -= BUFFER_SIZE;
+        }
+        if (bytes_to_write > 0) {
+            var buffer = new uint8[bytes_to_write];
+            input_stream.read (buffer);
+            output_stream.write (buffer);
         }
     }
 }

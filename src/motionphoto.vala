@@ -210,7 +210,8 @@ public class MotionPhotoConv.MotionPhoto {
 
         var output_stream = File.new_for_path (video_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes after `video_offset` to the video file
-        Utils.write_stream_after (output_stream, input_stream, this.video_offset);
+        input_stream.seek (this.video_offset, SeekType.SET);
+        Utils.write_stream (output_stream, input_stream);
 
         return (owned) video_filename;
     }
@@ -275,7 +276,8 @@ public class MotionPhotoConv.MotionPhoto {
 
         var file = File.new_for_path (this.filename);
         var input_stream = file.read ();
-        Utils.write_stream_after (pipe_stdin, input_stream, this.video_offset);
+        input_stream.seek (this.video_offset, SeekType.SET);
+        Utils.write_stream (pipe_stdin, input_stream);
 
         pipe_stdin.close (); // Close the pipe to signal the end of the input stream, MUST before `wait`
         subprcs.wait ();
