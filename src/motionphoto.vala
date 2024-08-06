@@ -314,15 +314,20 @@ public class MotionPhotoConv.MotionPhoto {
                 pipe_stdin.write (buffer);
             }
         }
-        pipe_stdin.close (); // Close the pipe to signal the end of the input stream
-        
+
+        pipe_stdin.close (); // Close the pipe to signal the end of the input stream, MUST before `wait`
         subprcs.wait ();
+
         var exit_code = subprcs.get_exit_status ();
         var subprcs_output = get_string_from_file_input_stream (pipe_stdout);
         var subprcs_error = get_string_from_file_input_stream (pipe_stderr);
 
         if (exit_code != 0) {
-            throw new ConvertError.FFMPEG_EXIED_WITH_ERROR ("FFmpeg exit with %d - `%s'", exit_code, subprcs_error);
+            throw new ConvertError.FFMPEG_EXIED_WITH_ERROR (
+                "Command `%s' failed with %d - `%s'",
+                string.joinv (" ", commands),
+                exit_code,
+                subprcs_error);
         }
 
         if (import_metadata) {
@@ -352,7 +357,7 @@ public class MotionPhotoConv.MotionPhoto {
     //  }
 
     static string get_string_from_file_input_stream (InputStream input_stream) throws IOError {
-        StringBuilder builder = null;
+        StringBuilder? builder = null;
         uint8[] buffer = new uint8[BUFFER_SIZE + 1]; // allocate one more byte for the null terminator
         buffer.length = BUFFER_SIZE; // Set the length of the buffer to BUFFER_SIZE
         ssize_t bytes_read;
@@ -362,11 +367,11 @@ public class MotionPhotoConv.MotionPhoto {
             if (builder == null) {
                 builder = new StringBuilder.from_buffer ((char[]) buffer);
             } else {
-                builder.append ((string) buffer);
+                ((!) builder).append ((string) buffer);
             }
         }
 
-        return (builder != null) ? builder.free_and_steal () : "";
+        return (builder != null) ? ((!) builder).free_and_steal () : "";
     }
 }
 
