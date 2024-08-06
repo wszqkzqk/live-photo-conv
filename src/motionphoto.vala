@@ -22,7 +22,7 @@
 public class MotionPhotoConv.MotionPhoto {
     /* MotionPhoto is a class that represents a motion photo. */
 
-    const uint BUFFER_SIZE = 8192;
+    const int BUFFER_SIZE = 8192;
 
     string basename;
     string basename_no_ext;
@@ -229,9 +229,12 @@ public class MotionPhotoConv.MotionPhoto {
         ssize_t bytes_read;
         while ((bytes_read = input_stream.read (buffer)) > 0) {
             if (bytes_read < BUFFER_SIZE) {
-                buffer = buffer[:bytes_read];
+                buffer.length = (int) bytes_read;
+                output_stream.write (buffer);
+                buffer.length = BUFFER_SIZE;
+            } else {
+                output_stream.write (buffer);
             }
-            output_stream.write (buffer);
         }
 
         return (owned) video_filename;
@@ -247,13 +250,11 @@ public class MotionPhotoConv.MotionPhoto {
      *
      * @throws Error If FFmpeg exits with an error.
      */
-    public void splites_images_from_video_ffmpeg (string? output_format = null, string? video_source = null,
-                                                  string? dest_dir = null, bool import_metadata = true) throws Error {
+    public void splites_images_from_video_ffmpeg (string? output_format = null, string? dest_dir = null,
+                                                  bool import_metadata = true) throws Error {
         /* Export the video of the motion photo and split the video into images. */
         string name_to_printf;
         string dest;
-        string video_filename;
-        bool created_tmp_video = false;
 
         var format = (output_format != null) ? output_format : this.extension_name;
 
@@ -269,20 +270,13 @@ public class MotionPhotoConv.MotionPhoto {
             dest = Path.build_filename (this.dest_dir, name_to_printf);
         }
 
-        if (video_source == null || (FileUtils.test (video_source, FileTest.EXISTS) == false)) {
-            video_filename = this.export_video (get_unique_temp_filename ("mpc-XXXXXX.mp4"));
-            created_tmp_video = true;
-        } else {
-            video_filename = video_source;
-        }
-
         string[] commands;
         if (format.ascii_down () == "webp") {
             // Spcify the `libwebp` encoder to avoid the `libwebp_anim` encoder in `ffmpeg`
             commands = {"ffmpeg", "-progress", "-", // Split progress to stdout
                         "-loglevel", "fatal",
                         "-hwaccel", "auto",
-                        "-i", video_filename,
+                        "-i", "pipe:0",
                         "-f", "image2",
                         "-c:v", "libwebp",
                         "-y", dest};
@@ -290,26 +284,45 @@ public class MotionPhotoConv.MotionPhoto {
             commands = {"ffmpeg", "-progress", "-",
                         "-loglevel", "fatal",
                         "-hwaccel", "auto",
-                        "-i", video_filename,
+                        "-i", "pipe:0",
                         "-f", "image2",
                         "-y", dest};
         }
 
-        string subprcs_output;
-        string subprcs_error;
-        int subprcs_status;
-        Process.spawn_sync (
-            null,
-            commands,
-            null,
-            SpawnFlags.SEARCH_PATH,
-            null,
-            out subprcs_output,
-            out subprcs_error,
-            out subprcs_status);
+        var subprcs = new Subprocess.newv (commands,
+            SubprocessFlags.STDOUT_PIPE |
+            SubprocessFlags.STDERR_PIPE |
+            SubprocessFlags.STDIN_PIPE);
+
+        var pipe_stdin = subprcs.get_stdin_pipe ();
+        var pipe_stdout = subprcs.get_stdout_pipe ();
+        var pipe_stderr = subprcs.get_stderr_pipe ();
+
+        var file = File.new_for_path (this.filename);
+        var input_stream = file.read ();
+        // Skip the bytes before `video_offset`
+        input_stream.seek (this.video_offset, GLib.SeekType.SET);
+
+        uint8[] buffer = new uint8[BUFFER_SIZE];
+        ssize_t bytes_read;
+        while ((bytes_read = input_stream.read (buffer)) > 0) {
+            if (bytes_read < BUFFER_SIZE) {
+                buffer.length = (int) bytes_read;
+                pipe_stdin.write (buffer);
+                buffer.length = BUFFER_SIZE;
+            } else {
+                pipe_stdin.write (buffer);
+            }
+        }
+        pipe_stdin.close (); // Close the pipe to signal the end of the input stream
         
-        if (subprcs_status != 0) {
-            throw new ConvertError.FFMPEG_EXIED_WITH_ERROR ("FFmpeg exit with %d - `%s'", subprcs_status, subprcs_error);
+        subprcs.wait ();
+        var exit_code = subprcs.get_exit_status ();
+        var subprcs_output = get_string_from_file_input_stream (pipe_stdout);
+        var subprcs_error = get_string_from_file_input_stream (pipe_stderr);
+
+        if (exit_code != 0) {
+            throw new ConvertError.FFMPEG_EXIED_WITH_ERROR ("FFmpeg exit with %d - `%s'", exit_code, subprcs_error);
         }
 
         if (import_metadata) {
@@ -327,19 +340,33 @@ public class MotionPhotoConv.MotionPhoto {
                 Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
             }
         }
-
-        if (created_tmp_video) {
-            FileUtils.remove (video_filename);
-        }
     }
 
-    static string get_unique_temp_filename (string tpl) throws FileError {
-        string temp_filename;
+    //  static string get_unique_temp_filename (string tpl) throws FileError {
+    //      string temp_filename;
 
-        var fd = FileUtils.open_tmp (tpl, out temp_filename);
-        FileUtils.close(fd);
+    //      var fd = FileUtils.open_tmp (tpl, out temp_filename);
+    //      FileUtils.close(fd);
 
-        return temp_filename;
+    //      return temp_filename;
+    //  }
+
+    static string get_string_from_file_input_stream (InputStream input_stream) throws IOError {
+        StringBuilder builder = null;
+        uint8[] buffer = new uint8[BUFFER_SIZE + 1]; // allocate one more byte for the null terminator
+        buffer.length = BUFFER_SIZE; // Set the length of the buffer to BUFFER_SIZE
+        ssize_t bytes_read;
+
+        while ((bytes_read = input_stream.read (buffer)) > 0) {
+            buffer[bytes_read] = '\0'; // Add a null terminator to the end of the string
+            if (builder == null) {
+                builder = new StringBuilder.from_buffer ((char[]) buffer);
+            } else {
+                builder.append ((string) buffer);
+            }
+        }
+
+        return (builder != null) ? builder.free_and_steal () : "";
     }
 }
 
