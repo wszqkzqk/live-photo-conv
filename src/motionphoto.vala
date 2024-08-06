@@ -175,7 +175,7 @@ public class MotionPhotoConv.MotionPhoto {
 
         var output_stream = File.new_for_path (main_image_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes before `video_offset` to the main image file
-        Utils.write_stream_before (output_stream, input_stream, this.video_offset);
+        Utils.write_stream_before (input_stream, output_stream, this.video_offset);
 
         metadata.save_file (main_image_filename);
         return (owned) main_image_filename;
@@ -211,7 +211,7 @@ public class MotionPhotoConv.MotionPhoto {
         var output_stream = File.new_for_path (video_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes after `video_offset` to the video file
         input_stream.seek (this.video_offset, SeekType.SET);
-        Utils.write_stream (output_stream, input_stream);
+        Utils.write_stream (input_stream, output_stream);
 
         return (owned) video_filename;
     }
@@ -277,7 +277,7 @@ public class MotionPhotoConv.MotionPhoto {
         var file = File.new_for_path (this.filename);
         var input_stream = file.read ();
         input_stream.seek (this.video_offset, SeekType.SET);
-        Utils.write_stream (pipe_stdin, input_stream);
+        Utils.write_stream (input_stream, pipe_stdin);
 
         pipe_stdin.close (); // Close the pipe to signal the end of the input stream, MUST before `wait`
         subprcs.wait ();

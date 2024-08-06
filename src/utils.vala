@@ -51,34 +51,46 @@ namespace MotionPhotoConv.Utils {
         return (builder != null) ? (!) builder.free_and_steal () : "";
     }
 
-    public void write_stream (OutputStream output_stream, FileInputStream input_stream) throws Error {
+    /**
+     * Writes the contents of an input stream to an output stream.
+     *
+     * @param input_stream The input stream to read from.
+     * @param output_stream The output stream to write to.
+     *
+     * @throws IOError if an error occurs while reading from or writing to the streams.
+     */
+    public void write_stream (InputStream input_stream, OutputStream output_stream) throws IOError {
         var buffer = new uint8[BUFFER_SIZE];
         ssize_t bytes_read;
         while ((bytes_read = input_stream.read (buffer)) > 0) {
-            if (bytes_read < BUFFER_SIZE) {
-                buffer.length = (int) bytes_read;
-                output_stream.write (buffer);
-                buffer.length = BUFFER_SIZE;
-            } else {
-                output_stream.write (buffer);
-            }
+            buffer.length = (int) bytes_read;
+            output_stream.write (buffer);
+            buffer.length = BUFFER_SIZE;
         }
     }
 
-    public void write_stream_before (OutputStream output_stream, InputStream input_stream, int64 bytes_to_write) throws IOError {
-        while (bytes_to_write > BUFFER_SIZE) {
-            uint8 buffer[BUFFER_SIZE];
-            var bytes_read = input_stream.read (buffer);
-            if (bytes_read == 0) {
-                break;
+    /**
+     * Writes data from an input stream to an output stream until a specified end position is reached.
+     *
+     * @param input_stream The input stream to read data from.
+     * @param output_stream The output stream to write data to.
+     * @param end The position in the input stream to stop writing data at.
+     *
+     * @throws IOError if an error occurs while reading from or writing to the streams.
+     */
+    public void write_stream_before (InputStream input_stream, OutputStream output_stream, int64 end) throws IOError {
+        var bytes_to_write = end;
+        var buffer = new uint8[BUFFER_SIZE];
+        ssize_t bytes_read;
+        while ((bytes_read = input_stream.read (buffer)) > 0 && bytes_to_write > 0) {
+            if (bytes_read > bytes_to_write) {
+                buffer.length = (int) bytes_to_write;
+            } else {
+                buffer.length = (int) bytes_read;
             }
             output_stream.write (buffer);
-            bytes_to_write -= BUFFER_SIZE;
-        }
-        if (bytes_to_write > 0) {
-            var buffer = new uint8[bytes_to_write];
-            input_stream.read (buffer);
-            output_stream.write (buffer);
+            buffer.length = BUFFER_SIZE;
+            bytes_to_write -= bytes_read;
         }
     }
 }

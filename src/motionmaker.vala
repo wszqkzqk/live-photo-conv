@@ -89,9 +89,9 @@ public class MotionPhotoConv.MotionMaker {
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 
         // Copy the main image to the motion photo
-        Utils.write_stream (output_stream, main_input_stream);
+        Utils.write_stream (main_input_stream, output_stream);
         // Copy the video to the motion photo
-        Utils.write_stream (output_stream, video_input_stream);
+        Utils.write_stream (video_input_stream, output_stream);
 
         output_stream.close ();
 
