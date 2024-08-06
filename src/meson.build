@@ -6,9 +6,10 @@ version_file = vcs_tag(
 
 executable_sources = [
   'convcli.vala',
-  'reporter.vala',
-  'motionphoto.vala',
   'motionmaker.vala',
+  'motionphoto.vala',
+  'reporter.vala',
+  'utils.vala',
   version_file,
 ]
 

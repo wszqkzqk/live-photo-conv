@@ -22,8 +22,6 @@
 public class MotionPhotoConv.MotionMaker {
     /* MotionMaker is a class that represents a motion photo maker. */
 
-    const uint BUFFER_SIZE = 8192;
-
     string main_image_path;
     string video_path;
     string dest;
@@ -85,29 +83,15 @@ public class MotionPhotoConv.MotionMaker {
 
         var main_file = File.new_for_path (this.main_image_path);
         var main_input_stream = main_file.read ();
-        var main_data_input = new DataInputStream (main_input_stream);
 
         var video_file = File.new_for_path (this.video_path);
         var video_input_stream = video_file.read ();
-        var video_data_input = new DataInputStream (video_input_stream);
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 
-        uint8[] buffer = new uint8[BUFFER_SIZE];
-        ssize_t bytes_read; // The number of bytes read from the input stream.
-
-        while ((bytes_read = main_data_input.read (buffer)) > 0) {
-            if (bytes_read < BUFFER_SIZE) {
-                buffer = buffer[:bytes_read];
-            }
-            output_stream.write (buffer);
-        }
-
-        while ((bytes_read = video_data_input.read (buffer)) > 0) {
-            if (bytes_read < BUFFER_SIZE) {
-                buffer = buffer[:bytes_read];
-            }
-            output_stream.write (buffer);
-        }
+        // Copy the main image to the motion photo
+        Utils.write_stream_after (output_stream, main_input_stream);
+        // Copy the video to the motion photo
+        Utils.write_stream_after (output_stream, video_input_stream);
 
         output_stream.close ();
 

@@ -22,8 +22,6 @@
 public class MotionPhotoConv.MotionPhoto {
     /* MotionPhoto is a class that represents a motion photo. */
 
-    const int BUFFER_SIZE = 8192;
-
     string basename;
     string basename_no_ext;
     string extension_name;
@@ -114,13 +112,13 @@ public class MotionPhotoConv.MotionPhoto {
         var file = File.new_for_path (this.filename);
         var input_stream = file.read ();
     
-        uint8[] buffer = new uint8[BUFFER_SIZE];
+        uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
         ssize_t bytes_read; // The number of bytes read from the input stream.
         int64 position = 0; // The current position in the input stream.
         uint8[] prev_buffer_tail = new uint8[TAG_LENGTH - 1]; // The tail of the previous buffer to avoid boundary crossing.
-    
+
         while ((bytes_read = input_stream.read (buffer)) > 0) {
-            uint8[] search_buffer = new uint8[BUFFER_SIZE + TAG_LENGTH - 1];
+            uint8[] search_buffer = new uint8[Utils.BUFFER_SIZE + TAG_LENGTH - 1];
             // Copy the tail of the previous buffer to check for boundary crossing
             Memory.copy (search_buffer, prev_buffer_tail, TAG_LENGTH - 1);
             // Copy the current buffer to the search buffer
@@ -177,18 +175,7 @@ public class MotionPhotoConv.MotionPhoto {
 
         var output_stream = File.new_for_path (main_image_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes before `video_offset` to the main image file
-        var bytes_to_write = this.video_offset;
-        while (bytes_to_write > BUFFER_SIZE) {
-            var buffer = new uint8[BUFFER_SIZE];
-            input_stream.read (buffer);
-            output_stream.write (buffer);
-            bytes_to_write -= BUFFER_SIZE;
-        }
-        if (bytes_to_write > 0) {
-            var buffer = new uint8[bytes_to_write];
-            input_stream.read (buffer);
-            output_stream.write (buffer);
-        }
+        Utils.write_stream_before (output_stream, input_stream, this.video_offset);
 
         metadata.save_file (main_image_filename);
         return (owned) main_image_filename;
@@ -222,20 +209,8 @@ public class MotionPhotoConv.MotionPhoto {
         }
 
         var output_stream = File.new_for_path (video_filename).replace (null, make_backup, file_create_flags);
-        // Skip the bytes before `video_offset`
-        input_stream.seek (this.video_offset, GLib.SeekType.SET);
         // Write the bytes after `video_offset` to the video file
-        var buffer = new uint8[BUFFER_SIZE];
-        ssize_t bytes_read;
-        while ((bytes_read = input_stream.read (buffer)) > 0) {
-            if (bytes_read < BUFFER_SIZE) {
-                buffer.length = (int) bytes_read;
-                output_stream.write (buffer);
-                buffer.length = BUFFER_SIZE;
-            } else {
-                output_stream.write (buffer);
-            }
-        }
+        Utils.write_stream_after (output_stream, input_stream, this.video_offset);
 
         return (owned) video_filename;
     }
@@ -300,20 +275,7 @@ public class MotionPhotoConv.MotionPhoto {
 
         var file = File.new_for_path (this.filename);
         var input_stream = file.read ();
-        // Skip the bytes before `video_offset`
-        input_stream.seek (this.video_offset, GLib.SeekType.SET);
-
-        uint8[] buffer = new uint8[BUFFER_SIZE];
-        ssize_t bytes_read;
-        while ((bytes_read = input_stream.read (buffer)) > 0) {
-            if (bytes_read < BUFFER_SIZE) {
-                buffer.length = (int) bytes_read;
-                pipe_stdin.write (buffer);
-                buffer.length = BUFFER_SIZE;
-            } else {
-                pipe_stdin.write (buffer);
-            }
-        }
+        Utils.write_stream_after (pipe_stdin, input_stream, this.video_offset);
 
         pipe_stdin.close (); // Close the pipe to signal the end of the input stream, MUST before `wait`
         subprcs.wait ();
@@ -321,7 +283,7 @@ public class MotionPhotoConv.MotionPhoto {
         var exit_code = subprcs.get_exit_status ();
 
         if (exit_code != 0) {
-            var subprcs_error = get_string_from_file_input_stream (pipe_stderr);
+            var subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
             throw new ConvertError.FFMPEG_EXIED_WITH_ERROR (
                 "Command `%s' failed with %d - `%s'",
                 string.joinv (" ", commands),
@@ -332,7 +294,7 @@ public class MotionPhotoConv.MotionPhoto {
         if (import_metadata) {
             MatchInfo match_info;
 
-            var subprcs_output = get_string_from_file_input_stream (pipe_stdout);
+            var subprcs_output = Utils.get_string_from_file_input_stream (pipe_stdout);
             var re_frame = /.*frame=\s*(\d+)/s;
 
             re_frame.match (subprcs_output, 0, out match_info);
@@ -347,35 +309,6 @@ public class MotionPhotoConv.MotionPhoto {
                 Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
             }
         }
-    }
-
-    /**
-     * Reads a string from an input stream.
-     *
-     * This function reads data from the provided input stream and converts it into a string.
-     * It uses a buffer to read the data in chunks and appends it to a string builder.
-     * The function continues reading until there is no more data to read from the input stream.
-     *
-     * @param input_stream The input stream to read from.
-     * @throws IOError if an error occurs while reading from the input stream.
-     * @return The string read from the input stream.
-     */
-    static string get_string_from_file_input_stream (InputStream input_stream) throws IOError {
-        StringBuilder? builder = null;
-        uint8[] buffer = new uint8[BUFFER_SIZE + 1]; // allocate one more byte for the null terminator
-        buffer.length = BUFFER_SIZE; // Set the length of the buffer to BUFFER_SIZE
-        ssize_t bytes_read;
-
-        while ((bytes_read = input_stream.read (buffer)) > 0) {
-            buffer[bytes_read] = '\0'; // Add a null terminator to the end of the string
-            if (builder == null) {
-                builder = new StringBuilder.from_buffer ((char[]) buffer);
-            } else {
-                (!) builder.append ((string) buffer);
-            }
-        }
-
-        return (builder != null) ? (!) builder.free_and_steal () : "";
     }
 }
 
