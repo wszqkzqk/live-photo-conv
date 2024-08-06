@@ -113,14 +113,13 @@ public class MotionPhotoConv.MotionPhoto {
     
         var file = File.new_for_path (this.filename);
         var input_stream = file.read ();
-        var data_input = new DataInputStream (input_stream);
     
         uint8[] buffer = new uint8[BUFFER_SIZE];
         ssize_t bytes_read; // The number of bytes read from the input stream.
         int64 position = 0; // The current position in the input stream.
         uint8[] prev_buffer_tail = new uint8[TAG_LENGTH - 1]; // The tail of the previous buffer to avoid boundary crossing.
     
-        while ((bytes_read = data_input.read (buffer)) > 0) {
+        while ((bytes_read = input_stream.read (buffer)) > 0) {
             uint8[] search_buffer = new uint8[BUFFER_SIZE + TAG_LENGTH - 1];
             // Copy the tail of the previous buffer to check for boundary crossing
             Memory.copy (search_buffer, prev_buffer_tail, TAG_LENGTH - 1);
@@ -163,7 +162,6 @@ public class MotionPhotoConv.MotionPhoto {
         // Export the bytes before `video_offset`
         var file = File.new_for_path (this.filename);
         var input_stream = file.read ();
-        var data_input = new DataInputStream (input_stream);
         string main_image_filename;
         if (dest != null) {
             main_image_filename = dest;
@@ -182,13 +180,13 @@ public class MotionPhotoConv.MotionPhoto {
         var bytes_to_write = this.video_offset;
         while (bytes_to_write > BUFFER_SIZE) {
             var buffer = new uint8[BUFFER_SIZE];
-            data_input.read (buffer);
+            input_stream.read (buffer);
             output_stream.write (buffer);
             bytes_to_write -= BUFFER_SIZE;
         }
         if (bytes_to_write > 0) {
             var buffer = new uint8[bytes_to_write];
-            data_input.read (buffer);
+            input_stream.read (buffer);
             output_stream.write (buffer);
         }
 
@@ -208,7 +206,6 @@ public class MotionPhotoConv.MotionPhoto {
         // Export the bytes after `video_offset`
         var file = File.new_for_path (this.filename);
         var input_stream = file.read ();
-        var data_input = new DataInputStream (input_stream);
         string video_filename;
         if (dest != null) {
             video_filename = dest;
@@ -226,11 +223,11 @@ public class MotionPhotoConv.MotionPhoto {
 
         var output_stream = File.new_for_path (video_filename).replace (null, make_backup, file_create_flags);
         // Skip the bytes before `video_offset`
-        data_input.seek (this.video_offset, GLib.SeekType.SET);
+        input_stream.seek (this.video_offset, GLib.SeekType.SET);
         // Write the bytes after `video_offset` to the video file
         var buffer = new uint8[BUFFER_SIZE];
         ssize_t bytes_read;
-        while ((bytes_read = data_input.read (buffer)) > 0) {
+        while ((bytes_read = input_stream.read (buffer)) > 0) {
             if (bytes_read < BUFFER_SIZE) {
                 buffer = buffer[:bytes_read];
             }
