@@ -349,6 +349,17 @@ public class MotionPhotoConv.MotionPhoto {
         }
     }
 
+    /**
+     * Reads a string from an input stream.
+     *
+     * This function reads data from the provided input stream and converts it into a string.
+     * It uses a buffer to read the data in chunks and appends it to a string builder.
+     * The function continues reading until there is no more data to read from the input stream.
+     *
+     * @param input_stream The input stream to read from.
+     * @throws IOError if an error occurs while reading from the input stream.
+     * @return The string read from the input stream.
+     */
     static string get_string_from_file_input_stream (InputStream input_stream) throws IOError {
         StringBuilder? builder = null;
         uint8[] buffer = new uint8[BUFFER_SIZE + 1]; // allocate one more byte for the null terminator
@@ -360,11 +371,11 @@ public class MotionPhotoConv.MotionPhoto {
             if (builder == null) {
                 builder = new StringBuilder.from_buffer ((char[]) buffer);
             } else {
-                ((!) builder).append ((string) buffer);
+                (!) builder.append ((string) buffer);
             }
         }
 
-        return (builder != null) ? ((!) builder).free_and_steal () : "";
+        return (builder != null) ? (!) builder.free_and_steal () : "";
     }
 }
 

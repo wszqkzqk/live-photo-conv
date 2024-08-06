@@ -5,11 +5,10 @@ version_file = vcs_tag(
 )
 
 executable_sources = [
-  #'main.vala',
+  'convcli.vala',
   'reporter.vala',
-  'parallelmanager.vala',
-  'unit.vala',
   'motionphoto.vala',
+  'motionmaker.vala',
   version_file,
 ]
 
