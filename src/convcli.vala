@@ -33,6 +33,7 @@ class MotionPhotoConv.CLI {
     static string? img_format = null;
     static bool export_metadata = true;
     static bool frame_to_photo = false;
+    static bool minimal_export = false;
 
     const OptionEntry[] options = {
         { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
@@ -47,6 +48,7 @@ class MotionPhotoConv.CLI {
         { "no-export-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a motion photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
+        { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         null
     };
@@ -129,8 +131,14 @@ class MotionPhotoConv.CLI {
 
             try {
                 var motion_photo = new MotionPhoto (motion_photo_path, dest_dir, export_metadata);
-                motion_photo.export_main_image (main_image_path);
-                motion_photo.export_video (video_path);
+                if (!minimal_export) {
+                    motion_photo.export_main_image (main_image_path);
+                    motion_photo.export_video (video_path);
+                } else if (main_image_path != null) {
+                    motion_photo.export_main_image (main_image_path);
+                } else if (video_path != null) {
+                    motion_photo.export_video (video_path);
+                }
 
                 if (frame_to_photo) {
                     motion_photo.splites_images_from_video_ffmpeg (img_format, dest_dir);
