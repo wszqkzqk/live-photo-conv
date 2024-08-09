@@ -58,19 +58,7 @@ meson compile -C builddir
 
 ### 命令行选项
 
-- `-h, --help`：显示帮助信息
-- `-v, --version`：显示版本号
-- `-g, --make`：创建动态照片
-- `-e, --extract`：提取动态照片（默认）
-- `-i, --image PATH`：静态图像文件的路径
-- `-m, --video PATH`：视频文件的路径
-- `-p, --motion-photo PATH`：动态照片文件的目标路径。如果在 `make` 模式下未提供，将根据静态图像文件生成默认路径
-- `-d, --dest-dir PATH`：导出目标目录
-- `--export-metadata`：导出元数据（默认）
-- `--no-export-metadata`：不导出元数据
-- `--frame-to-photos`：将动态照片的视频的每一帧导出为图片
-- `-f, --img-format FORMAT`：从视频导出的图片格式
-- `--color LEVEL`：颜色级别，0 表示无颜色，1 表示自动，2 表示总是，默认为 1
+运行 `motion-photo-conv --help` 查看所有命令行选项。
 
 ### 示例
 

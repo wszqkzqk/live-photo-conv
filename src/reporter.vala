@@ -19,8 +19,29 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+/**
+ * @namespace MotionPhotoConv.Reporter
+ * @brief Contains classes and functions for reporting information and errors.
+ *
+ * The `Reporter` namespace provides functionality for reporting information, errors, and warnings during the execution of the MotionPhotoConv application.
+ * It includes classes and functions for printing messages to the standard error stream, formatting messages with color codes, and handling console width.
+ *
+ * The namespace includes the following classes and enums:
+ * - `ColorStats`: An enum representing the color statistics for the console output.
+ * - `ColorSettings`: An enum representing the color settings for the console output.
+ * - `EscapeCode`: An enum representing the escape codes for formatting console output.
+ *
+ * The namespace also includes the following functions:
+ * - `isatty(int fd)`: A function that checks if the given file descriptor refers to a terminal.
+ * - `get_console_width()`: A function that returns the width of the console.
+ * - `report_failed_command(string command, int status)`: A function that reports a failed command with the given command and status.
+ * - `report(string color_code, string domain_name, string msg, va_list args)`: A function that reports a message with the given color code, domain name, message, and variable arguments.
+ * - `error(string error_name, string msg, ...)`: A function that reports an error message with the given error name and message.
+ * - `warning(string warning_name, string msg, ...)`: A function that reports a warning message with the given warning name and message.
+ * - `info(string info_name, string msg, ...)`: A function that reports an information message with the given info name and message.
+ * - `clear_putserr(string msg, bool show_progress_bar = true)`: A function that clears the standard error stream and prints the given message, optionally showing a progress bar.
+ */
 namespace MotionPhotoConv.Reporter {
-    /* Reporter is a class that provides a set of functions to report errors, warnings, and progress. */
 
     internal static ColorStats color_stats = ColorStats.UNKNOWN;
     public static ColorSettings color_setting = ColorSettings.AUTO;
@@ -115,6 +136,12 @@ namespace MotionPhotoConv.Reporter {
         }
     }
 
+    /**
+     * Reports a failed command with its status.
+     *
+     * @param command The command that failed.
+     * @param status The status code of the failed command.
+     */
     public static inline void report_failed_command (string command, int status) {
         if (unlikely (color_stats == ColorStats.UNKNOWN)) {
             color_stats = color_setting.to_color_stats ();
@@ -134,6 +161,14 @@ namespace MotionPhotoConv.Reporter {
             status);
     }
 
+    /**
+     * Reports a message with optional color code and domain name.
+     *
+     * @param color_code The color code to apply to the message. Can be null.
+     * @param domain_name The domain name associated with the message.
+     * @param msg The message to report.
+     * @param args The arguments to format the message.
+     */
     public static inline void report (string color_code, string domain_name, string msg, va_list args) {
         if (unlikely (color_stats == ColorStats.UNKNOWN)) {
             color_stats = color_setting.to_color_stats ();
@@ -153,21 +188,48 @@ namespace MotionPhotoConv.Reporter {
         stderr.puts (domain_name.concat (": ", msg.vprintf (args), "\n"));
     }
 
+    /**
+     * Reports an error with the specified error name and message.
+     *
+     * @param error_name The name of the error.
+     * @param msg The error message.
+     * @param ... Additional arguments for the error message.
+     */
     [PrintfFormat]
     public static void error (string error_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_RED, error_name, msg, va_list ());
     }
 
+    /**
+     * Prints a warning message with the specified warning name and message.
+     *
+     * @param warning_name The name of the warning.
+     * @param msg The warning message.
+     * @param ... Additional arguments for the message format.
+     */
     [PrintfFormat]
     public static void warning (string warning_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_MAGENTA, warning_name, msg, va_list ());
     }
 
+    /**
+     * Print an informational message.
+     *
+     * @param info_name The name of the information.
+     * @param msg The message to be printed.
+     * @param ... Additional arguments to be formatted.
+     */
     [PrintfFormat]
     public static void info (string info_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_CYAN, info_name, msg, va_list ());
     }
 
+    /**
+     * Clears the standard error output and prints a message.
+     *
+     * @param msg The message to be printed.
+     * @param show_progress_bar Whether to show a progress bar or not. Default is true.
+     */
     public static void clear_putserr (string msg, bool show_progress_bar = true) {
         if (unlikely (color_stats == ColorStats.UNKNOWN)) {
             color_stats = color_setting.to_color_stats ();
@@ -182,9 +244,13 @@ namespace MotionPhotoConv.Reporter {
     }
 }
 
+/**
+ * @class MotionPhotoConv.ProgressBar
+ *
+ * ProgressBar is a class that provides a set of functions to show progress bar.
+ */
 [Compact (opaque = true)]
 public class MotionPhotoConv.ProgressBar {
-    /* ProgressBar is a class that provides a set of functions to show progress bar. */
 
     string title;
     double percentage = 0.0;
@@ -193,6 +259,16 @@ public class MotionPhotoConv.ProgressBar {
     char fill_char;
     char empty_char;
 
+    /**
+     * @class ProgressBar
+     *
+     * Represents a progress bar used for tracking progress of a task.
+     *
+     * @param total_steps The total number of steps in the progress bar.
+     * @param title The title of the progress bar. Default value is "Progress".
+     * @param fill_char The character used to represent filled progress. Default value is '#'.
+     * @param empty_char The character used to represent empty progress. Default value is '-'.
+     */
     public ProgressBar (int total_steps,
                         string title = "Progress",
                         char fill_char = '#',
@@ -203,6 +279,17 @@ public class MotionPhotoConv.ProgressBar {
         this.empty_char = empty_char;
     }
 
+    /**
+     * Updates the progress of the reporter.
+     *
+     * This method updates the progress of the reporter by incrementing the current step count and calculating the percentage of completion.
+     * It also prints the progress and returns the updated current step count.
+     *
+     * @param success_count The number of successful updates.
+     * @param failure_count The number of failed updates.
+     *
+     * @return The updated current step count.
+     */
     public inline int update (uint success_count, uint failure_count) {
         current_step += 1;
         current_step = (current_step > total_steps) ? total_steps : current_step;
@@ -211,6 +298,12 @@ public class MotionPhotoConv.ProgressBar {
         return current_step;
     }
 
+    /**
+     * Prints the progress of the operation.
+     *
+     * @param success_count The number of successful operations.
+     * @param failure_count The number of failed operations.
+     */
     public inline void print_progress (uint success_count, uint failure_count) {
         // The actual length of the prefix is the length of UNCOLORED prefix
         // ANSI escapecode should not be counted

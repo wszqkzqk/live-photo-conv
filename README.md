@@ -58,19 +58,7 @@ meson compile -C builddir
 
 ### Command-Line Options
 
-- `-h, --help`: Show help message
-- `-v, --version`: Display version number
-- `-g, --make`: Create a motion photo
-- `-e, --extract`: Extract a motion photo (default)
-- `-i, --image PATH`: Path to the static image file
-- `-m, --video PATH`: Path to the video file
-- `-p, --motion-photo PATH`: Destination path for the motion photo file. If not provided in `make` mode, a default path will be generated based on the static image file
-- `-d, --dest-dir PATH`: Destination directory for export
-- `--export-metadata`: Export metadata (default)
-- `--no-export-metadata`: Do not export metadata
-- `--frame-to-photos`: Export every frame of the video as an image
-- `-f, --img-format FORMAT`: Format of the image exported from the video
-- `--color LEVEL`: Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1
+Please run `motion-photo-conv --help` to see the command-line options.
 
 ### Examples
 
