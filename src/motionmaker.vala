@@ -38,7 +38,8 @@ public class MotionPhotoConv.MotionMaker {
      * @throws Error if there is an error opening the main image file.
      */
     public MotionMaker (string main_image_path, string video_path,
-                        string? dest = null, FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION,
+                        string? dest = null, bool export_original_metadata = true,
+                        FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION,
                         bool make_backup = false) throws Error {
         this.main_image_path = main_image_path;
         this.video_path = video_path;
@@ -64,7 +65,10 @@ public class MotionPhotoConv.MotionMaker {
         }
 
         this.metadata = new GExiv2.Metadata ();
-        this.metadata.open_path (main_image_path);
+        if (export_original_metadata) {
+            // Copy the metadata from the main image to the motion photo
+            this.metadata.open_path (main_image_path);
+        }
     }
 
     /**
