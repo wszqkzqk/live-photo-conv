@@ -19,8 +19,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+/**
+ * @class MotionPhotoConv.MotionMaker
+ *
+ * Represents a motion photo maker. This class provides a set of functions
+ * to create a motion photo by combining a main image and a video file.
+ */
 public class MotionPhotoConv.MotionMaker {
-    /* MotionMaker is a class that represents a motion photo maker. */
 
     string main_image_path;
     string video_path;
@@ -30,11 +35,19 @@ public class MotionPhotoConv.MotionMaker {
     FileCreateFlags file_create_flags;
     
     /**
-     * Creates a MotionMaker object.
+     * Creates a MotionMaker object. The **main image** and **video file** paths are required.
+     * The destination path for the motion image file is optional.
+     * If not provided, a **default destination** path will be generated based on the main image file.
+     * The metadata from the main image can be exported to the motion photo. By default, the metadata is exported.
+     * The file creation flags can be specified to control the behavior of the file creation process.
+     * By default, the destination file will be replaced if it already exists.
+     * A backup of the destination file can be created before replacing it.
      *
      * @param main_image_path The path to the main image file.
      * @param video_path The path to the video file.
-     * @param dest The destination path for the motion image file. If not provided, a default destination path will be generated based on the main image file.
+     * @param dest The destination path for the motion image file.
+     * If not provided, a default destination path will be generated based on the main image file.
+     * @param export_original_metadata Whether to export the metadata from the main image to the motion photo.
      * @throws Error if there is an error opening the main image file.
      */
     public MotionMaker (string main_image_path, string video_path,
@@ -81,7 +94,6 @@ public class MotionPhotoConv.MotionMaker {
      * @throws Error if there is an error during the process.
      */
     public void export (string? dest = null) throws Error {
-        /* Make a motion photo. */
         var motion_file = File.new_for_commandline_arg  ((dest == null) ? this.dest : dest);
         var output_stream = motion_file.replace (null, false, FileCreateFlags.NONE);
 

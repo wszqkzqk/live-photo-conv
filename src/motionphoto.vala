@@ -19,8 +19,15 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+/**
+ * @class MotionPhotoConv.MotionPhoto
+ *
+ * Represents a motion photo.
+ *
+ * This class provides a set of functions to extract the main image and video from a motion photo.
+ * Also, it can split the video into images.
+ */
 public class MotionPhotoConv.MotionPhoto {
-    /* MotionPhoto is a class that represents a motion photo. */
 
     string basename;
     string basename_no_ext;
@@ -30,17 +37,27 @@ public class MotionPhotoConv.MotionPhoto {
     string dest_dir;
     int64 video_offset;
     bool make_backup;
+    bool export_original_metadata;
     FileCreateFlags file_create_flags;
     // string xmp;
 
     /**
      * Creates a new instance of the MotionPhoto class.
      *
+     * The path to the **motion photo** file is required.
+     * The destination directory for the converted motion photo is optional.
+     * If not provided, the directory of the input file will be used.
+     * The file creation flags can be specified to control the behavior of the file creation process.
+     * By default, the destination file will be replaced if it already exists.
+     * A backup of the destination file can be created before replacing it.
+     * The original metadata of the motion photo can be exported.
+     *
      * @param filename The path to the motion photo file.
      * @param dest_dir The destination directory for the converted motion photo. If not provided, the directory of the input file will be used.
+     * @param export_metadata Whether to export the original metadata of the motion photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
      */
-    public MotionPhoto (string filename, string? dest_dir = null,
+    public MotionPhoto (string filename, string? dest_dir = null, bool export_metadata = true,
                         FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
@@ -76,17 +93,21 @@ public class MotionPhotoConv.MotionPhoto {
         // Remove the XMP metadata of the main image since it is not a motion photo anymore
         // MUST after `get_video_offset` because `get_video_offset` may use the XMP metadata
         this.metadata.clear_xmp ();
+        this.export_original_metadata = export_metadata;
     }
 
     /**
      * Get the offset of the video data in the motion photo.
+     *
+     * The offset can be used to split the video into images.
+     * This function first tries to get the offset from the XMP metadata.
+     * If the offset is not found, it searches for the MP4 header in the motion photo.
      *
      * @throws Error if an error occurs while retrieving the offset.
      *
      * @returns the offset of the video data in the motion photo， if the offset is not found, return value < 0.
      */
     inline int64 get_video_offset () throws Error {
-        /* Get the offset of the video data in the motion photo. */
         try {
             // Get the offset of the video data from the XMP metadata
             var tag_value = this.metadata.try_get_tag_string ("Xmp.GCamera.MicroVideoOffset");
@@ -151,12 +172,14 @@ public class MotionPhotoConv.MotionPhoto {
     /**
      * Export the main image of the motion photo.
      *
+     * The destination path for the exported main image can be specified.
+     * If not provided, a default path will be used.
+     *
      * @param dest The destination path for the exported main image. If null, a default path will be used.
      * @throws Error if there is an error during the export process.
      * @returns The path of the exported main image.
      */
     public string export_main_image (string? dest = null) throws Error {
-        /* Export the main image of the motion photo. */
         // Export the bytes before `video_offset`
         var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
@@ -177,12 +200,19 @@ public class MotionPhotoConv.MotionPhoto {
         // Write the bytes before `video_offset` to the main image file
         Utils.write_stream_before (input_stream, output_stream, this.video_offset);
 
-        metadata.save_file (main_image_filename);
+        if (export_original_metadata) {
+            // Copy the metadata from the motion photo to the main image
+            metadata.save_file (main_image_filename);
+        }
         return (owned) main_image_filename;
     }
 
     /**
      * Export the video of the motion photo.
+     *
+     * The destination path for the exported video can be specified.
+     * If not provided, a default path will be used.
+     * The video is exported from the motion photo and saved as an MP4 file.
      *
      * @param dest The destination path for the exported video. If not provided, a default path will be used.
      * @throws Error if there is an error during the export process.
@@ -219,15 +249,18 @@ public class MotionPhotoConv.MotionPhoto {
     /**
      * Split the video into images.
      *
+     * The video of the motion photo is split into images.
+     * The images are saved to the destination directory with the specified output format.
+     * If the output format is not provided, the default extension name will be used.
+     * The name of the images is generated based on the basename of the motion photo.
+     *
      * @param output_format The format of the output images. If not provided, the default extension name will be used.
      * @param video_source The path to the video source. If not provided or the file does not exist, the video will be exported from the motion photo.
      * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
-     * @param import_metadata Whether to import metadata from the video and save it to the images. Default is true.
      *
      * @throws Error If FFmpeg exits with an error.
      */
-    public void splites_images_from_video_ffmpeg (string? output_format = null, string? dest_dir = null,
-                                                  bool import_metadata = true) throws Error {
+    public void splites_images_from_video_ffmpeg (string? output_format = null, string? dest_dir = null) throws Error {
         /* Export the video of the motion photo and split the video into images. */
         string name_to_printf;
         string dest;
@@ -293,7 +326,7 @@ public class MotionPhotoConv.MotionPhoto {
                 subprcs_error);
         }
 
-        if (import_metadata) {
+        if (export_original_metadata) {
             MatchInfo match_info;
 
             var subprcs_output = Utils.get_string_from_file_input_stream (pipe_stdout);
