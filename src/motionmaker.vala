@@ -82,13 +82,13 @@ public class MotionPhotoConv.MotionMaker {
      */
     public void export (string? dest = null) throws Error {
         /* Make a motion photo. */
-        var motion_file = File.new_for_path ((dest == null) ? this.dest : dest);
+        var motion_file = File.new_for_commandline_arg  ((dest == null) ? this.dest : dest);
         var output_stream = motion_file.replace (null, false, FileCreateFlags.NONE);
 
-        var main_file = File.new_for_path (this.main_image_path);
+        var main_file = File.new_for_commandline_arg  (this.main_image_path);
         var main_input_stream = main_file.read ();
 
-        var video_file = File.new_for_path (this.video_path);
+        var video_file = File.new_for_commandline_arg  (this.video_path);
         var video_input_stream = video_file.read ();
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 

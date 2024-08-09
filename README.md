@@ -76,14 +76,20 @@ meson compile -C builddir
 
 Create a motion photo:
 
-```sh
+```bash
 motion-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --motion-photo /path/to/output.jpg
 ```
 
 Extract a motion photo:
 
-```sh
+```bash
 motion-photo-conv --extract --motion-photo /path/to/motion_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+```
+
+You can also use URI to specify the path:
+
+```bash
+motion-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --motion-photo file:///path/to/output.jpg
 ```
 
 ## License

@@ -76,14 +76,20 @@ meson compile -C builddir
 
 创建动态照片：
 
-```sh
+```bash
 motion-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --motion-photo /path/to/output.jpg
 ```
 
 提取动态照片：
 
-```sh
+```bash
 motion-photo-conv --extract --motion-photo /path/to/motion_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+```
+
+也可以通过URI指定文件：
+
+```bash
+motion-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --motion-photo file:///path/to/output.jpg
 ```
 
 ## 许可证

@@ -93,7 +93,7 @@ public class MotionPhotoConv.MotionPhoto {
             if (tag_value != null) {
                 int64 reverse_offset = int64.parse (tag_value);
                 if (reverse_offset > 0) {
-                    var file_size = File.new_for_path (this.filename)
+                    var file_size = File.new_for_commandline_arg  (this.filename)
                         .query_info ("standard::size", FileQueryInfoFlags.NONE)
                         .get_size ();
                     return file_size - reverse_offset;
@@ -109,7 +109,7 @@ public class MotionPhotoConv.MotionPhoto {
         const int TAG_LENGTH = VIDEO_TAG.length; // The length of the tag.
         int64 offset = -1; // The offset of the video data in the motion photo.
     
-        var file = File.new_for_path (this.filename);
+        var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
     
         uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
@@ -158,7 +158,7 @@ public class MotionPhotoConv.MotionPhoto {
     public string export_main_image (string? dest = null) throws Error {
         /* Export the main image of the motion photo. */
         // Export the bytes before `video_offset`
-        var file = File.new_for_path (this.filename);
+        var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
         string main_image_filename;
         if (dest != null) {
@@ -173,7 +173,7 @@ public class MotionPhotoConv.MotionPhoto {
             }
         }
 
-        var output_stream = File.new_for_path (main_image_filename).replace (null, make_backup, file_create_flags);
+        var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes before `video_offset` to the main image file
         Utils.write_stream_before (input_stream, output_stream, this.video_offset);
 
@@ -191,7 +191,7 @@ public class MotionPhotoConv.MotionPhoto {
     public string export_video (string? dest = null) throws Error {
         /* Export the video of the motion photo. */
         // Export the bytes after `video_offset`
-        var file = File.new_for_path (this.filename);
+        var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
         string video_filename;
         if (dest != null) {
@@ -208,7 +208,7 @@ public class MotionPhotoConv.MotionPhoto {
             }
         }
 
-        var output_stream = File.new_for_path (video_filename).replace (null, make_backup, file_create_flags);
+        var output_stream = File.new_for_commandline_arg  (video_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes after `video_offset` to the video file
         input_stream.seek (this.video_offset, SeekType.SET);
         Utils.write_stream (input_stream, output_stream);
@@ -274,7 +274,7 @@ public class MotionPhotoConv.MotionPhoto {
         var pipe_stdout = subprcs.get_stdout_pipe ();
         var pipe_stderr = subprcs.get_stderr_pipe ();
 
-        var file = File.new_for_path (this.filename);
+        var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
         input_stream.seek (this.video_offset, SeekType.SET);
         Utils.write_stream (input_stream, pipe_stdin);
