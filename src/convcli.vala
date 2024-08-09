@@ -24,7 +24,7 @@ class MotionPhotoConv.CLI {
 
     static bool show_help = false;
     static bool show_version = false;
-    static string? operation = null;
+    static bool make_motion_photo = false;
     static int color_level = 1;
     static string? main_image_path = null;
     static string? video_path = null;
@@ -37,16 +37,17 @@ class MotionPhotoConv.CLI {
     const OptionEntry[] options = {
         { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
-        { "operation", 'p', OptionFlags.NONE, OptionArg.STRING, ref operation, "The operation to perform, options are 'make' or 'extract'", "OPERATION" },
+        { "make", 'g', OptionFlags.NONE, OptionArg.NONE, ref make_motion_photo, "Make a motion photo", null },
+        { "extract", 'e', OptionFlags.REVERSE, OptionArg.NONE, ref make_motion_photo, "Extract a motion photo (default)", null },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to the video file", "PATH" },
-        { "motion-photo", 'o', OptionFlags.NONE, OptionArg.FILENAME, ref motion_photo_path, "The destination path for the motion image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file", "PATH" },
+        { "motion-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref motion_photo_path, "The destination path for the motion image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file", "PATH" },
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "no-export-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a motion photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
-        { "color", 'c', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
+        { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         null
     };
 
@@ -102,13 +103,24 @@ class MotionPhotoConv.CLI {
             return 0;
         }
 
-        if (operation == null) {
-            Reporter.error ("OptionError", "`--operation' is required");
-            stderr.printf ("\n%s", opt_context.get_help (true, null));
-            return 1;
-        }
+        if (make_motion_photo) {
+            if (main_image_path == null || video_path == null) {
+                Reporter.error ("OptionError", "`--image' and `--video' are required in 'make' mode");
+                stderr.printf ("\n%s", opt_context.get_help (true, null));
+                return 1;
+            }
 
-        if (operation == "extract") {
+            try {
+                var motion_maker = new MotionMaker (main_image_path, video_path, motion_photo_path, export_metadata);
+                motion_maker.export (motion_photo_path);
+            } catch (IOError e) {
+                Reporter.error ("IOError", e.message);
+                return 1;
+            } catch (Error e) {
+                Reporter.error ("Error", e.message);
+                return 1;
+            }
+        } else {
             if (motion_photo_path == null) {
                 Reporter.error ("OptionError", "`--image' is required in 'extract' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
@@ -130,27 +142,6 @@ class MotionPhotoConv.CLI {
                 Reporter.error ("Error", e.message);
                 return 1;
             }
-        } else if (operation == "make") {
-            if (main_image_path == null || video_path == null) {
-                Reporter.error ("OptionError", "`--image' and `--video' are required in 'make' mode");
-                stderr.printf ("\n%s", opt_context.get_help (true, null));
-                return 1;
-            }
-
-            try {
-                var motion_maker = new MotionMaker (main_image_path, video_path, motion_photo_path, export_metadata);
-                motion_maker.export (motion_photo_path);
-            } catch (IOError e) {
-                Reporter.error ("IOError", e.message);
-                return 1;
-            } catch (Error e) {
-                Reporter.error ("Error", e.message);
-                return 1;
-            }
-        } else {
-            Reporter.error ("OptionError", "invalid operation, options are 'make' or 'extract'");
-            stderr.printf ("\n%s", opt_context.get_help (true, null));
-            return 1;
         }
 
         return 0;
