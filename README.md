@@ -4,6 +4,14 @@
 
 Motion Photo Converter is a tool for processing motion photos. It can combine a static image and a video into a motion photo or extract the static image and video from a motion photo. It can also export every frame of a video as an image.
 
+## Background [(Chinese Introduction)](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
+
+Android motion photos are a gradually popularizing media file format that combines a video with audio and a static image to form a dynamic photo. This type of photo is supported on various devices, such as Google's Pixel series, Samsung's Galaxy series, and most models from manufacturers like Xiaomi.
+
+Essentially, an Android motion photo appends a video file directly to the end of a static image. This video file contains both audio and video streams. The position of the video file is marked using `XMP` metadata, allowing quick location of the video file during parsing. The advantage of this format is that it adds dynamic effects to the image without altering the original image. Since this extension is not a standard for image formats, such images will only be displayed as static images in unsupported image viewers.
+
+This tool can be used for extracting, editing, and composing such motion photos.
+
 ## Features
 
 - Create motion photos
