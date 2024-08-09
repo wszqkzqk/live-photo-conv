@@ -32,7 +32,7 @@ class MotionPhotoConv.CLI {
     static string? dest_dir = null;
     static string? img_format = null;
     static bool export_metadata = true;
-    static bool video_to_photos = false;
+    static bool frame_to_photo = false;
 
     const OptionEntry[] options = {
         { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
@@ -44,7 +44,7 @@ class MotionPhotoConv.CLI {
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "no-export-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
-        { "video-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref video_to_photos, "Export every frame of video as a photo", null },
+        { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a motion photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
         { "color", 'c', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         null
@@ -61,7 +61,7 @@ class MotionPhotoConv.CLI {
 #else
         var args = strdupv (original_args);
 #endif
-        var opt_context = new OptionContext ("- Make or Extract Motion Photos");
+        var opt_context = new OptionContext ("- Extract or Make Motion Photos");
         // DO NOT use the default help option provided by g_print
         // g_print will force to convert character set to windows's code page
         // which is imcompatible windows's bash, zsh, etc.
@@ -120,7 +120,7 @@ class MotionPhotoConv.CLI {
                 motion_photo.export_main_image (main_image_path);
                 motion_photo.export_video (video_path);
 
-                if (video_to_photos) {
+                if (frame_to_photo) {
                     motion_photo.splites_images_from_video_ffmpeg (img_format, dest_dir, export_metadata);
                 }
             } catch (NotMotionPhotosError e) {
