@@ -132,14 +132,14 @@ public class MotionPhotoConv.MotionPhoto {
     
         var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
-    
-        uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
+
         ssize_t bytes_read; // The number of bytes read from the input stream.
         int64 position = 0; // The current position in the input stream.
+        uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
         uint8[] prev_buffer_tail = new uint8[TAG_LENGTH - 1]; // The tail of the previous buffer to avoid boundary crossing.
+        uint8[] search_buffer = new uint8[Utils.BUFFER_SIZE + TAG_LENGTH - 1];
 
         while ((bytes_read = input_stream.read (buffer)) > 0) {
-            uint8[] search_buffer = new uint8[Utils.BUFFER_SIZE + TAG_LENGTH - 1];
             // Copy the tail of the previous buffer to check for boundary crossing
             Memory.copy (search_buffer, prev_buffer_tail, TAG_LENGTH - 1);
             // Copy the current buffer to the search buffer
@@ -167,7 +167,7 @@ public class MotionPhotoConv.MotionPhoto {
         }
 
         return offset - 4; // The feature of MP4: there is 4 bytes of size before the tag.
-    }    
+    }
     
     /**
      * Export the main image of the motion photo.
