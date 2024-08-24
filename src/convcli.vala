@@ -130,7 +130,7 @@ class MotionPhotoConv.CLI {
             }
 
             try {
-                var motion_photo = new MotionPhoto (motion_photo_path, dest_dir, export_metadata);
+                var motion_photo = new MotionPhotoFFmpeg (motion_photo_path, dest_dir, export_metadata);
                 if (!minimal_export) {
                     motion_photo.export_main_image (main_image_path);
                     motion_photo.export_video (video_path);
@@ -141,7 +141,7 @@ class MotionPhotoConv.CLI {
                 }
 
                 if (frame_to_photo) {
-                    motion_photo.splites_images_from_video_ffmpeg (img_format, dest_dir);
+                    motion_photo.splites_images_from_video (img_format, dest_dir);
                 }
             } catch (NotMotionPhotosError e) {
                 Reporter.error ("NotMotionPhotosError", e.message);

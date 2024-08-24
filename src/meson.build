@@ -8,6 +8,7 @@ executable_sources = [
   'convcli.vala',
   'motionmaker.vala',
   'motionphoto.vala',
+  'motionphotoffmpeg.vala',
   'reporter.vala',
   'utils.vala',
   version_file,
