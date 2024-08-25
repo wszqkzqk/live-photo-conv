@@ -133,7 +133,7 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
         var pipe_stderr = subprcs.get_stderr_pipe ();
 
         var pipe_stdout_dis = new DataInputStream (pipe_stdout);
-        var re_frame = /^frame=\s*(\d+)/s;
+        var re_frame = /^frame=\s*(\d+)/;
         MatchInfo match_info;
 
         string line;
