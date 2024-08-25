@@ -68,7 +68,7 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
         // NOTE: `giostreamsrc` does not support `seek` and will read from the beginning of the file,
         // so use `appsrc` instead.
         // Create a new thread to push data
-        Thread<void> push_thread = new Thread<void> ("file_pusher", () => {
+        Thread<Error?> push_thread = new Thread<Error?> ("file_pusher", () => {
             try {
                 // Set the video source
                 var file = File.new_for_commandline_arg (this.filename);
@@ -87,9 +87,10 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
                     buffer.length = Utils.BUFFER_SIZE;
                 }
             } catch (Error e) {
-                Reporter.error ("IOError", e.message);
+                return e;
             }
             appsrc.end_of_stream ();
+            return null;
         });
         pipeline.set_state (Gst.State.PLAYING);
 
@@ -127,7 +128,10 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
             index += 1;
         }
 
-        push_thread.join ();
+        var push_file_error = push_thread.join ();
+        if (push_file_error != null) {
+            throw push_file_error;
+        }
         ThreadPool.free ((owned) pool, false, true);
         pipeline.set_state (Gst.State.NULL);
     }

@@ -109,7 +109,7 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
             SubprocessFlags.STDERR_PIPE |
             SubprocessFlags.STDIN_PIPE);
 
-        Thread<void> push_thread = new Thread<void> ("file_pusher", () => {
+        Thread<Error?> push_thread = new Thread<Error?> ("file_pusher", () => {
             try {
                 // Set the video source
                 var pipe_stdin = subprcs.get_stdin_pipe ();
@@ -123,8 +123,9 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
                 // Close the pipe to signal the end of the input stream,
                 // otherwise the process will be **blocked**.
                 pipe_stdin.close ();
+                return null;
             } catch (Error e) {
-                Reporter.error ("IOError", e.message);
+                return e;
             }
         });
 
@@ -158,7 +159,10 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
             }
         }
 
-        push_thread.join ();
+        var push_file_error = push_thread.join ();
+        if (push_file_error != null) {
+            throw push_file_error;
+        }
         subprcs.wait ();
 
         var exit_code = subprcs.get_exit_status ();
