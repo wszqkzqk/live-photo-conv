@@ -23,26 +23,40 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 
 ### 依赖
 
+* 构建依赖
+  * Meson
+  * Vala
+  * GStreamer (可选，用于从附加视频导出图片，如果没有则使用FFmpeg命令来实现)
+    * `gstreamer`
+    * `gst-plugins-base-libs`
+  * gdk-pixbuf2 (可选，用于从附加视频导出图片，如果没有则使用FFmpeg命令来实现)
 * 运行依赖
   * GLib
     * GObject
     * GIO
   * GExiv2
-  * FFmpeg
-* 构建依赖
-  * Meson
-  * Vala
+  * GStreamer （在针对GStreamer构建时需要）
+    * `gstreamer`
+    * `gst-plugins-base-libs`
+  * gdk-pixbuf2 （在针对GStreamer构建时需要）
+    * `gdk-pixbuf2`
+    * 如果想要支持更多导出格式，可以安装可选依赖，例如：
+      * `libavif`: .avif
+      * `libheif`: .heif, .heic, and .avif
+      * `libjxl`: .jxl
+      * `webp-pixbuf-loader`: .webp
+  * FFmpeg （可选，在没有针对GStreamer构建且需要从附加视频导出图片时需要）
 
 例如，在Arch Linux上安装依赖：
 
 ```bash
-sudo pacman -S --needed glib2 gexiv2 ffmpeg meson vala
+sudo pacman -S --needed glib2 gexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
 ```
 
 在MSYS2（UCRT64环境）上安装依赖：
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2
 ```
 
 ### 编译
@@ -79,6 +93,15 @@ motion-photo-conv --extract --motion-photo /path/to/motion_photo.jpg --dest-dir 
 ```bash
 motion-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --motion-photo file:///path/to/output.jpg
 ```
+
+## 由嵌入视频导出图片：用FFmpeg还是用GStreamer？
+
+如果在构建时启用了GStreamer支持，那么默认将使用GStreamer来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建FFmpeg子进程来导出图片。在启用了GStreamer支持的情况下，也可以通过`--use-ffmpeg`选项来使用FFmpeg。
+
+使用GStreamer与FFmpeg导出谁更快往往并不一定。笔者构建的GStreamer视频导出图片工具的编码是并行的，可以通过调整`-j`/`--threads`选项来控制线程数。但是目前笔者没有将GStreamer的解码部分优化得很好，每次得到帧都进行了强制的颜色空间转化，这也可能会引入性能损耗。因此，目前综合来看：
+
+* 所选的图片编码较慢时，GStreamer导出图片更快
+* 所选的图片编码较快时，FFmpeg导出图片更快
 
 ## 许可证
 

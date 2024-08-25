@@ -34,6 +34,10 @@ class MotionPhotoConv.CLI {
     static bool export_metadata = true;
     static bool frame_to_photo = false;
     static bool minimal_export = false;
+    static int threads = 0;
+#if ENABLE_GST
+    static bool use_ffmpeg = false;
+#endif
 
     const OptionEntry[] options = {
         { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
@@ -49,7 +53,11 @@ class MotionPhotoConv.CLI {
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a motion photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
+        { "threads", 'j', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting", "NUM" },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
+#if ENABLE_GST
+        { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract insdead of GStreamer", null },
+#endif
         null
     };
 
@@ -131,7 +139,12 @@ class MotionPhotoConv.CLI {
 
             try {
 #if ENABLE_GST
-                MotionPhoto motion_photo = new MotionPhotoGst (motion_photo_path, dest_dir, export_metadata);
+                MotionPhoto motion_photo;
+                if (use_ffmpeg) {
+                    motion_photo = new MotionPhotoFFmpeg (motion_photo_path, dest_dir, export_metadata);
+                } else {
+                    motion_photo = new MotionPhotoGst (motion_photo_path, dest_dir, export_metadata);
+                }
 #else
                 MotionPhoto motion_photo = new MotionPhotoFFmpeg (motion_photo_path, dest_dir, export_metadata);
 #endif
@@ -145,7 +158,7 @@ class MotionPhotoConv.CLI {
                 }
 
                 if (frame_to_photo) {
-                    motion_photo.splites_images_from_video (img_format, dest_dir);
+                    motion_photo.splites_images_from_video (img_format, dest_dir, threads);
                 }
             } catch (NotMotionPhotosError e) {
                 Reporter.error ("NotMotionPhotosError", e.message);
