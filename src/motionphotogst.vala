@@ -87,6 +87,7 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
                     buffer.length = Utils.BUFFER_SIZE;
                 }
             } catch (Error e) {
+                appsrc.end_of_stream ();
                 return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed: %s", e.message);
             }
             appsrc.end_of_stream ();
