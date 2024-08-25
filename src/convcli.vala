@@ -124,13 +124,17 @@ class MotionPhotoConv.CLI {
             }
         } else {
             if (motion_photo_path == null) {
-                Reporter.error ("OptionError", "`--image' is required in 'extract' mode");
+                Reporter.error ("OptionError", "`--motion-photo' is required in 'extract' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
 
             try {
-                var motion_photo = new MotionPhotoFFmpeg (motion_photo_path, dest_dir, export_metadata);
+#if ENABLE_GST
+                MotionPhoto motion_photo = new MotionPhotoGst (motion_photo_path, dest_dir, export_metadata);
+#else
+                MotionPhoto motion_photo = new MotionPhotoFFmpeg (motion_photo_path, dest_dir, export_metadata);
+#endif
                 if (!minimal_export) {
                     motion_photo.export_main_image (main_image_path);
                     motion_photo.export_video (video_path);

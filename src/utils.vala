@@ -20,7 +20,7 @@
  */
 
 namespace MotionPhotoConv.Utils {
-    const int BUFFER_SIZE = 8192;
+    const int BUFFER_SIZE = 1 << 14; // 2^4 * 2^10 B = 16 KiB
 
     /**
      * Reads a string from an input stream.

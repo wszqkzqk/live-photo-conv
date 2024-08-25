@@ -22,6 +22,31 @@ basic_deps = [
   gexiv2,
 ]
 
+# Try to find GStreamer dependencies
+gst = dependency('gstreamer-1.0', required: false)
+gst_app = dependency('gstreamer-app-1.0', required: false)
+gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: false)
+
+# Check if all GStreamer dependencies are found
+if gst.found() and gst_app.found() and gdk_pixbuf.found()
+  add_project_arguments('-D', 'ENABLE_GST', language: 'vala')
+
+  basic_deps += [
+    gst,
+    gst_app,
+    gdk_pixbuf
+  ]
+
+  executable_sources += [
+    'motionphotogst.vala'
+  ]
+else
+  message('GStreamer not found, using FFmpeg instead')
+  executable_sources += [
+    'motionphotoffmpeg.vala'
+  ]
+endif
+
 executable('motion-photo-conv', executable_sources,
   dependencies: basic_deps,
   install: true,

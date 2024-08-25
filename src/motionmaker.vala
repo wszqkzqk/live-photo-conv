@@ -117,5 +117,7 @@ public class MotionPhotoConv.MotionMaker {
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
         this.metadata.save_file (this.dest);
+
+        Reporter.info ("Exported motion photo", this.dest);
     }
 }

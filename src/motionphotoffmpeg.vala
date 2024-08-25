@@ -62,12 +62,16 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
      *
      * @throws Error If FFmpeg exits with an error.
      */
-     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null) throws Error {
+     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 1) throws Error {
         /* Export the video of the motion photo and split the video into images. */
         string name_to_printf;
         string dest;
 
         var format = (output_format != null) ? output_format : this.extension_name;
+
+        if (threads != 1) {
+            Reporter.warning ("NotImplementedWarning", "The `threads` parameter of FFmpeg mode is not implemented.");
+        }
 
         if (this.basename.has_prefix ("MVIMG")) {
             name_to_printf = "IMG" + this.basename_no_ext[5:] + "_%d." + format;
@@ -109,7 +113,7 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
         var pipe_stdout = subprcs.get_stdout_pipe ();
         var pipe_stderr = subprcs.get_stderr_pipe ();
 
-        var file = File.new_for_commandline_arg  (this.filename);
+        var file = File.new_for_commandline_arg (this.filename);
         var input_stream = file.read ();
         input_stream.seek (this.video_offset, SeekType.SET);
         Utils.write_stream (input_stream, pipe_stdin);

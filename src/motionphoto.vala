@@ -204,6 +204,9 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
             // Copy the metadata from the motion photo to the main image
             metadata.save_file (main_image_filename);
         }
+
+        Reporter.info ("Exported main image", main_image_filename);
+
         return (owned) main_image_filename;
     }
 
@@ -243,10 +246,12 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
         input_stream.seek (this.video_offset, SeekType.SET);
         Utils.write_stream (input_stream, output_stream);
 
+        Reporter.info ("Exported video file", video_filename);
+
         return (owned) video_filename;
     }
 
-    public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null) throws Error;
+    public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error;
 }
 
 public errordomain MotionPhotoConv.NotMotionPhotosError {
