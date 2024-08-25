@@ -125,7 +125,7 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
 
         if (exit_code != 0) {
             var subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
-            throw new ConvertError.FFMPEG_EXIED_WITH_ERROR (
+            throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                 "Command `%s' failed with %d - `%s'",
                 string.joinv (" ", commands),
                 exit_code,
@@ -144,7 +144,11 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
                 var num_frames = int64.parse (match_info.fetch (1));
                 for (int i = 1; i < num_frames + 1; i += 1) {
                     var image_filename = Path.build_filename (this.dest_dir, name_to_printf.printf (i));
-                    metadata.save_file (image_filename);
+                    try {
+                        metadata.save_file (image_filename);
+                    } catch (Error e) {
+                        throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", image_filename, e.message);
+                    }
                 }
             } else {
                 Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");

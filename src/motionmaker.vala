@@ -116,8 +116,15 @@ public class MotionPhotoConv.MotionMaker {
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
-        this.metadata.save_file (this.dest);
+        try {
+            this.metadata.save_file (this.dest);
+        }  catch (Error e) {
+            throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
+        }
 
+        // This is different from others: if metadata export fails,
+        // the motion photo will be considered as invalid, so `Exported` message is not printed.
+        // This info report must be placed after the metadata export.
         Reporter.info ("Exported motion photo", this.dest);
     }
 }

@@ -38,7 +38,8 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
   ]
 
   executable_sources += [
-    'motionphotogst.vala'
+    'motionphotogst.vala',
+    'sample2img.vala'
   ]
 else
   message('GStreamer not found, using FFmpeg instead')

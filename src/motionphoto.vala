@@ -200,12 +200,16 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
         // Write the bytes before `video_offset` to the main image file
         Utils.write_stream_before (input_stream, output_stream, this.video_offset);
 
+        Reporter.info ("Exported main image", main_image_filename);
+
         if (export_original_metadata) {
             // Copy the metadata from the motion photo to the main image
-            metadata.save_file (main_image_filename);
+            try {
+                this.metadata.save_file (main_image_filename);
+            } catch (Error e) {
+                throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s".printf (main_image_filename, e.message));
+            }
         }
-
-        Reporter.info ("Exported main image", main_image_filename);
 
         return (owned) main_image_filename;
     }
@@ -258,6 +262,7 @@ public errordomain MotionPhotoConv.NotMotionPhotosError {
     OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the motion photo is not found.
 }
 
-public errordomain MotionPhotoConv.ConvertError {
+public errordomain MotionPhotoConv.ExportError {
     FFMPEG_EXIED_WITH_ERROR, // FFmpeg failed to split the video into images.
+    MATEDATA_EXPORT_ERROR, // Failed to export the metadata.
 }
