@@ -69,7 +69,7 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
 
         var format = (output_format != null) ? output_format : this.extension_name;
 
-        if (threads != 1) {
+        if (threads != 0 && threads != 1) {
             Reporter.warning ("NotImplementedWarning", "The `threads` parameter of FFmpeg mode is not implemented.");
         }
 
@@ -132,27 +132,30 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
                 subprcs_error);
         }
 
-        if (export_original_metadata) {
-            MatchInfo match_info;
+        MatchInfo match_info;
 
-            var subprcs_output = Utils.get_string_from_file_input_stream (pipe_stdout);
-            var re_frame = /.*frame=\s*(\d+)/s;
+        var subprcs_output = Utils.get_string_from_file_input_stream (pipe_stdout);
+        var re_frame = /.*frame=\s*(\d+)/s;
+        re_frame.match (subprcs_output, 0, out match_info);
 
-            re_frame.match (subprcs_output, 0, out match_info);
-            if (match_info.matches ()) {
-                // Set the metadata of the images
-                var num_frames = int64.parse (match_info.fetch (1));
-                for (int i = 1; i < num_frames + 1; i += 1) {
-                    var image_filename = Path.build_filename (this.dest_dir, name_to_printf.printf (i));
+        if (match_info.matches ()) {
+            // Set the metadata of the images
+            var num_frames = int64.parse (match_info.fetch (1));
+            for (int i = 1; i < num_frames + 1; i += 1) {
+                var image_filename = Path.build_filename (this.dest_dir, name_to_printf.printf (i));
+
+                Reporter.info ("Exported image", image_filename);
+
+                if (export_original_metadata) {
                     try {
                         metadata.save_file (image_filename);
                     } catch (Error e) {
                         throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", image_filename, e.message);
                     }
                 }
-            } else {
-                Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
             }
+        } else {
+            Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
         }
     }
 }

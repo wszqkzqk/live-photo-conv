@@ -65,6 +65,8 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
 
+        // NOTE: `giostreamsrc` does not support `seek` and will read from the beginning of the file,
+        // so use `appsrc` instead.
         // Create a new thread to push data
         Thread<void> push_thread = new Thread<void> ("file_pusher", () => {
             try {

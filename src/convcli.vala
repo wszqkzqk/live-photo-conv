@@ -53,7 +53,7 @@ class MotionPhotoConv.CLI {
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a motion photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
-        { "threads", 'j', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting", "NUM" },
+        { "threads", 'j', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto", "NUM" },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract insdead of GStreamer", null },
