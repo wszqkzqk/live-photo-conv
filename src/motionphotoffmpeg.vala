@@ -125,7 +125,7 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
                 pipe_stdin.close ();
                 return null;
             } catch (Error e) {
-                return e;
+                return new ExportError.FILE_PUSH_ERROR ("Pushing to FFmpeg failed: %s", e.message);
             }
         });
 

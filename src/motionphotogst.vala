@@ -81,13 +81,13 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
                     var gst_buffer = new Gst.Buffer.wrapped (buffer);
                     var flow_ret = appsrc.push_buffer (gst_buffer);
                     if (flow_ret != Gst.FlowReturn.OK) {
-                        Reporter.warning ("FlowWarning", "Flow return: %s".printf (flow_ret.to_string ()));
-                        break;
+                        appsrc.end_of_stream ();
+                        return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed, flow returned %s", flow_ret.to_string ());
                     }
                     buffer.length = Utils.BUFFER_SIZE;
                 }
             } catch (Error e) {
-                return e;
+                return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed: %s", e.message);
             }
             appsrc.end_of_stream ();
             return null;

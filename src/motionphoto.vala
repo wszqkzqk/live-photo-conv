@@ -265,4 +265,5 @@ public errordomain MotionPhotoConv.NotMotionPhotosError {
 public errordomain MotionPhotoConv.ExportError {
     FFMPEG_EXIED_WITH_ERROR, // FFmpeg failed to split the video into images.
     MATEDATA_EXPORT_ERROR, // Failed to export the metadata.
+    FILE_PUSH_ERROR, // Failed to push data
 }
