@@ -109,16 +109,56 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
             SubprocessFlags.STDERR_PIPE |
             SubprocessFlags.STDIN_PIPE);
 
-        var pipe_stdin = subprcs.get_stdin_pipe ();
+        Thread<void> push_thread = new Thread<void> ("file_pusher", () => {
+            try {
+                // Set the video source
+                var pipe_stdin = subprcs.get_stdin_pipe ();
+                var file = File.new_for_commandline_arg (this.filename);
+                var input_stream = file.read ();
+                input_stream.seek (this.video_offset, SeekType.SET);
+                Utils.write_stream (input_stream, pipe_stdin);
+
+                // `subprcs.get_stdin_pipe ()`'s return value is **unowned**,
+                // so we need to close it **manually**.
+                // Close the pipe to signal the end of the input stream,
+                // otherwise the process will be **blocked**.
+                pipe_stdin.close ();
+            } catch (Error e) {
+                Reporter.error ("IOError", e.message);
+            }
+        });
+
         var pipe_stdout = subprcs.get_stdout_pipe ();
         var pipe_stderr = subprcs.get_stderr_pipe ();
 
-        var file = File.new_for_commandline_arg (this.filename);
-        var input_stream = file.read ();
-        input_stream.seek (this.video_offset, SeekType.SET);
-        Utils.write_stream (input_stream, pipe_stdin);
+        var pipe_stdout_dis = new DataInputStream (pipe_stdout);
+        var re_frame = /^frame=\s*(\d+)/s;
+        MatchInfo match_info;
 
-        pipe_stdin.close (); // Close the pipe to signal the end of the input stream, MUST before `wait`
+        string line;
+        int64 frame_processed = 0;
+        while ((line = pipe_stdout_dis.read_line ()) != null) {
+            if (re_frame.match (line, 0, out match_info)) {
+                var frame = int64.parse (match_info.fetch (1));
+                for (; frame_processed < frame; frame_processed += 1) {
+                    var image_filename = Path.build_filename (
+                        (dest_dir == null) ? this.dest_dir : dest_dir,
+                        name_to_printf.printf (frame_processed + 1)
+                    );
+                    Reporter.info ("Exported image", image_filename);
+
+                    if (export_original_metadata) {
+                        try {
+                            metadata.save_file (image_filename);
+                        } catch (Error e) {
+                            throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", image_filename, e.message);
+                        }
+                    }
+                }
+            }
+        }
+
+        push_thread.join ();
         subprcs.wait ();
 
         var exit_code = subprcs.get_exit_status ();
@@ -130,32 +170,6 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
                 string.joinv (" ", commands),
                 exit_code,
                 subprcs_error);
-        }
-
-        MatchInfo match_info;
-
-        var subprcs_output = Utils.get_string_from_file_input_stream (pipe_stdout);
-        var re_frame = /.*frame=\s*(\d+)/s;
-        re_frame.match (subprcs_output, 0, out match_info);
-
-        if (match_info.matches ()) {
-            // Set the metadata of the images
-            var num_frames = int64.parse (match_info.fetch (1));
-            for (int i = 1; i < num_frames + 1; i += 1) {
-                var image_filename = Path.build_filename (this.dest_dir, name_to_printf.printf (i));
-
-                Reporter.info ("Exported image", image_filename);
-
-                if (export_original_metadata) {
-                    try {
-                        metadata.save_file (image_filename);
-                    } catch (Error e) {
-                        throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", image_filename, e.message);
-                    }
-                }
-            }
-        } else {
-            Reporter.warning ("FFmpegOutputParseWarning", "Failed to parse the output of FFmpeg.");
         }
     }
 }
