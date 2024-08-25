@@ -61,7 +61,7 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
         Gst.init (ref args);
 
         // Create a pipeline
-        var pipeline = Gst.parse_launch ("appsrc name=src ! decodebin ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink") as Gst.Bin;
+        var pipeline = Gst.parse_launch ("appsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink") as Gst.Bin;
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
 
