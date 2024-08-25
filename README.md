@@ -23,26 +23,40 @@ This tool can be used for extracting, editing, and composing such motion photos.
 
 ### Dependencies
 
-* Runtime dependencies
+* Build Dependencies
+  * Meson
+  * Vala
+  * GStreamer (optional, used for exporting images from attached videos, otherwise FFmpeg commands are used)
+    * `gstreamer`
+    * `gst-plugins-base-libs`
+  * gdk-pixbuf2 (optional, used for exporting images from attached videos, otherwise FFmpeg commands are used)
+* Runtime Dependencies
   * GLib
     * GObject
     * GIO
   * GExiv2
-  * FFmpeg
-* Build dependencies
-  * Meson
-  * Vala
+  * GStreamer (required when built with GStreamer support)
+    * `gstreamer`
+    * `gst-plugins-base-libs`
+  * gdk-pixbuf2 (required when built with GStreamer support)
+    * `gdk-pixbuf2`
+    * To support more export formats, you can install optional dependencies such as:
+      * `libavif`: .avif
+      * `libheif`: .heif, .heic, and .avif
+      * `libjxl`: .jxl
+      * `webp-pixbuf-loader`: .webp
+  * FFmpeg (optional, required when not built with GStreamer support and need to export images from attached videos)
 
 For example, to install dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed glib2 gexiv2 ffmpeg meson vala
+sudo pacman -S --needed glib2 gexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
 ```
 
 To install dependencies on MSYS2 (UCRT64 environment):
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2
 ```
 
 ### Compilation
@@ -79,6 +93,15 @@ You can also use URI to specify the path:
 ```bash
 motion-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --motion-photo file:///path/to/output.jpg
 ```
+
+## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
+
+If GStreamer support is enabled during the build, GStreamer will be used by default to export images from embedded videos. Otherwise, the program will attempt to create an FFmpeg subprocess via command to export images. Even with GStreamer support enabled, you can use the `--use-ffmpeg` option to use FFmpeg.
+
+The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by the author encodes in parallel, and the number of threads can be controlled by adjusting the `-j`/`--threads` option. However, the author has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion, which may introduce performance overhead. Therefore, in summary:
+
+* When the selected image encoding is slow, GStreamer exports images faster.
+* When the selected image encoding is fast, FFmpeg exports images faster.
 
 ## License
 

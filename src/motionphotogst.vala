@@ -79,7 +79,7 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
                     var gst_buffer = new Gst.Buffer.wrapped (buffer);
                     var flow_ret = appsrc.push_buffer (gst_buffer);
                     if (flow_ret != Gst.FlowReturn.OK) {
-                        warning ("Error pushing buffer to appsrc: %s", flow_ret.to_string ());
+                        Reporter.warning ("FlowWarning", "Flow return: %s".printf (flow_ret.to_string ()));
                         break;
                     }
                     buffer.length = Utils.BUFFER_SIZE;
