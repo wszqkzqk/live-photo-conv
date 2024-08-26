@@ -152,7 +152,9 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
                         try {
                             metadata.save_file (image_filename);
                         } catch (Error e) {
-                            throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", image_filename, e.message);
+                            // DO NOT throw the error, just report it
+                            // because the image exporting is not affected
+                            Reporter.error ("Error", e.message);
                         }
                     }
                 }
