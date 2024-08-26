@@ -109,7 +109,7 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
             SubprocessFlags.STDERR_PIPE |
             SubprocessFlags.STDIN_PIPE);
 
-        Thread<Error?> push_thread = new Thread<Error?> ("file_pusher", () => {
+        Thread<ExportError?> push_thread = new Thread<ExportError?> ("file_pusher", () => {
             try {
                 // Set the video source
                 var pipe_stdin = subprcs.get_stdin_pipe ();
@@ -162,8 +162,10 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
         }
 
         var push_file_error = push_thread.join ();
+        // Report the error of data pushing,
+        // report here instead of throwing it to avoid zombie subprocess
         if (push_file_error != null) {
-            throw push_file_error;
+            Reporter.error ("FilePushError", push_file_error.message);
         }
         subprcs.wait ();
 
