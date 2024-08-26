@@ -7,9 +7,9 @@ version_file = vcs_tag(
 executable_sources = [
   'convcli.vala',
   'errordomains.vala',
-  'motionmaker.vala',
-  'motionphoto.vala',
-  'motionphotoffmpeg.vala',
+  'livemaker.vala',
+  'livephoto.vala',
+  'livephotoffmpeg.vala',
   'reporter.vala',
   'utils.vala',
   version_file,
@@ -40,12 +40,12 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
   ]
 
   executable_sources += [
-    'motionphotogst.vala',
+    'livephotogst.vala',
     'sample2img.vala'
   ]
 endif
 
-executable('motion-photo-conv', executable_sources,
+executable('live-photo-conv', executable_sources,
   dependencies: basic_deps,
   install: true,
   include_directories: incdir,

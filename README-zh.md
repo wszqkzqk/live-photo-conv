@@ -1,8 +1,8 @@
-# Motion Photo Converter
+# Live Photo Converter
 
 * [English Version](README.md)
 
-Motion Photo Converter 是一个用于处理动态照片的工具。它可以将静态图像和视频合成为动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
+Live Photo Converter 是一个用于处理动态照片的工具。它可以将静态图像和视频合成为动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
 
 ## [背景](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
@@ -26,6 +26,7 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 * 构建依赖
   * Meson
   * Vala
+  * GExiv2
   * GStreamer (可选，用于从附加视频导出图片，如果没有则使用FFmpeg命令来实现)
     * `gstreamer`
     * `gst-plugins-base-libs`
@@ -89,26 +90,26 @@ meson compile -C builddir
 
 ### 命令行选项
 
-运行 `motion-photo-conv --help` 查看所有命令行选项。
+运行 `live-photo-conv --help` 查看所有命令行选项。
 
 ### 示例
 
 创建动态照片：
 
 ```bash
-motion-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --motion-photo /path/to/output.jpg
+live-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
 ```
 
 提取动态照片：
 
 ```bash
-motion-photo-conv --extract --motion-photo /path/to/motion_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
 ```
 
 也可以通过URI指定文件：
 
 ```bash
-motion-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --motion-photo file:///path/to/output.jpg
+live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
 ```
 
 ## 由嵌入视频导出图片：用FFmpeg还是用GStreamer？

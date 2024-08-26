@@ -1,4 +1,4 @@
-/* motionphotoffmpeg.vala
+/* livephotoffmpeg.vala
  *
  * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
@@ -21,29 +21,29 @@
 
 
 /**
- * @class MotionPhotoConv.MotionPhotoFFmpeg
+ * @class LivePhotoConv.LivePhotoFFmpeg
  *
- * Represents a class that extends the MotionPhoto class and provides functionality for working with motion photos using FFmpeg.
+ * Represents a class that extends the LivePhoto class and provides functionality for working with live photos using FFmpeg.
  */
-public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
+public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 
     /**
-     * Creates a new instance of the MotionPhotoFFmpeg class.
+     * Creates a new instance of the LivePhotoFFmpeg class.
      *
-     * The path to the **motion photo** file is required.
-     * The destination directory for the converted motion photo is optional.
+     * The path to the **live photo** file is required.
+     * The destination directory for the converted live photo is optional.
      * If not provided, the directory of the input file will be used.
      * The file creation flags can be specified to control the behavior of the file creation process.
      * By default, the destination file will be replaced if it already exists.
      * A backup of the destination file can be created before replacing it.
-     * The original metadata of the motion photo can be exported.
+     * The original metadata of the live photo can be exported.
      *
-     * @param filename The path to the motion photo file.
-     * @param dest_dir The destination directory for the converted motion photo. If not provided, the directory of the input file will be used.
-     * @param export_metadata Whether to export the original metadata of the motion photo. Default is true.
+     * @param filename The path to the live photo file.
+     * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
+     * @param export_metadata Whether to export the original metadata of the live photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
      */
-    public MotionPhotoFFmpeg (string filename, string? dest_dir = null, bool export_metadata = true,
+    public LivePhotoFFmpeg (string filename, string? dest_dir = null, bool export_metadata = true,
                               FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
         base (filename, dest_dir, export_metadata, file_create_flags, make_backup);
     }
@@ -51,19 +51,19 @@ public class MotionPhotoConv.MotionPhotoFFmpeg : MotionPhotoConv.MotionPhoto {
     /**
      * Split the video into images.
      *
-     * The video of the motion photo is split into images.
+     * The video of the live photo is split into images.
      * The images are saved to the destination directory with the specified output format.
      * If the output format is not provided, the default extension name will be used.
-     * The name of the images is generated based on the basename of the motion photo.
+     * The name of the images is generated based on the basename of the live photo.
      *
      * @param output_format The format of the output images. If not provided, the default extension name will be used.
-     * @param video_source The path to the video source. If not provided or the file does not exist, the video will be exported from the motion photo.
+     * @param video_source The path to the video source. If not provided or the file does not exist, the video will be exported from the live photo.
      * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
      *
      * @throws Error If FFmpeg exits with an error.
      */
      public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 1) throws Error {
-        /* Export the video of the motion photo and split the video into images. */
+        /* Export the video of the live photo and split the video into images. */
         string name_to_printf;
         string dest;
 

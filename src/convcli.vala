@@ -20,15 +20,15 @@
  */
 
 [Compact (opaque = true)]
-class MotionPhotoConv.CLI {
+class LivePhotoConv.CLI {
 
     static bool show_help = false;
     static bool show_version = false;
-    static bool make_motion_photo = false;
+    static bool make_live_photo = false;
     static int color_level = 1;
     static string? main_image_path = null;
     static string? video_path = null;
-    static string? motion_photo_path = null;
+    static string? live_photo_path = null;
     static string? dest_dir = null;
     static string? img_format = null;
     static bool export_metadata = true;
@@ -42,15 +42,15 @@ class MotionPhotoConv.CLI {
     const OptionEntry[] options = {
         { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
-        { "make", 'g', OptionFlags.NONE, OptionArg.NONE, ref make_motion_photo, "Make a motion photo", null },
-        { "extract", 'e', OptionFlags.REVERSE, OptionArg.NONE, ref make_motion_photo, "Extract a motion photo (default)", null },
+        { "make", 'g', OptionFlags.NONE, OptionArg.NONE, ref make_live_photo, "Make a live photo", null },
+        { "extract", 'e', OptionFlags.REVERSE, OptionArg.NONE, ref make_live_photo, "Extract a live photo (default)", null },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to the video file", "PATH" },
-        { "motion-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref motion_photo_path, "The destination path for the motion image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file", "PATH" },
+        { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file", "PATH" },
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "no-export-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
-        { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a motion photo's video as a photo", null },
+        { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a live photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
         { "threads", 'j', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto", "NUM" },
@@ -73,7 +73,7 @@ class MotionPhotoConv.CLI {
 #else
         var args = strdupv (original_args);
 #endif
-        var opt_context = new OptionContext ("- Extract or Make Motion Photos");
+        var opt_context = new OptionContext ("- Extract or Make Live Photos");
         // DO NOT use the default help option provided by g_print
         // g_print will force to convert character set to windows's code page
         // which is imcompatible windows's bash, zsh, etc.
@@ -110,11 +110,11 @@ class MotionPhotoConv.CLI {
         }
 
         if (show_version) {
-            Reporter.info ("Motion Photo Converter", VERSION);
+            Reporter.info ("Live Photo Converter", VERSION);
             return 0;
         }
 
-        if (make_motion_photo) {
+        if (make_live_photo) {
             if (main_image_path == null || video_path == null) {
                 Reporter.error ("OptionError", "`--image' and `--video' are required in 'make' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
@@ -122,8 +122,8 @@ class MotionPhotoConv.CLI {
             }
 
             try {
-                var motion_maker = new MotionMaker (main_image_path, video_path, motion_photo_path, export_metadata);
-                motion_maker.export (motion_photo_path);
+                var live_maker = new LiveMaker (main_image_path, video_path, live_photo_path, export_metadata);
+                live_maker.export (live_photo_path);
             } catch (IOError e) {
                 Reporter.error ("IOError", e.message);
                 return 1;
@@ -132,37 +132,37 @@ class MotionPhotoConv.CLI {
                 return 1;
             }
         } else {
-            if (motion_photo_path == null) {
-                Reporter.error ("OptionError", "`--motion-photo' is required in 'extract' mode");
+            if (live_photo_path == null) {
+                Reporter.error ("OptionError", "`--live-photo' is required in 'extract' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
 
             try {
 #if ENABLE_GST
-                MotionPhoto motion_photo;
+                LivePhoto live_photo;
                 if (use_ffmpeg) {
-                    motion_photo = new MotionPhotoFFmpeg (motion_photo_path, dest_dir, export_metadata);
+                    live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir, export_metadata);
                 } else {
-                    motion_photo = new MotionPhotoGst (motion_photo_path, dest_dir, export_metadata);
+                    live_photo = new LivePhotoGst (live_photo_path, dest_dir, export_metadata);
                 }
 #else
-                MotionPhoto motion_photo = new MotionPhotoFFmpeg (motion_photo_path, dest_dir, export_metadata);
+                LivePhoto live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir, export_metadata);
 #endif
                 if (!minimal_export) {
-                    motion_photo.export_main_image (main_image_path);
-                    motion_photo.export_video (video_path);
+                    live_photo.export_main_image (main_image_path);
+                    live_photo.export_video (video_path);
                 } else if (main_image_path != null) {
-                    motion_photo.export_main_image (main_image_path);
+                    live_photo.export_main_image (main_image_path);
                 } else if (video_path != null) {
-                    motion_photo.export_video (video_path);
+                    live_photo.export_video (video_path);
                 }
 
                 if (frame_to_photo) {
-                    motion_photo.splites_images_from_video (img_format, dest_dir, threads);
+                    live_photo.splites_images_from_video (img_format, dest_dir, threads);
                 }
-            } catch (NotMotionPhotosError e) {
-                Reporter.error ("NotMotionPhotosError", e.message);
+            } catch (NotLivePhotosError e) {
+                Reporter.error ("NotLivePhotosError", e.message);
                 return 1;
             } catch (Error e) {
                 Reporter.error ("Error", e.message);

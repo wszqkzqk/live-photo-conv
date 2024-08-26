@@ -1,21 +1,21 @@
-# Motion Photo Converter
+# Live Photo Converter
 
 * [中文版本](README-zh.md)
 
-Motion Photo Converter is a tool for processing motion photos. It can combine a static image and a video into a motion photo or extract the static image and video from a motion photo. It can also export every frame of a video as an image.
+Live Photo Converter is a tool for processing live photos. It can combine a static image and a video into a live photo or extract the static image and video from a live photo. It can also export every frame of a video as an image.
 
 ## Background [(Chinese Introduction)](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
-Android motion photos are a gradually popularizing media file format that combines a video with audio and a static image to form a dynamic photo. This type of photo is supported on various devices, such as Google's Pixel series, Samsung's Galaxy series, and most models from manufacturers like Xiaomi.
+Android live photos are a gradually popularizing media file format that combines a video with audio and a static image to form a dynamic photo. This type of photo is supported on various devices, such as Google's Pixel series, Samsung's Galaxy series, and most models from manufacturers like Xiaomi.
 
-Essentially, an Android motion photo appends a video file directly to the end of a static image. This video file contains both audio and video streams. The position of the video file is marked using `XMP` metadata, allowing quick location of the video file during parsing. The advantage of this format is that it adds dynamic effects to the image without altering the original image. Since this extension is not a standard for image formats, such images will only be displayed as static images in unsupported image viewers.
+Essentially, an Android live photo appends a video file directly to the end of a static image. This video file contains both audio and video streams. The position of the video file is marked using `XMP` metadata, allowing quick location of the video file during parsing. The advantage of this format is that it adds dynamic effects to the image without altering the original image. Since this extension is not a standard for image formats, such images will only be displayed as static images in unsupported image viewers.
 
-This tool can be used for extracting, editing, and composing such motion photos.
+This tool can be used for extracting, editing, and composing such live photos.
 
 ## Features
 
-- Create motion photos
-- Extract static images and videos from motion photos
+- Create live photos
+- Extract static images and videos from live photos
 - Export every frame of a video as an image
 - Support exporting metadata
 
@@ -26,6 +26,7 @@ This tool can be used for extracting, editing, and composing such motion photos.
 * Build Dependencies
   * Meson
   * Vala
+  * GExiv2
   * GStreamer (optional, used for exporting images from attached videos, otherwise FFmpeg commands are used)
     * `gstreamer`
     * `gst-plugins-base-libs`
@@ -89,26 +90,26 @@ meson compile -C builddir
 
 ### Command-Line Options
 
-Please run `motion-photo-conv --help` to see the command-line options.
+Please run `live-photo-conv --help` to see the command-line options.
 
 ### Examples
 
-Create a motion photo:
+Create a live photo:
 
 ```bash
-motion-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --motion-photo /path/to/output.jpg
+live-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
 ```
 
-Extract a motion photo:
+Extract a live photo:
 
 ```bash
-motion-photo-conv --extract --motion-photo /path/to/motion_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
 ```
 
 You can also use URI to specify the path:
 
 ```bash
-motion-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --motion-photo file:///path/to/output.jpg
+live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
 ```
 
 ## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?

@@ -20,10 +20,10 @@
  */
 
 /**
- * @namespace MotionPhotoConv.Reporter
+ * @namespace LivePhotoConv.Reporter
  * @brief Contains classes and functions for reporting information and errors.
  *
- * The `Reporter` namespace provides functionality for reporting information, errors, and warnings during the execution of the MotionPhotoConv application.
+ * The `Reporter` namespace provides functionality for reporting information, errors, and warnings during the execution of the LivePhotoConv application.
  * It includes classes and functions for printing messages to the standard error stream, formatting messages with color codes, and handling console width.
  *
  * The namespace includes the following classes and enums:
@@ -41,7 +41,7 @@
  * - `info(string info_name, string msg, ...)`: A function that reports an information message with the given info name and message.
  * - `clear_putserr(string msg, bool show_progress_bar = true)`: A function that clears the standard error stream and prints the given message, optionally showing a progress bar.
  */
-namespace MotionPhotoConv.Reporter {
+namespace LivePhotoConv.Reporter {
 
     internal static ColorStats color_stats = ColorStats.UNKNOWN;
     public static ColorSettings color_setting = ColorSettings.AUTO;
@@ -245,12 +245,12 @@ namespace MotionPhotoConv.Reporter {
 }
 
 /**
- * @class MotionPhotoConv.ProgressBar
+ * @class LivePhotoConv.ProgressBar
  *
  * ProgressBar is a class that provides a set of functions to show progress bar.
  */
 [Compact (opaque = true)]
-public class MotionPhotoConv.ProgressBar {
+public class LivePhotoConv.ProgressBar {
 
     string title;
     double percentage = 0.0;

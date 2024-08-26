@@ -19,10 +19,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
-namespace MotionPhotoConv{
+namespace LivePhotoConv{
 
-    public errordomain NotMotionPhotosError {
-        OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the motion photo is not found.
+    public errordomain NotLivePhotosError {
+        OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the live photo is not found.
     }
 
     public errordomain ExportError {

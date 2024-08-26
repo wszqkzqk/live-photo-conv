@@ -19,7 +19,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
-namespace MotionPhotoConv.Utils {
+namespace LivePhotoConv.Utils {
     const int BUFFER_SIZE = 1 << 14; // 2^4 * 2^10 B = 16 KiB
 
     /**

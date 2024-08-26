@@ -20,12 +20,12 @@
  */
 
 /**
- * @class MotionPhotoConv.Sample2Img
+ * @class LivePhotoConv.Sample2Img
  *
  * Represents a class for converting a GStreamer sample to an image file.
  */
 [Compact (opaque = true)]
-public class MotionPhotoConv.Sample2Img {
+public class LivePhotoConv.Sample2Img {
     Gst.Sample sample;
     string filename;
     string output_format;

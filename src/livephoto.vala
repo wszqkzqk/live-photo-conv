@@ -1,4 +1,4 @@
-/* motionphoto.vala
+/* livephoto.vala
  *
  * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
@@ -20,14 +20,14 @@
  */
 
 /**
- * @class MotionPhotoConv.MotionPhoto
+ * @class LivePhotoConv.LivePhoto
  *
- * Represents a motion photo.
+ * Represents a live photo.
  *
- * This class provides a set of functions to extract the main image and video from a motion photo.
+ * This class provides a set of functions to extract the main image and video from a live photo.
  * Also, it can split the video into images.
  */
-public abstract class MotionPhotoConv.MotionPhoto : Object {
+public abstract class LivePhotoConv.LivePhoto : Object {
 
     protected string basename;
     protected string basename_no_ext;
@@ -42,22 +42,22 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
     // string xmp;
 
     /**
-     * Creates a new instance of the MotionPhoto class.
+     * Creates a new instance of the LivePhoto class.
      *
-     * The path to the **motion photo** file is required.
-     * The destination directory for the converted motion photo is optional.
+     * The path to the **live photo** file is required.
+     * The destination directory for the converted live photo is optional.
      * If not provided, the directory of the input file will be used.
      * The file creation flags can be specified to control the behavior of the file creation process.
      * By default, the destination file will be replaced if it already exists.
      * A backup of the destination file can be created before replacing it.
-     * The original metadata of the motion photo can be exported.
+     * The original metadata of the live photo can be exported.
      *
-     * @param filename The path to the motion photo file.
-     * @param dest_dir The destination directory for the converted motion photo. If not provided, the directory of the input file will be used.
-     * @param export_metadata Whether to export the original metadata of the motion photo. Default is true.
+     * @param filename The path to the live photo file.
+     * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
+     * @param export_metadata Whether to export the original metadata of the live photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
      */
-    protected MotionPhoto (string filename, string? dest_dir = null, bool export_metadata = true,
+    protected LivePhoto (string filename, string? dest_dir = null, bool export_metadata = true,
                         FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
@@ -88,24 +88,24 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
 
         this.video_offset = this.get_video_offset ();
         if (this.video_offset < 0) {
-            throw new NotMotionPhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the motion photo is not found.");
+            throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
         }
-        // Remove the XMP metadata of the main image since it is not a motion photo anymore
+        // Remove the XMP metadata of the main image since it is not a live photo anymore
         // MUST after `get_video_offset` because `get_video_offset` may use the XMP metadata
         this.metadata.clear_xmp ();
         this.export_original_metadata = export_metadata;
     }
 
     /**
-     * Get the offset of the video data in the motion photo.
+     * Get the offset of the video data in the live photo.
      *
      * The offset can be used to split the video into images.
      * This function first tries to get the offset from the XMP metadata.
-     * If the offset is not found, it searches for the MP4 header in the motion photo.
+     * If the offset is not found, it searches for the MP4 header in the live photo.
      *
      * @throws Error if an error occurs while retrieving the offset.
      *
-     * @returns the offset of the video data in the motion photo， if the offset is not found, return value < 0.
+     * @returns the offset of the video data in the live photo， if the offset is not found, return value < 0.
      */
     inline int64 get_video_offset () throws Error {
         try {
@@ -121,14 +121,14 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
                 }
             }
         } catch {
-            // If the XMP metadata does not contain the video offset, search for the video tag in the motion photo
+            // If the XMP metadata does not contain the video offset, search for the video tag in the live photo
             Reporter.warning ("XMPOffsetNotFoundWarning",
-                "The XMP metadata does not contain the video offset. Searching for the video tag in the motion photo.");
+                "The XMP metadata does not contain the video offset. Searching for the video tag in the live photo.");
         }
 
         const uint8[] VIDEO_TAG = {'f', 't', 'y', 'p'}; // The tag `....ftyp` of MP4 header.
         const int TAG_LENGTH = VIDEO_TAG.length; // The length of the tag.
-        int64 offset = -1; // The offset of the video data in the motion photo.
+        int64 offset = -1; // The offset of the video data in the live photo.
     
         var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
@@ -170,7 +170,7 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
     }
     
     /**
-     * Export the main image of the motion photo.
+     * Export the main image of the live photo.
      *
      * The destination path for the exported main image can be specified.
      * If not provided, a default path will be used.
@@ -188,7 +188,7 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
             main_image_filename = dest;
         } else {
             if (this.basename.has_prefix ("MVIMG")) {
-                // The main image of a motion photo is named as `IMG_YYYYMMDD_HHMMSS.xxx`
+                // The main image of a live photo is named as `IMG_YYYYMMDD_HHMMSS.xxx`
                 main_image_filename = Path.build_filename (this.dest_dir, "IMG" + this.basename[5:]);
             } else {
                 // If the original image is xxx.yyy, the main image is xxx_0.yyy
@@ -203,7 +203,7 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
         Reporter.info ("Exported main image", main_image_filename);
 
         if (export_original_metadata) {
-            // Copy the metadata from the motion photo to the main image
+            // Copy the metadata from the live photo to the main image
             try {
                 this.metadata.save_file (main_image_filename);
             } catch (Error e) {
@@ -215,18 +215,18 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
     }
 
     /**
-     * Export the video of the motion photo.
+     * Export the video of the live photo.
      *
      * The destination path for the exported video can be specified.
      * If not provided, a default path will be used.
-     * The video is exported from the motion photo and saved as an MP4 file.
+     * The video is exported from the live photo and saved as an MP4 file.
      *
      * @param dest The destination path for the exported video. If not provided, a default path will be used.
      * @throws Error if there is an error during the export process.
      * @returns The path of the exported video file.
      */
     public string export_video (string? dest = null) throws Error {
-        /* Export the video of the motion photo. */
+        /* Export the video of the live photo. */
         // Export the bytes after `video_offset`
         var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
@@ -235,7 +235,7 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
             video_filename = dest;
         } else {
             if (this.basename.has_prefix ("MVIMG")) {
-                // The video of a motion photo is named as `VID_YYYYMMDD_HHMMSS.mp4`
+                // The video of a live photo is named as `VID_YYYYMMDD_HHMMSS.mp4`
                 video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename_no_ext[5:] + ".mp4");
             } else if (this.basename.has_prefix ("IMG")) {
                 // If the original image is IMG_YYYYMMDD_HHMMSS.xxx, the video is VID_YYYYMMDD_HHMMSS.mp4
