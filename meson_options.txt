@@ -1,0 +1,2 @@
+option('gst', type: 'feature', value: 'auto',
+    description: 'GStreamer support')
