@@ -255,6 +255,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         return (owned) video_filename;
     }
 
-    public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error;
+    public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error;
 }
 

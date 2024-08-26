@@ -62,15 +62,15 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      *
      * @throws Error If FFmpeg exits with an error.
      */
-     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 1) throws Error {
+     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 1) throws Error {
         /* Export the video of the live photo and split the video into images. */
         string name_to_printf;
         string dest;
 
         var format = (output_format != null) ? output_format : this.extension_name;
 
-        if (threads != 0 && threads != 1) {
-            Reporter.warning ("NotImplementedWarning", "The `threads` parameter of FFmpeg mode is not implemented.");
+        if (jobs != 0 && jobs != 1) {
+            Reporter.warning ("NotImplementedWarning", "The `jobs` parameter of FFmpeg mode is not implemented.");
         }
 
         if (this.basename.has_prefix ("MVIMG")) {

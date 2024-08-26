@@ -116,7 +116,7 @@ live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to
 
 If GStreamer support is enabled during the build, GStreamer will be used by default to export images from embedded videos. Otherwise, the program will attempt to create an FFmpeg subprocess via command to export images. Even with GStreamer support enabled, you can use the `--use-ffmpeg` option to use FFmpeg.
 
-The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by the author encodes in parallel, and the number of threads can be controlled by adjusting the `-j`/`--threads` option. However, the author has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion, which may introduce performance overhead. Therefore, in summary:
+The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by the author encodes in parallel, and the number of jobs can be controlled by adjusting the `-j`/`--jobs` option. However, the author has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion, which may introduce performance overhead. Therefore, in summary:
 
 * When the selected image encoding is slow, GStreamer exports images faster.
 * When the selected image encoding is fast, FFmpeg exports images faster.

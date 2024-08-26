@@ -55,7 +55,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
      *
      * @throws Error If FFmpeg exits with an error.
      */
-    public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error {
+    public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error {
         // Enpty args to Gst
         unowned string[] args = null;
         Gst.init (ref args);
@@ -96,8 +96,8 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         pipeline.set_state (Gst.State.PLAYING);
 
         // Create a threadpool to process the images
-        if (threads == 0) {
-            threads = (int) get_num_processors ();
+        if (jobs == 0) {
+            jobs = (int) get_num_processors ();
         }
         var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
             try {
@@ -109,7 +109,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
             } catch (Error e) {
                 Reporter.error ("Error", e.message);
             }
-        }, threads, false);
+        }, jobs, false);
 
         Gst.Sample sample;
         uint index = 1;
