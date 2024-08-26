@@ -68,7 +68,7 @@ public class MotionPhotoConv.MotionPhotoGst : MotionPhotoConv.MotionPhoto {
         // NOTE: `giostreamsrc` does not support `seek` and will read from the beginning of the file,
         // so use `appsrc` instead.
         // Create a new thread to push data
-        Thread<Error?> push_thread = new Thread<Error?> ("file_pusher", () => {
+        Thread<ExportError?> push_thread = new Thread<ExportError?> ("file_pusher", () => {
             try {
                 // Set the video source
                 var file = File.new_for_commandline_arg (this.filename);
