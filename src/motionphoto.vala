@@ -258,12 +258,3 @@ public abstract class MotionPhotoConv.MotionPhoto : Object {
     public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error;
 }
 
-public errordomain MotionPhotoConv.NotMotionPhotosError {
-    OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the motion photo is not found.
-}
-
-public errordomain MotionPhotoConv.ExportError {
-    FFMPEG_EXIED_WITH_ERROR, // FFmpeg failed to split the video into images.
-    MATEDATA_EXPORT_ERROR, // Failed to export the metadata.
-    FILE_PUSH_ERROR, // Failed to push data
-}

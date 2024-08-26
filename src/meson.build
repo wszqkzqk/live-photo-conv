@@ -6,6 +6,7 @@ version_file = vcs_tag(
 
 executable_sources = [
   'convcli.vala',
+  'errordomains.vala',
   'motionmaker.vala',
   'motionphoto.vala',
   'motionphotoffmpeg.vala',
@@ -42,8 +43,6 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
     'motionphotogst.vala',
     'sample2img.vala'
   ]
-else
-  message('GStreamer not found, only using FFmpeg command line calls')
 endif
 
 executable('motion-photo-conv', executable_sources,
