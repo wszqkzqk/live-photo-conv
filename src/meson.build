@@ -22,10 +22,11 @@ basic_deps = [
   gexiv2,
 ]
 
-# Try to find GStreamer dependencies
-gst = dependency('gstreamer-1.0', required: false)
-gst_app = dependency('gstreamer-app-1.0', required: false)
-gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: false)
+# Find GStreamer dependencies
+require_gst = get_option('gst')
+gst = dependency('gstreamer-1.0', required: require_gst)
+gst_app = dependency('gstreamer-app-1.0', required: require_gst)
+gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 
 # Check if all GStreamer dependencies are found
 if gst.found() and gst_app.found() and gdk_pixbuf.found()
