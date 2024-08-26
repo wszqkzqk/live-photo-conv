@@ -61,10 +61,27 @@ pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 ming
 
 ### Compilation
 
-Build the project using Meson and Ninja:
+Use Meson and Ninja to build the project. When configuring the build with Meson, it will automatically detect if GStreamer is supported by default (equivalent to `-Dgst=auto`):
 
 ```bash
 meson setup builddir --buildtype=release
+```
+
+To force the use of GStreamer, you can use `-Dgst=enabled`:
+
+```bash
+meson setup builddir --buildtype=release -Dgst=enabled
+```
+
+To force disable GStreamer, you can use `-Dgst=disabled`:
+
+```bash
+meson setup builddir --buildtype=release -Dgst=disabled
+```
+
+Then compile the project:
+
+```bash
 meson compile -C builddir
 ```
 
