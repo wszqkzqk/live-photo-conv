@@ -57,6 +57,7 @@ class MotionPhotoConv.CLI {
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract insdead of GStreamer", null },
+        { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract insdead of FFmpeg (default)", null },
 #endif
         null
     };
