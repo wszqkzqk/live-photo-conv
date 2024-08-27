@@ -19,6 +19,11 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+/**
+ * @class LivePhotoConv.LivePhotoGst
+ *
+ * Represents a class that extends the LivePhoto class and provides functionality for working with live photos using GStreamer.
+ */
 public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     /**
      * Creates a new instance of the LivePhotoGst class.
@@ -74,6 +79,8 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                 var file = File.new_for_commandline_arg (this.filename);
                 var input_stream = file.read ();
                 input_stream.seek (this.video_offset, SeekType.SET);
+
+                // Push the data to appsrc
                 uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
                 ssize_t size;
                 while ((size = input_stream.read (buffer)) > 0) {
@@ -86,12 +93,14 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                     }
                     buffer.length = Utils.BUFFER_SIZE;
                 }
+
+                // Send EOS to appsrc before returning
+                appsrc.end_of_stream ();
+                return null;
             } catch (Error e) {
                 appsrc.end_of_stream ();
                 return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed: %s", e.message);
             }
-            appsrc.end_of_stream ();
-            return null;
         });
         pipeline.set_state (Gst.State.PLAYING);
 
