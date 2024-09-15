@@ -68,16 +68,16 @@ Use Meson and Ninja to build the project. When configuring the build with Meson,
 meson setup builddir --buildtype=release
 ```
 
-To force the use of GStreamer, you can use `-Dgst=enabled`:
+To force the use of GStreamer, you can use `-D gst=enabled`:
 
 ```bash
-meson setup builddir --buildtype=release -Dgst=enabled
+meson setup builddir --buildtype=release -D gst=enabled
 ```
 
-To force disable GStreamer, you can use `-Dgst=disabled`:
+To force disable GStreamer, you can use `-D gst=disabled`:
 
 ```bash
-meson setup builddir --buildtype=release -Dgst=disabled
+meson setup builddir --buildtype=release -D gst=disabled
 ```
 
 Then compile the project:

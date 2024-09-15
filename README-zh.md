@@ -68,16 +68,16 @@ pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 ming
 meson setup builddir --buildtype=release
 ```
 
-如果要强制使用GStreamer，可以使用`-Dgst=enabled`：
+如果要强制使用GStreamer，可以使用`-D gst=enabled`：
 
 ```bash
-meson setup builddir --buildtype=release -Dgst=enabled
+meson setup builddir --buildtype=release -D gst=enabled
 ```
 
-如果要强制禁用GStreamer，可以使用`-Dgst=disabled`：
+如果要强制禁用GStreamer，可以使用`-D gst=disabled`：
 
 ```bash
-meson setup builddir --buildtype=release -Dgst=disabled
+meson setup builddir --buildtype=release -D gst=disabled
 ```
 
 然后编译项目：
