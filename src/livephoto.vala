@@ -120,11 +120,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                     return file_size - reverse_offset;
                 }
             }
-        } catch {
-            // If the XMP metadata does not contain the video offset, search for the video tag in the live photo
-            Reporter.warning ("XMPOffsetNotFoundWarning",
-                "The XMP metadata does not contain the video offset. Searching for the video tag in the live photo.");
-        }
+        } catch {} // Not only does exception need warning, but also the following search process.
+        // If the XMP metadata does not contain the video offset, search for the video tag in the live photo
+        Reporter.warning ("XMPOffsetNotFoundWarning",
+        "The XMP metadata does not contain the video offset. Searching for the video tag in the live photo.");
 
         const uint8[] VIDEO_TAG = {'f', 't', 'y', 'p'}; // The tag `....ftyp` of MP4 header.
         const int TAG_LENGTH = VIDEO_TAG.length; // The length of the tag.
