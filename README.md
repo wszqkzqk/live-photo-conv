@@ -51,7 +51,7 @@ This tool can be used for extracting, editing, and composing such live photos.
 For example, to install dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed glib2 gexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
 ```
 
 To install dependencies on MSYS2 (UCRT64 environment):

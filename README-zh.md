@@ -51,7 +51,7 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 例如，在Arch Linux上安装依赖：
 
 ```bash
-sudo pacman -S --needed glib2 gexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
 ```
 
 在MSYS2（UCRT64环境）上安装依赖：
