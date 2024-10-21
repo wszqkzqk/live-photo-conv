@@ -46,9 +46,10 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
 endif
 
 liblivephototools = shared_library('livephototools', lib_sources,
-  install: true,
   dependencies: basic_deps,
   include_directories: incdir,
+  install: true,
+  install_dir: [true, true, true]
 )
 
 executable('live-photo-conv',
