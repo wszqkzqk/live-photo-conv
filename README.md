@@ -88,11 +88,17 @@ meson compile -C builddir
 
 ## Usage
 
-### Command-Line Options
+### `live-photo-conv`
+
+#### Command-Line Options
+
+```
+live-photo-conv [OPTION…] - Extract or Make Live Photos
+```
 
 Please run `live-photo-conv --help` to see the command-line options.
 
-### Examples
+#### Examples
 
 Create a live photo:
 
@@ -110,6 +116,24 @@ You can also use URI to specify the path:
 
 ```bash
 live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
+```
+
+### `copy-exif`
+
+#### Command-Line Options
+
+```
+copy-exif [OPTION…] <exif-source-img> <dest-img> - Copy EXIF data from one image to another
+```
+
+Please run `copy-exif --help` to see the command-line options.
+
+#### Examples
+
+Copy EXIF data from one image to another:
+
+```bash
+copy-exif /path/to/exif-source.jpg /path/to/dest.webp
 ```
 
 ## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
