@@ -14,10 +14,13 @@ This tool can be used for extracting, editing, and composing such live photos.
 
 ## Features
 
-- Create live photos
-- Extract static images and videos from live photos
-- Export every frame of a video as an image
-- Support exporting metadata
+- `live-photo-conv`
+  - Create live photos
+  - Extract static images and videos from live photos
+  - Export every frame of a video as an image
+  - Support exporting metadata
+- `copy-exif`
+  - Copy EXIF data from one image to another
 
 ## Build
 

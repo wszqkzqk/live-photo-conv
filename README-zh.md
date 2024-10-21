@@ -14,10 +14,13 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 
 ## 功能
 
-- 创建动态照片
-- 从动态照片中提取静态图像和视频
-- 导出视频的每一帧为图片
-- 支持导出元数据
+- `live-photo-conv`
+  - 创建动态照片
+  - 从动态照片中提取静态图像和视频
+  - 导出视频的每一帧为图片
+  - 支持导出元数据
+- `copy-exif`
+  - 从一张图片复制 EXIF 数据到另一张图片
 
 ## 构建
 
@@ -88,11 +91,19 @@ meson compile -C builddir
 
 ## 使用
 
-### 命令行选项
+### `live-photo-conv`
+
+#### 命令行选项
+
+```
+live-photo-conv [OPTION…] - Extract or Make Live Photos
+```
+
+请运行 `live-photo-conv --help` 查看所有命令行选项。
 
 运行 `live-photo-conv --help` 查看所有命令行选项。
 
-### 示例
+#### 示例
 
 创建动态照片：
 
@@ -110,6 +121,24 @@ live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/
 
 ```bash
 live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
+```
+
+### `copy-exif`
+
+#### 命令行选项
+
+```
+copy-exif [OPTION…] - Copy EXIF Data from One Image to Another
+```
+
+请运行 `copy-exif --help` 查看所有命令行选项。
+
+#### 示例
+
+从一张图片复制 EXIF 数据到另一张图片：
+
+```bash
+copy-exif /path/to/exif-source.jpg /path/to/dest.webp
 ```
 
 ## 由嵌入视频导出图片：用FFmpeg还是用GStreamer？
