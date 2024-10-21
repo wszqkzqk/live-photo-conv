@@ -20,7 +20,7 @@
  */
 
 [Compact (opaque = true)]
-class LivePhotoConv.CLI {
+class LivePhotoConv.Main {
 
     static bool show_help = false;
     static bool show_version = false;
