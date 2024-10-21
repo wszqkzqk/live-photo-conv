@@ -1,5 +1,5 @@
 version_file = vcs_tag(
-   command: ['git', 'describe', '--tags'],
+   command: meson.project_version(),
      input: 'version.vala.in',
     output: 'version.vala',
 )
