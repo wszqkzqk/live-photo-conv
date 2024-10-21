@@ -45,10 +45,28 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
   ]
 endif
 
-liblivephototools = shared_library('livephototools', lib_sources,
-  install: true,
+liblivephototools = shared_library(
+  'livephototools', lib_sources,
   dependencies: basic_deps,
   include_directories: incdir,
+  install: true,
+  install_dir: [true, 'include/livephototools', true]
+)
+
+install_headers(
+  ['../include/bindings.h'],
+  subdir: 'livephototools',
+)
+
+pkg = import('pkgconfig')
+pkg.generate(
+  name: 'livephototools',
+  filebase: 'livephototools',
+  description: 'A library for live photo conversion',
+  libraries: liblivephototools,
+  version: meson.project_version(),
+  subdirs: 'include/livephototools',
+  requires: basic_deps,
 )
 
 executable('live-photo-conv',
