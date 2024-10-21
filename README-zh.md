@@ -2,7 +2,7 @@
 
 * [English Version](README.md)
 
-Live Photo Converter 是一个用于处理动态照片的工具。它可以将静态图像和视频合成为动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
+Live Photo Converter 是一个用于处理动态照片的跨平台的工具。它可以将静态图像和视频合成为动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
 
 ## [背景](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
@@ -54,7 +54,7 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
 ```
 
-在MSYS2（UCRT64环境）上安装依赖：
+在Windows的MSYS2（UCRT64）环境上安装依赖：
 
 ```bash
 pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2

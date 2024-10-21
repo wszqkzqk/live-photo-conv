@@ -2,7 +2,7 @@
 
 * [中文版本](README-zh.md)
 
-Live Photo Converter is a tool for processing live photos. It can combine a static image and a video into a live photo or extract the static image and video from a live photo. It can also export every frame of a video as an image.
+Live Photo Converter is a cross-platform tool for processing live photos. It can combine a static image and a video into a live photo or extract the static image and video from a live photo. It can also export every frame of a video as an image.
 
 ## Background [(Chinese Introduction)](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
@@ -54,7 +54,7 @@ For example, to install dependencies on Arch Linux:
 sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
 ```
 
-To install dependencies on MSYS2 (UCRT64 environment):
+To install dependencies on Windows by MSYS2 (UCRT64 environment):
 
 ```bash
 pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2
