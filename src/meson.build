@@ -18,7 +18,7 @@ gst = dependency('gstreamer-1.0', required: require_gst)
 gst_app = dependency('gstreamer-app-1.0', required: require_gst)
 gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 
-livephotoconv_sources = [
+lib_sources = [
   'errordomains.vala',
   'livemaker.vala',
   'livephoto.vala',
@@ -39,27 +39,30 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
     gdk_pixbuf
   ]
 
-  livephotoconv_sources += [
+  lib_sources += [
     'livephotogst.vala',
     'sample2img.vala'
   ]
 endif
 
-executable('live-photo-conv', livephotoconv_sources,
-  dependencies: basic_deps,
+liblivephototools = shared_library('livephototools', lib_sources,
   install: true,
+  dependencies: basic_deps,
   include_directories: incdir,
 )
 
-copyexif_sources = [
-  'copyexif.vala',
-  'reporter.vala',
-  'utils.vala',
-  version_file,
-]
-
-executable('copy-exif', copyexif_sources,
-  dependencies: basic_deps,
+executable('live-photo-conv',
+  ['main.vala'],
   install: true,
+  link_with: liblivephototools,
+  dependencies: basic_deps,
+  include_directories: incdir,
+)
+
+executable('copy-exif',
+  ['copyexif.vala'],
+  install: true,
+  link_with: liblivephototools,
+  dependencies: basic_deps,
   include_directories: incdir,
 )
