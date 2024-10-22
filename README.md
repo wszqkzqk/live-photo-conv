@@ -12,7 +12,7 @@ Live Photo Converter is a cross-platform tool for processing live photos. It can
   - Export every frame of a video as an image
   - Support exporting metadata
 - `copy-exif`
-  - Copy EXIF data from one image to another
+  - Copy all metadata from one image to another
 
 ## Background [(Chinese Introduction)](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
@@ -126,14 +126,14 @@ live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to
 #### Command-Line Options
 
 ```
-copy-exif [OPTION…] <exif-source-img> <dest-img> - Copy EXIF data from one image to another
+copy-exif [OPTION…] <exif-source-img> <dest-img> - Copy all metadata from one image to another
 ```
 
 Please run `copy-exif --help` to see the command-line options.
 
 #### Examples
 
-Copy EXIF data from one image to another:
+Copy metadata from one image to another:
 
 ```bash
 copy-exif /path/to/exif-source.jpg /path/to/dest.webp

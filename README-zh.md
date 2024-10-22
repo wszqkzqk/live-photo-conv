@@ -12,7 +12,7 @@ Live Photo Converter 是一个用于处理动态照片的跨平台的工具。�
   - 导出视频的每一帧为图片
   - 支持导出元数据
 - `copy-exif`
-  - 从一张图片复制 EXIF 数据到另一张图片
+  - 从一张图片复制所有元数据到另一张图片
 
 ## [背景](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
@@ -128,14 +128,14 @@ live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to
 #### 命令行选项
 
 ```
-copy-exif [OPTION…] - Copy EXIF Data from One Image to Another
+copy-exif [OPTION…] - Copy all metadata from One Image to Another
 ```
 
 请运行 `copy-exif --help` 查看所有命令行选项。
 
 #### 示例
 
-从一张图片复制 EXIF 数据到另一张图片：
+从一张图片复制所有元数据到另一张图片：
 
 ```bash
 copy-exif /path/to/exif-source.jpg /path/to/dest.webp
