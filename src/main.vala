@@ -152,10 +152,13 @@ class LivePhotoConv.Main {
                 if (!minimal_export) {
                     live_photo.export_main_image (main_image_path);
                     live_photo.export_video (video_path);
-                } else if (main_image_path != null) {
-                    live_photo.export_main_image (main_image_path);
-                } else if (video_path != null) {
-                    live_photo.export_video (video_path);
+                } else {
+                    if (main_image_path != null) {
+                        live_photo.export_main_image (main_image_path);
+                    }
+                    if (video_path != null) {
+                        live_photo.export_video (video_path);
+                    }
                 }
 
                 if (frame_to_photo) {
