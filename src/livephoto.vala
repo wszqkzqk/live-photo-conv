@@ -244,7 +244,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             }
         }
 
-        var output_stream = File.new_for_commandline_arg  (video_filename).replace (null, make_backup, file_create_flags);
+        var output_stream = File.new_for_commandline_arg (video_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes after `video_offset` to the video file
         input_stream.seek (this.video_offset, SeekType.SET);
         Utils.write_stream (input_stream, output_stream);
