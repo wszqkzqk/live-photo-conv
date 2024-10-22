@@ -4,6 +4,16 @@
 
 Live Photo Converter 是一个用于处理动态照片的跨平台的工具。它可以将静态图像和视频合成为动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
 
+## 功能
+
+- `live-photo-conv`
+  - 创建动态照片
+  - 从动态照片中提取静态图像和视频
+  - 导出视频的每一帧为图片
+  - 支持导出元数据
+- `copy-exif`
+  - 从一张图片复制 EXIF 数据到另一张图片
+
 ## [背景](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
 Android 的动态照片是一种逐渐普及的媒体文件格式，它可以将包含音频的视频与静态图片结合在一起，形成一个动态的照片。这种照片已经在多种机型上得到了支持，例如 Google 的 Pixel 系列、三星的 Galaxy 系列，以及小米等厂商的大部分机型。
@@ -11,13 +21,6 @@ Android 的动态照片是一种逐渐普及的媒体文件格式，它可以将
 Android 动态照片本质上是在静态图片的末尾直接附加了一个视频文件，这个视频文件包含了音频与视频流。其中，视频文件的位置使用 `XMP` 元数据进行标记，这样在解析时可以快速找到视频文件的位置。这种格式的好处是可以在不改变原有图片的情况下，为图片添加动态效果。由于这一拓展并非图片格式的标准，因此在不支持的图片查看器上，这种图片只能被当作静态图片显示。
 
 本工具可以用于这种动态照片的提取、编辑与合成等操作。
-
-## 功能
-
-- 创建动态照片
-- 从动态照片中提取静态图像和视频
-- 导出视频的每一帧为图片
-- 支持导出元数据
 
 ## 构建
 
@@ -88,11 +91,19 @@ meson compile -C builddir
 
 ## 使用
 
-### 命令行选项
+### `live-photo-conv`
+
+#### 命令行选项
+
+```
+live-photo-conv [OPTION…] - Extract or Make Live Photos
+```
+
+请运行 `live-photo-conv --help` 查看所有命令行选项。
 
 运行 `live-photo-conv --help` 查看所有命令行选项。
 
-### 示例
+#### 示例
 
 创建动态照片：
 
@@ -110,6 +121,24 @@ live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/
 
 ```bash
 live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
+```
+
+### `copy-exif`
+
+#### 命令行选项
+
+```
+copy-exif [OPTION…] - Copy EXIF Data from One Image to Another
+```
+
+请运行 `copy-exif --help` 查看所有命令行选项。
+
+#### 示例
+
+从一张图片复制 EXIF 数据到另一张图片：
+
+```bash
+copy-exif /path/to/exif-source.jpg /path/to/dest.webp
 ```
 
 ## 由嵌入视频导出图片：用FFmpeg还是用GStreamer？
