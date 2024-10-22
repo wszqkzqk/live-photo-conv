@@ -102,7 +102,7 @@ class LivePhotoConv.CopyExif {
             metadata.save_file (dest_path);
             Reporter.info ("MetadataCopied", "EXIF data copied from `%s' to `%s'", source_path, dest_path);
         } catch (Error e) {
-            Reporter.error ("MetadataError", "Cannot open metadata from `%s': %s", source_path, e.message);
+            Reporter.error ("MetadataError", "Cannot copy EXIF data: %s", e.message);
             return 1;
         }
 
