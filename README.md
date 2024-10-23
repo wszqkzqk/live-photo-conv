@@ -151,3 +151,7 @@ The speed of exporting images using GStreamer versus FFmpeg is not always consis
 ## License
 
 This project is licensed under the LGPL-2.1-or-later license. For more details, see the `COPYING` file.
+
+## Known Issues
+
+Due to limitations of Exiv2 and the incomplete bindings of GExiv2, it is currently not possible to read or write metadata to paths containing non-ASCII characters on Windows.
