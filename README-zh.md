@@ -11,8 +11,8 @@ Live Photo Converter 是一个用于处理动态照片的跨平台的工具。�
   - 从动态照片中提取静态图像和视频
   - 导出视频的每一帧为图片
   - 支持导出元数据
-- `copy-exif`
-  - 从一张图片复制所有元数据到另一张图片
+- `copy-img-meta`
+  - 从一张图片复制元数据到另一张图片
 
 ## [背景](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
@@ -96,12 +96,30 @@ meson compile -C builddir
 #### 命令行选项
 
 ```
-live-photo-conv [OPTION…] - Extract or Make Live Photos
+Usage:
+  live-photo-conv [OPTION…] - Extract or Make Live Photos
+
+Options:
+  -h, --help                  Show help message
+  -v, --version               Display version number
+  --color=LEVEL               Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -g, --make                  Make a live photo
+  -e, --extract               Extract a live photo (default)
+  -i, --image=PATH            The path to the main static image file
+  -m, --video=PATH            The path to the video file
+  -p, --live-photo=PATH       The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
+  -d, --dest-dir=PATH         The destination directory to export
+  --export-metadata           Export metadata (default)
+  --no-export-metadata        Do not export metadata
+  --frame-to-photos           Export every frame of a live photo's video as a photo
+  -f, --img-format=FORMAT     The format of the image exported from video
+  --minimal                   Minimal metadata export, ignore unspecified exports
+  -j, --jobs=NUM              Number of jobs to use for extracting, 0 for auto (not work in FFmpeg mode)
+  --use-ffmpeg                Use FFmpeg to extract insdead of GStreamer
+  --use-gst                   Use GStreamer to extract insdead of FFmpeg (default)
 ```
 
-请运行 `live-photo-conv --help` 查看所有命令行选项。
-
-运行 `live-photo-conv --help` 查看所有命令行选项。
+运行 `live-photo-conv --help` 查看所有命令行选项。（如果没有启用GStreamer支持，`--use-ffmpeg`与`--use-gst`选项将不可用）
 
 #### 示例
 
@@ -123,22 +141,40 @@ live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/
 live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
 ```
 
-### `copy-exif`
+### `copy-img-meta`
 
 #### 命令行选项
 
 ```
-copy-exif [OPTION…] - Copy all metadata from One Image to Another
+Usage:
+  copy-img-meta [OPTION…] <exif-source-img> <dest-img> - Copy all metadata from one image to another
+
+Options:
+  -h, --help         Show help message
+  -v, --version      Display version number
+  --color=LEVEL      Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  --exclude-exif     Do not copy EXIF data
+  --with-exif        Copy EXIF data (default)
+  --exclude-xmp      Do not copy XMP data
+  --with-xmp         Copy XMP data (default)
+  --exclude-iptc     Do not copy IPTC data
+  --with-iptc        Copy IPTC data (default)
 ```
 
-请运行 `copy-exif --help` 查看所有命令行选项。
+请运行 `copy-img-meta --help` 查看所有命令行选项。
 
 #### 示例
 
 从一张图片复制所有元数据到另一张图片：
 
 ```bash
-copy-exif /path/to/exif-source.jpg /path/to/dest.webp
+copy-img-meta /path/to/exif-source.jpg /path/to/dest.webp
+```
+
+选择不复制某些元数据：
+
+```bash
+copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/dest.webp
 ```
 
 ## 由嵌入视频导出图片：用FFmpeg还是用GStreamer？
