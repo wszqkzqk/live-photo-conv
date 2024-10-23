@@ -153,3 +153,7 @@ copy-exif /path/to/exif-source.jpg /path/to/dest.webp
 ## 许可证
 
 该项目使用 LGPL-2.1-or-later 许可证。详细信息请参阅 [`COPYING`](COPYING) 文件。
+
+## 已知问题
+
+由于 Exiv2 的限制与 GExiv2 绑定的不完善，目前无法在 Windows 下向包含非 ASCII 字符的路径读取或写入元数据。
