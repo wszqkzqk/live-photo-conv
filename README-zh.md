@@ -152,7 +152,7 @@ Usage:
 Options:
   -h, --help         Show help message
   -v, --version      Display version number
-  --color=LEVEL      Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  --color=LEVEL      Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   --exclude-exif     Do not copy EXIF data
   --with-exif        Copy EXIF data (default)
   --exclude-xmp      Do not copy XMP data

@@ -32,7 +32,7 @@ class LivePhotoConv.CopyImgMeta {
     const OptionEntry[] options = {
         { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
-        { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
+        { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "exclude-exif", '\0', OptionFlags.NONE, OptionArg.NONE, ref exclude_exif, "Do not copy EXIF data", null },
         { "with-exif", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref exclude_exif, "Copy EXIF data (default)", null },
         { "exclude-xmp", '\0', OptionFlags.NONE, OptionArg.NONE, ref exclude_xmp, "Do not copy XMP data", null },
