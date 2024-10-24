@@ -34,6 +34,7 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
     * `gstreamer`
     * `gst-plugins-base-libs`
   * gdk-pixbuf2 (可选，用于从附加视频导出图片，如果没有则使用FFmpeg命令来实现)
+  * gobject-introspection (可选，用于生成GObject Introspection信息)
 * 运行依赖
   * GLib
     * GObject
@@ -54,13 +55,13 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 例如，在Arch Linux上安装依赖：
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection
 ```
 
 在Windows的MSYS2（UCRT64）环境上安装依赖：
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection
 ```
 
 ### 编译

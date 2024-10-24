@@ -1,2 +1,4 @@
 option('gst', type: 'feature', value: 'auto',
     description: 'GStreamer support')
+option('gir', type: 'feature', value: 'auto',
+    description: 'Enable GObject introspection')

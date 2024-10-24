@@ -47,10 +47,11 @@ endif
 
 liblivephototools = shared_library(
   'livephototools', lib_sources,
+  vala_gir: 'livephototools-0.1.gir',
   dependencies: basic_deps,
   include_directories: incdir,
   install: true,
-  install_dir: [true, 'include/livephototools', true]
+  install_dir: [true, 'include/livephototools', true, true]
 )
 
 install_headers(
@@ -84,3 +85,21 @@ executable('copy-img-meta',
   dependencies: basic_deps,
   include_directories: incdir,
 )
+
+g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
+if g_ir_compiler.found()
+  custom_target('livephototools typelib',
+    input: liblivephototools,
+    output: 'livephototools.typelib',
+    depends: liblivephototools,
+    command: [
+      g_ir_compiler,
+      '--shared-library',
+      '@PLAINNAME@',
+      '--output',
+      '@OUTPUT@',
+      join_paths(meson.current_build_dir(), 'livephototools-0.1.gir')],
+    install: true,
+    install_dir: get_option('libdir') / 'girepository-1.0',
+  )
+endif

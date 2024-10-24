@@ -40,7 +40,9 @@
  * - `warning(string warning_name, string msg, ...)`: A function that reports a warning message with the given warning name and message.
  * - `info(string info_name, string msg, ...)`: A function that reports an information message with the given info name and message.
  * - `clear_putserr(string msg, bool show_progress_bar = true)`: A function that clears the standard error stream and prints the given message, optionally showing a progress bar.
- */
+*/
+
+[CCode (gir_namespace = "livephototools", gir_version = "1.0")]
 namespace LivePhotoConv.Reporter {
 
     internal static ColorStats color_stats = ColorStats.UNKNOWN;
