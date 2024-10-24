@@ -34,6 +34,7 @@ This tool can be used for extracting, editing, and composing such live photos.
     * `gstreamer`
     * `gst-plugins-base-libs`
   * gdk-pixbuf2 (optional, used for exporting images from attached videos, otherwise FFmpeg commands are used)
+  * gobject-introspection (optional, used for generating GObject Introspection information)
 * Runtime Dependencies
   * GLib
     * GObject
@@ -54,13 +55,13 @@ This tool can be used for extracting, editing, and composing such live photos.
 For example, to install dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection
 ```
 
 To install dependencies on Windows by MSYS2 (UCRT64 environment):
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection
 ```
 
 ### Compilation
