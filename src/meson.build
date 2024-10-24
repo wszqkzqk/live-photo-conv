@@ -78,8 +78,8 @@ executable('live-photo-conv',
   include_directories: incdir,
 )
 
-executable('copy-exif',
-  ['copyexif.vala'],
+executable('copy-img-meta',
+  ['copyimgmeta.vala'],
   install: true,
   link_with: liblivephototools,
   dependencies: basic_deps,

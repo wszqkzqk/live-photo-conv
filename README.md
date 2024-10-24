@@ -11,7 +11,7 @@ Live Photo Converter is a cross-platform tool for processing live photos. It can
   - Extract static images and videos from live photos
   - Export every frame of a video as an image
   - Support exporting metadata
-- `copy-exif`
+- `copy-img-meta`
   - Copy all metadata from one image to another
 
 ## Background [(Chinese Introduction)](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
@@ -97,10 +97,30 @@ meson compile -C builddir
 #### Command-Line Options
 
 ```
-live-photo-conv [OPTION…] - Extract or Make Live Photos
+Usage:
+  live-photo-conv [OPTION…] - Extract or Make Live Photos
+
+Options:
+  -h, --help                  Show help message
+  -v, --version               Display version number
+  --color=LEVEL               Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -g, --make                  Make a live photo
+  -e, --extract               Extract a live photo (default)
+  -i, --image=PATH            The path to the main static image file
+  -m, --video=PATH            The path to the video file
+  -p, --live-photo=PATH       The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
+  -d, --dest-dir=PATH         The destination directory to export
+  --export-metadata           Export metadata (default)
+  --no-export-metadata        Do not export metadata
+  --frame-to-photos           Export every frame of a live photo's video as a photo
+  -f, --img-format=FORMAT     The format of the image exported from video
+  --minimal                   Minimal metadata export, ignore unspecified exports
+  -j, --jobs=NUM              Number of jobs to use for extracting, 0 for auto (not work in FFmpeg mode)
+  --use-ffmpeg                Use FFmpeg to extract insdead of GStreamer
+  --use-gst                   Use GStreamer to extract insdead of FFmpeg (default)
 ```
 
-Please run `live-photo-conv --help` to see the command-line options.
+Please run `live-photo-conv --help` to see all command line options. (If GStreamer support is not enabled, the `--use-ffmpeg` and `--use-gst` options will not be available)
 
 #### Examples
 
@@ -122,22 +142,40 @@ You can also use URI to specify the path:
 live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
 ```
 
-### `copy-exif`
+### `copy-img-meta`
 
 #### Command-Line Options
 
 ```
-copy-exif [OPTION…] <exif-source-img> <dest-img> - Copy all metadata from one image to another
+Usage:
+  copy-img-meta [OPTION…] <exif-source-img> <dest-img> - Copy all metadata from one image to another
+
+Options:
+  -h, --help         Show help message
+  -v, --version      Display version number
+  --color=LEVEL      Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  --exclude-exif     Do not copy EXIF data
+  --with-exif        Copy EXIF data (default)
+  --exclude-xmp      Do not copy XMP data
+  --with-xmp         Copy XMP data (default)
+  --exclude-iptc     Do not copy IPTC data
+  --with-iptc        Copy IPTC data (default)
 ```
 
-Please run `copy-exif --help` to see the command-line options.
+Please run `copy-img-meta --help` to see the command-line options.
 
 #### Examples
 
 Copy metadata from one image to another:
 
 ```bash
-copy-exif /path/to/exif-source.jpg /path/to/dest.webp
+copy-img-meta /path/to/exif-source.jpg /path/to/dest.webp
+```
+
+Choose not to copy certain metadata:
+
+```bash
+copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/dest.webp
 ```
 
 ## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
@@ -152,3 +190,7 @@ The speed of exporting images using GStreamer versus FFmpeg is not always consis
 ## License
 
 This project is licensed under the LGPL-2.1-or-later license. For more details, see the `COPYING` file.
+
+## Known Issues
+
+Due to limitations of Exiv2 and the incomplete bindings of GExiv2, it is currently not possible to read or write metadata to paths containing non-ASCII characters on Windows.

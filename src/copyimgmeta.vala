@@ -1,4 +1,4 @@
-/* copyexif.vala
+/* copyimgmetadata.vala
  *
  * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
@@ -20,16 +20,25 @@
 */
 
 [Compact (opaque = true)]
-class LivePhotoConv.CopyExif {
+class LivePhotoConv.CopyImgMeta {
 
     static bool show_help = false;
     static bool show_version = false;
     static int color_level = 1;
+    static bool exclude_exif = false;
+    static bool exclude_xmp = false;
+    static bool exclude_iptc = false;
 
     const OptionEntry[] options = {
         { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
-        { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
+        { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
+        { "exclude-exif", '\0', OptionFlags.NONE, OptionArg.NONE, ref exclude_exif, "Do not copy EXIF data", null },
+        { "with-exif", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref exclude_exif, "Copy EXIF data (default)", null },
+        { "exclude-xmp", '\0', OptionFlags.NONE, OptionArg.NONE, ref exclude_xmp, "Do not copy XMP data", null },
+        { "with-xmp", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref exclude_xmp, "Copy XMP data (default)", null },
+        { "exclude-iptc", '\0', OptionFlags.NONE, OptionArg.NONE, ref exclude_iptc, "Do not copy IPTC data", null },
+        { "with-iptc", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref exclude_iptc, "Copy IPTC data (default)", null },
         null
     };
 
@@ -99,6 +108,17 @@ class LivePhotoConv.CopyExif {
         var metadata = new GExiv2.Metadata ();
         try {
             metadata.open_path (source_path);
+
+            if (exclude_exif) {
+                metadata.clear_exif ();
+            }
+            if (exclude_xmp) {
+                metadata.clear_xmp ();
+            }
+            if (exclude_iptc) {
+                metadata.clear_iptc ();
+            }
+
             metadata.save_file (dest_path);
             Reporter.info ("MetadataCopied", "EXIF data copied from `%s' to `%s'", source_path, dest_path);
         } catch (Error e) {
