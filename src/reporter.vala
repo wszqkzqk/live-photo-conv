@@ -17,33 +17,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
- */
-
-/**
- * @namespace LivePhotoConv.Reporter
- * @brief Contains classes and functions for reporting information and errors.
- *
- * The `Reporter` namespace provides functionality for reporting information, errors, and warnings during the execution of the LivePhotoConv application.
- * It includes classes and functions for printing messages to the standard error stream, formatting messages with color codes, and handling console width.
- *
- * The namespace includes the following classes and enums:
- * - `ColorStats`: An enum representing the color statistics for the console output.
- * - `ColorSettings`: An enum representing the color settings for the console output.
- * - `EscapeCode`: An enum representing the escape codes for formatting console output.
- *
- * The namespace also includes the following functions:
- * - `isatty(int fd)`: A function that checks if the given file descriptor refers to a terminal.
- * - `get_console_width()`: A function that returns the width of the console.
- * - `report_failed_command(string command, int status)`: A function that reports a failed command with the given command and status.
- * - `report(string color_code, string domain_name, string msg, va_list args)`: A function that reports a message with the given color code, domain name, message, and variable arguments.
- * - `error(string error_name, string msg, ...)`: A function that reports an error message with the given error name and message.
- * - `warning(string warning_name, string msg, ...)`: A function that reports a warning message with the given warning name and message.
- * - `info(string info_name, string msg, ...)`: A function that reports an information message with the given info name and message.
- * - `clear_putserr(string msg, bool show_progress_bar = true)`: A function that clears the standard error stream and prints the given message, optionally showing a progress bar.
 */
 
-[CCode (gir_namespace = "livephototools", gir_version = "1.0")]
-namespace LivePhotoConv.Reporter {
+/**
+ * @class LivePhotoConv.Reporter
+ * @brief A class for reporting messages, errors, and warnings with optional color coding.
+ *
+ * The Reporter class provides methods to report failed commands, general messages,
+ * errors, and warnings. It supports color-coded output based on the terminal's capabilities.
+*/
+[Compact (opaque = true)]
+public class LivePhotoConv.Reporter {
 
     internal static ColorStats color_stats = ColorStats.UNKNOWN;
     public static ColorSettings color_setting = ColorSettings.AUTO;
@@ -243,112 +227,5 @@ namespace LivePhotoConv.Reporter {
         } else {
             stderr.puts (msg);
         }
-    }
-}
-
-/**
- * @class LivePhotoConv.ProgressBar
- *
- * ProgressBar is a class that provides a set of functions to show progress bar.
- */
-[Compact (opaque = true)]
-public class LivePhotoConv.ProgressBar {
-
-    string title;
-    double percentage = 0.0;
-    int total_steps;
-    int current_step = 0;
-    char fill_char;
-    char empty_char;
-
-    /**
-     * @class ProgressBar
-     *
-     * Represents a progress bar used for tracking progress of a task.
-     *
-     * @param total_steps The total number of steps in the progress bar.
-     * @param title The title of the progress bar. Default value is "Progress".
-     * @param fill_char The character used to represent filled progress. Default value is '#'.
-     * @param empty_char The character used to represent empty progress. Default value is '-'.
-     */
-    public ProgressBar (int total_steps,
-                        string title = "Progress",
-                        char fill_char = '#',
-                        char empty_char = '-') {
-        this.title = title;
-        this.total_steps = total_steps;
-        this.fill_char = fill_char;
-        this.empty_char = empty_char;
-    }
-
-    /**
-     * Updates the progress of the reporter.
-     *
-     * This method updates the progress of the reporter by incrementing the current step count and calculating the percentage of completion.
-     * It also prints the progress and returns the updated current step count.
-     *
-     * @param success_count The number of successful updates.
-     * @param failure_count The number of failed updates.
-     *
-     * @return The updated current step count.
-     */
-    public inline int update (uint success_count, uint failure_count) {
-        current_step += 1;
-        current_step = (current_step > total_steps) ? total_steps : current_step;
-        percentage = (double) current_step / total_steps * 100.0;
-        print_progress (success_count, failure_count);
-        return current_step;
-    }
-
-    /**
-     * Prints the progress of the operation.
-     *
-     * @param success_count The number of successful operations.
-     * @param failure_count The number of failed operations.
-     */
-    public inline void print_progress (uint success_count, uint failure_count) {
-        // The actual length of the prefix is the length of UNCOLORED prefix
-        // ANSI escapecode should not be counted
-        var prefix = "\rSuccess: %u Failure: %u ".printf (success_count, failure_count);
-        var prelength = prefix.length - 1; // -1 for \r
-        if (unlikely (Reporter.color_stats == Reporter.ColorStats.UNKNOWN)) {
-            Reporter.color_stats = Reporter.color_setting.to_color_stats ();
-        }
-        if (Reporter.color_stats.to_bool ()) {
-            // Optimized for string literal concatenation:
-            // Use `+` to concatenate string literals
-            // so that the compiler can optimize it to a single string literal at compile time
-            // But still use `concat` to concatenate non-literal strings, use `,` to split args
-            prefix = "\r".concat (
-                Reporter.EscapeCode.ANSI_BOLD +
-                Reporter.EscapeCode.ANSI_GREEN +
-                "Success: ",
-                success_count.to_string (),
-                Reporter.EscapeCode.ANSI_RESET +
-                " " +
-                Reporter.EscapeCode.ANSI_BOLD +
-                Reporter.EscapeCode.ANSI_RED +
-                "Failure: ",
-                failure_count.to_string (),
-                Reporter.EscapeCode.ANSI_RESET +
-                " ");
-        }
-        var builder = new StringBuilder (prefix);
-        builder.append (title);
-        // 12 is the length of ": [] 100.00%"
-        int bar_length = Reporter.get_console_width () - prelength - title.length - 12;
-        // Only the the effictive length of progressbar is no less than 5, the progressbar will be shown
-        if (Reporter.color_stats.to_bool () && bar_length >= 5) {
-            builder.append (": [");
-            var fill_length = (int) (percentage / 100.0 * bar_length);
-            builder.append (Reporter.EscapeCode.ANSI_INVERT);
-            builder.append (string.nfill (fill_length, fill_char));
-            builder.append (Reporter.EscapeCode.ANSI_RESET);
-            builder.append (string.nfill (bar_length - fill_length, empty_char));
-            builder.append_printf ("] %6.2f%%", percentage);
-        } else {
-            builder.append_printf (": %6.2f%%", percentage);
-        }
-        stderr.puts (builder.str);
     }
 }

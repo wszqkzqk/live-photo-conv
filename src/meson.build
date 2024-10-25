@@ -46,12 +46,16 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
 endif
 
 g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
-g_ir_version = '0.1'
+lib_gi_name = 'LivePhotoTools'
+lib_gi_version = '0.1'
+lib_gi = 'LivePhotoTools-' + lib_gi_version
+lib_gir = lib_gi + '.gir'
+lib_typelib = lib_gi + '.typelib'
 
 if g_ir_compiler.found()
   liblivephototools = shared_library(
     'livephototools', lib_sources,
-    vala_gir: 'livephototools-' + g_ir_version + '.gir',
+    vala_gir: lib_gir,
     dependencies: basic_deps,
     include_directories: incdir,
     install: true,
@@ -74,7 +78,7 @@ install_headers(
 
 pkg = import('pkgconfig')
 pkg.generate(
-  name: 'livephototools',
+  name: 'LivePhotoTools',
   filebase: 'livephototools',
   description: 'A library for live photo conversion',
   libraries: liblivephototools,
@@ -100,9 +104,9 @@ executable('copy-img-meta',
 )
 
 if g_ir_compiler.found()
-  custom_target('livephototools typelib',
+  custom_target(lib_typelib,
     input: liblivephototools,
-    output: 'livephototools-' + g_ir_version + '.typelib',
+    output: lib_typelib,
     depends: liblivephototools,
     command: [
       g_ir_compiler,
@@ -110,7 +114,8 @@ if g_ir_compiler.found()
       '@PLAINNAME@',
       '--output',
       '@OUTPUT@',
-      join_paths(meson.current_build_dir(), 'livephototools-' + g_ir_version + '.gir')],
+      meson.current_build_dir() / lib_gir,
+    ],
     install: true,
     install_dir: get_option('libdir') / 'girepository-1.0',
   )
