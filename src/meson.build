@@ -45,14 +45,27 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
   ]
 endif
 
-liblivephototools = shared_library(
-  'livephototools', lib_sources,
-  vala_gir: 'livephototools-0.1.gir',
-  dependencies: basic_deps,
-  include_directories: incdir,
-  install: true,
-  install_dir: [true, 'include/livephototools', true, true]
-)
+g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
+g_ir_version = '0.1'
+
+if g_ir_compiler.found()
+  liblivephototools = shared_library(
+    'livephototools', lib_sources,
+    vala_gir: 'livephototools-' + g_ir_version + '.gir',
+    dependencies: basic_deps,
+    include_directories: incdir,
+    install: true,
+    install_dir: [true, 'include/livephototools', true, true]
+  )
+else
+  liblivephototools = shared_library(
+    'livephototools', lib_sources,
+    dependencies: basic_deps,
+    include_directories: incdir,
+    install: true,
+    install_dir: [true, 'include/livephototools', true]
+  )
+endif
 
 install_headers(
   ['../include/bindings.h'],
@@ -86,11 +99,10 @@ executable('copy-img-meta',
   include_directories: incdir,
 )
 
-g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
 if g_ir_compiler.found()
   custom_target('livephototools typelib',
     input: liblivephototools,
-    output: 'livephototools.typelib',
+    output: 'livephototools-' + g_ir_version + '.typelib',
     depends: liblivephototools,
     command: [
       g_ir_compiler,
@@ -98,7 +110,7 @@ if g_ir_compiler.found()
       '@PLAINNAME@',
       '--output',
       '@OUTPUT@',
-      join_paths(meson.current_build_dir(), 'livephototools-0.1.gir')],
+      join_paths(meson.current_build_dir(), 'livephototools-' + g_ir_version + '.gir')],
     install: true,
     install_dir: get_option('libdir') / 'girepository-1.0',
   )
