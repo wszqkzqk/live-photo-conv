@@ -13,6 +13,9 @@ Live Photo Converter is a cross-platform tool for processing live photos. It can
   - Support exporting metadata
 - `copy-img-meta`
   - Copy all metadata from one image to another
+- `liblivephototools`
+  - A library that provides functions for creating and extracting live photos, as well as exporting frames from videos
+  - The library can be used in **any** language that supports **GObject Introspection**
 
 ## Background [(Chinese Introduction)](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 

@@ -13,6 +13,9 @@ Live Photo Converter 是一个用于处理动态照片的跨平台的工具。�
   - 支持导出元数据
 - `copy-img-meta`
   - 从一张图片复制元数据到另一张图片
+- `liblivephototools`
+  - 一个可用于创建和提取动态照片以及从内嵌视频中导出帧的库
+  - 可以在支持 **GObject Introspection** 的**任何**语言中使用
 
 ## [背景](https://wszqkzqk.github.io/2024/08/01/%E8%A7%A3%E6%9E%90Android%E7%9A%84%E5%8A%A8%E6%80%81%E7%85%A7%E7%89%87/)
 
