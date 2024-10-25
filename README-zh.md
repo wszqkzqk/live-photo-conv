@@ -184,7 +184,7 @@ copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/des
 
 如果在构建时启用了GStreamer支持，那么默认将使用GStreamer来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建FFmpeg子进程来导出图片。在启用了GStreamer支持的情况下，也可以通过`--use-ffmpeg`选项来使用FFmpeg。
 
-使用GStreamer与FFmpeg导出谁更快往往并不一定。笔者构建的GStreamer视频导出图片工具的编码是并行的，可以通过调整`-j`/`--jobs`选项来控制线程数。但是目前笔者没有将GStreamer的解码部分优化得很好，每次得到帧都进行了强制的颜色空间转化，这也可能会引入性能损耗。因此，目前综合来看：
+使用GStreamer与FFmpeg导出谁更快往往并不一定。笔者构建的GStreamer视频导出图片工具的编码是并行的，可以通过调整`-T`/`--threads`选项来控制线程数。但是目前笔者没有将GStreamer的解码部分优化得很好，每次得到帧都进行了强制的颜色空间转化，这也可能会引入性能损耗。因此，目前综合来看：
 
 * 所选的图片编码较慢时，GStreamer导出图片更快
 * 所选的图片编码较快时，FFmpeg导出图片更快
