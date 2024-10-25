@@ -106,7 +106,7 @@ Usage:
 Options:
   -h, --help                  Show help message
   -v, --version               Display version number
-  --color=LEVEL               Color level, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -g, --make                  Make a live photo
   -e, --extract               Extract a live photo (default)
   -i, --image=PATH            The path to the main static image file
@@ -118,7 +118,7 @@ Options:
   --frame-to-photos           Export every frame of a live photo's video as a photo
   -f, --img-format=FORMAT     The format of the image exported from video
   --minimal                   Minimal metadata export, ignore unspecified exports
-  -j, --jobs=NUM              Number of jobs to use for extracting, 0 for auto (not work in FFmpeg mode)
+  -T, --threads=NUM           Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
   --use-ffmpeg                Use FFmpeg to extract insdead of GStreamer
   --use-gst                   Use GStreamer to extract insdead of FFmpeg (default)
 ```

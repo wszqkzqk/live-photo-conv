@@ -34,7 +34,7 @@ class LivePhotoConv.Main {
     static bool export_metadata = true;
     static bool frame_to_photo = false;
     static bool minimal_export = false;
-    static int jobs = 0;
+    static int threads = 0;
 #if ENABLE_GST
     static bool use_ffmpeg = false;
 #endif
@@ -54,7 +54,7 @@ class LivePhotoConv.Main {
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a live photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
-        { "jobs", 'j', OptionFlags.NONE, OptionArg.INT, ref jobs, "Number of jobs to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
+        { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract insdead of GStreamer", null },
         { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract insdead of FFmpeg (default)", null },
@@ -162,7 +162,7 @@ class LivePhotoConv.Main {
                 }
 
                 if (frame_to_photo) {
-                    live_photo.splites_images_from_video (img_format, dest_dir, jobs);
+                    live_photo.splites_images_from_video (img_format, dest_dir, threads);
                 }
             } catch (NotLivePhotosError e) {
                 Reporter.error ("NotLivePhotosError", e.message);
