@@ -69,22 +69,21 @@ pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 ming
 
 ### Compilation
 
-Use Meson and Ninja to build the project. When configuring the build with Meson, it will automatically detect if GStreamer is supported by default (equivalent to `-Dgst=auto`):
+Use Meson and Ninja to build the project. When configuring the build with Meson, it automatically detects whether GStreamer is supported and whether GObject Introspection information can be generated.
+
+Meson build options:
+
+* `gst`
+  * Whether to enable GStreamer
+  * Possible values are `auto`, `true`, `false`. Default is `auto`.
+* `gir`
+  * Whether to generate GObject Introspection information
+  * Possible values are `auto`, `true`, `false`. Default is `auto`.
+
+You can configure the build with the following command:
 
 ```bash
 meson setup builddir --buildtype=release
-```
-
-To force the use of GStreamer, you can use `-D gst=enabled`:
-
-```bash
-meson setup builddir --buildtype=release -D gst=enabled
-```
-
-To force disable GStreamer, you can use `-D gst=disabled`:
-
-```bash
-meson setup builddir --buildtype=release -D gst=disabled
 ```
 
 Then compile the project:

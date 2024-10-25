@@ -69,22 +69,21 @@ pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 ming
 
 ### 编译
 
-使用Meson和Ninja构建项目，使用Meson配置构建时默认自动检测是否支持GStreamer（等价于`-Dgst=auto`）：
+使用Meson和Ninja构建项目，使用Meson配置构建时默认自动检测是否支持GStreamer与是否可以生成GObject Introspection信息。
+
+Meson构建选项：
+
+* `gst`
+  * 是否启用GStreamer
+  * 可选值为`auto`、`true`、`false`，默认为`auto`
+* `gir`
+  * 是否生成GObject Introspection信息
+  * 可选值为`auto`、`true`、`false`，默认为`auto`
+
+可以通过以下命令配置构建：
 
 ```bash
 meson setup builddir --buildtype=release
-```
-
-如果要强制使用GStreamer，可以使用`-D gst=enabled`：
-
-```bash
-meson setup builddir --buildtype=release -D gst=enabled
-```
-
-如果要强制禁用GStreamer，可以使用`-D gst=disabled`：
-
-```bash
-meson setup builddir --buildtype=release -D gst=disabled
 ```
 
 然后编译项目：
