@@ -39,7 +39,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     protected bool make_backup;
     protected bool export_original_metadata;
     protected FileCreateFlags file_create_flags;
-    // string xmp;
+    protected Tree<string?, string?> xmp_map;
 
     /**
      * Creates a new instance of the LivePhoto class.
@@ -63,8 +63,15 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.metadata.open_path (filename);
         this.make_backup = make_backup;
         this.file_create_flags = file_create_flags;
-        // Get XMP metadata of the image
-        // this.xmp = this.metadata.try_get_xmp_packet ();
+        // Copy the XMP metadata to the map
+        this.xmp_map = new Tree<string?, string?> ((CompareDataFunc) strcmp);
+        foreach (unowned var tag in this.metadata.get_xmp_tags ()) {
+            try {
+                this.xmp_map.insert (tag, this.metadata.try_get_tag_string (tag));
+            } catch (Error e) {
+                Reporter.warning ("XMPWarning", "Cannot get the value of the XMP tag %s: %s", tag, e.message);
+            }
+        }
 
         this.filename = filename;
         this.basename = Path.get_basename (filename);
@@ -90,9 +97,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         if (this.video_offset < 0) {
             throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
         }
-        // Remove the XMP metadata of the main image since it is not a live photo anymore
-        // MUST after `get_video_offset` because `get_video_offset` may use the XMP metadata
-        this.metadata.clear_xmp ();
+
         this.export_original_metadata = export_metadata;
     }
 
@@ -165,7 +170,9 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             Memory.copy (prev_buffer_tail, (void*) ((int64) buffer + bytes_read - TAG_LENGTH - 1), TAG_LENGTH - 1);
         }
 
-        return offset - 4; // The feature of MP4: there is 4 bytes of size before the tag.
+        // The feature of MP4: there is 4 bytes of size before the tag.
+        offset -= 4;
+        return offset;
     }
     
     /**
@@ -203,11 +210,22 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         if (export_original_metadata) {
             // Copy the metadata from the live photo to the main image
+            // Temporarily remove the XMP metadata of the main image since it is not a live photo anymore
+            this.metadata.clear_xmp ();
             try {
                 this.metadata.save_file (main_image_filename);
             } catch (Error e) {
-                throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s".printf (main_image_filename, e.message));
+                throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s", main_image_filename, e.message);
             }
+            // Restore the XMP metadata of the live photo
+            this.xmp_map.foreach ((key, value) => {
+                try {
+                    this.metadata.try_set_tag_string (key, value);
+                } catch (Error e) {
+                    Reporter.warning ("XMPWarning", "Cannot restore the value of the XMP tag %s: %s", key, e.message);
+                }
+                return false;
+            });
         }
 
         return (owned) main_image_filename;
