@@ -113,19 +113,19 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @returns the offset of the video data in the live photo， if the offset is not found, return value < 0.
      */
     inline int64 get_video_offset () throws Error {
-        try {
-            // Get the offset of the video data from the XMP metadata
-            var tag_value = this.metadata.try_get_tag_string ("Xmp.GCamera.MicroVideoOffset");
-            if (tag_value != null) {
-                int64 reverse_offset = int64.parse (tag_value);
-                if (reverse_offset > 0) {
-                    var file_size = File.new_for_commandline_arg  (this.filename)
-                        .query_info ("standard::size", FileQueryInfoFlags.NONE)
-                        .get_size ();
-                    return file_size - reverse_offset;
-                }
+        // Get the offset of the video data from the XMP metadata
+        // Look for the tag `Xmp.GCamera.MicroVideoOffset` in loaded `xmp_map`
+        var tag_value = this.xmp_map.lookup ("Xmp.GCamera.MicroVideoOffset");
+        if (tag_value != null) {
+            int64 reverse_offset = int64.parse (tag_value);
+            if (reverse_offset > 0) {
+                var file_size = File.new_for_commandline_arg  (this.filename)
+                    .query_info ("standard::size", FileQueryInfoFlags.NONE)
+                    .get_size ();
+                return file_size - reverse_offset;
             }
-        } catch {} // Not only does exception need warning, but also the following search process.
+        }
+
         // If the XMP metadata does not contain the video offset, search for the video tag in the live photo
         Reporter.warning ("XMPOffsetNotFoundWarning",
         "The XMP metadata does not contain the video offset. Searching for the video tag in the live photo.");
