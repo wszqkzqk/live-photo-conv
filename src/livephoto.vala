@@ -130,8 +130,21 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         Reporter.warning ("XMPOffsetNotFoundWarning",
         "The XMP metadata does not contain the video offset. Searching for the video tag in the live photo.");
 
-        const uint8[] VIDEO_TAG = {'f', 't', 'y', 'p'}; // The tag `....ftyp` of MP4 header.
-        const int TAG_LENGTH = VIDEO_TAG.length; // The length of the tag.
+        return this.get_video_offset_fallback ();
+    }
+
+    /**
+     * Gets the video offset in the live photo using a fallback method.
+     *
+     * This method searches for the `ftyp` tag in the MP4 header to determine the offset of the video data.
+     * It reads the file in chunks and checks for the tag, handling boundary crossing between chunks.
+     *
+     * @return The offset of the video data in the live photo.
+     * @throws Error if there is an issue reading the file.
+     */
+    inline int64 get_video_offset_fallback () throws Error {
+        const uint8[] MP4_VIDEO_HEADER = {'f', 't', 'y', 'p'}; // The tag `....ftyp` of MP4 header.
+        const int TAG_LENGTH = MP4_VIDEO_HEADER.length; // The length of the tag.
         int64 offset = -1; // The offset of the video data in the live photo.
     
         var file = File.new_for_commandline_arg  (this.filename);
@@ -151,7 +164,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     
             ssize_t buffer_offset = 0;
             for (uint i = 0; i < bytes_read; i += 1) {
-                if (buffer[i] == VIDEO_TAG[buffer_offset]) {
+                if (buffer[i] == MP4_VIDEO_HEADER[buffer_offset]) {
                     buffer_offset += 1;
                     if (buffer_offset == TAG_LENGTH) {
                         offset = position - TAG_LENGTH + 1;
@@ -170,9 +183,8 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             Memory.copy (prev_buffer_tail, (void*) ((int64) buffer + bytes_read - TAG_LENGTH - 1), TAG_LENGTH - 1);
         }
 
-        // The feature of MP4: there is 4 bytes of size before the tag.
-        offset -= 4;
-        return offset;
+        // The feature of MP4: there is TAG_LENGTH bytes of size before the tag.
+        return offset - TAG_LENGTH;
     }
     
     /**
@@ -224,7 +236,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 } catch (Error e) {
                     Reporter.warning ("XMPWarning", "Cannot restore the value of the XMP tag %s: %s", key, e.message);
                 }
-                return false;
+                return false; // Continue the loop
             });
         }
 
