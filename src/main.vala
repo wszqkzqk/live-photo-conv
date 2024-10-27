@@ -25,6 +25,8 @@ class LivePhotoConv.Main {
     static bool show_help = false;
     static bool show_version = false;
     static bool make_live_photo = false;
+    static bool repair_live_photo = false;
+    static bool force_repair = false;
     static int color_level = 1;
     static string? main_image_path = null;
     static string? video_path = null;
@@ -45,6 +47,8 @@ class LivePhotoConv.Main {
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "make", 'g', OptionFlags.NONE, OptionArg.NONE, ref make_live_photo, "Make a live photo", null },
         { "extract", 'e', OptionFlags.REVERSE, OptionArg.NONE, ref make_live_photo, "Extract a live photo (default)", null },
+        { "repair", 'r', OptionFlags.NONE, OptionArg.NONE, ref repair_live_photo, "Repair a live photo from missing XMP metadata", null },
+        { "force-repair", '\0', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force repair a live photo (force update video offset in XMP metadata)", null },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to the video file", "PATH" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file", "PATH" },
@@ -73,7 +77,7 @@ class LivePhotoConv.Main {
 #else
         var args = strdupv (original_args);
 #endif
-        var opt_context = new OptionContext ("- Extract or Make Live Photos");
+        var opt_context = new OptionContext ("- Extract, Repair or Make Live Photos");
         // DO NOT use the default help option provided by g_print
         // g_print will force to convert character set to windows's code page
         // which is imcompatible windows's bash, zsh, etc.
@@ -133,7 +137,7 @@ class LivePhotoConv.Main {
             }
         } else {
             if (live_photo_path == null) {
-                Reporter.error ("OptionError", "`--live-photo' is required in 'extract' mode");
+                Reporter.error ("OptionError", "`--live-photo' is required in 'extract' and 'repair' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
@@ -149,6 +153,12 @@ class LivePhotoConv.Main {
 #else
                 LivePhoto live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir, export_metadata);
 #endif
+                if (repair_live_photo || force_repair) {
+                    // Default minimal export for repair mode
+                    minimal_export = true;
+                    live_photo.repair_live_metadata (force_repair);
+                }
+
                 if (!minimal_export) {
                     live_photo.export_main_image (main_image_path);
                     live_photo.export_video (video_path);

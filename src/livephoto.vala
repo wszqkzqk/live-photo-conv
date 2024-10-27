@@ -284,6 +284,41 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         return (owned) video_filename;
     }
 
+    /**
+     * Repairs the video offset metadata for the current file.
+     *
+     * This function attempts to repair the video offset metadata by either using
+     * a fallback method or the standard method to retrieve the offset. If the
+     * offset is valid (non-negative), it updates the relevant metadata tags and
+     * saves the changes to the file.
+     *
+     * @param force If true, forces the use of the fallback method to get the video offset.
+     * @return Returns true if the video offset was successfully repaired, false otherwise.
+     * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
+     */
+    public void repair_live_metadata (bool force = false) throws Error {
+        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+
+        var file_size = File.new_for_commandline_arg  (this.filename)
+            .query_info ("standard::size", FileQueryInfoFlags.NONE)
+            .get_size ();
+
+        int64 reverse_offset = file_size - ((force) ? this.get_video_offset_fallback () : this.video_offset);
+
+        if (reverse_offset < 0) {
+            throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
+        }
+
+        var offset_string = reverse_offset.to_string ();
+        this.xmp_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
+        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
+        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
+        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", offset_string);
+        this.metadata.save_file (this.filename);
+
+        Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
+    }
+
     public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error;
 }
 

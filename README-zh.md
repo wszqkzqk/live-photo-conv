@@ -9,6 +9,7 @@ Live Photo Converter 是一个用于处理动态照片的跨平台的工具。�
 - `live-photo-conv`
   - 创建动态照片
   - 从动态照片中提取静态图像和视频
+  - 修复因为缺失 XMP 元数据而无法解析的动态照片
   - 导出视频的每一帧为图片
   - 支持导出元数据
 - `copy-img-meta`
@@ -100,7 +101,7 @@ meson compile -C builddir
 
 ```
 Usage:
-  live-photo-conv [OPTION…] - Extract or Make Live Photos
+  live-photo-conv [OPTION…] - Extract, Repair or Make Live Photos
 
 Options:
   -h, --help                  Show help message
@@ -108,6 +109,8 @@ Options:
   --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -g, --make                  Make a live photo
   -e, --extract               Extract a live photo (default)
+  -r, --repair                Repair a live photo from missing XMP metadata
+  --force-repair              Force repair a live photo (force update video offset in XMP metadata)
   -i, --image=PATH            The path to the main static image file
   -m, --video=PATH            The path to the video file
   -p, --live-photo=PATH       The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
@@ -142,6 +145,12 @@ live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/
 
 ```bash
 live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
+```
+
+修复动态照片：
+
+```bash
+live-photo-conv --repair --live-photo /path/to/live_photo.jpg
 ```
 
 ### `copy-img-meta`

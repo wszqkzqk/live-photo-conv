@@ -113,6 +113,7 @@ public class LivePhotoConv.LiveMaker {
 
         // Copy the metadata from the main image to the live photo
         // Set the XMP tag `LivePhoto` to `True`
+        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
