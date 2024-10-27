@@ -2,7 +2,7 @@
 
 * [中文版本](README-zh.md)
 
-Live Photo Converter is a cross-platform tool for processing live photos. It can combine a static image and a video into a live photo or extract the static image and video from a live photo. It can also export every frame of a video as an image.
+Live Photo Converter is a cross-platform tool for processing live photos. It can combine a static image and a video into a live photo, repair broken live photos, or extract the static image and video from a live photo. It can also export every frame of a video as an image.
 
 ## Features
 
