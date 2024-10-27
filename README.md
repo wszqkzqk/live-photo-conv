@@ -24,7 +24,7 @@ Android live photos are a gradually popularizing media file format that combines
 
 Essentially, an Android live photo appends a video file directly to the end of a static image. This video file contains both audio and video streams. The position of the video file is marked using `XMP` metadata, allowing quick location of the video file during parsing. The advantage of this format is that it adds dynamic effects to the image without altering the original image. Since this extension is not a standard for image formats, such images will only be displayed as static images in unsupported image viewers.
 
-This tool can be used for extracting, editing, and composing such live photos.
+This tool can be used for extracting, repairing, editing, and composing such live photos.
 
 ## Build
 
@@ -193,7 +193,7 @@ copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/des
 
 If GStreamer support is enabled during the build, GStreamer will be used by default to export images from embedded videos. Otherwise, the program will attempt to create an FFmpeg subprocess via command to export images. Even with GStreamer support enabled, you can use the `--use-ffmpeg` option to use FFmpeg.
 
-The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by the author encodes in parallel, and the number of jobs can be controlled by adjusting the `-T`/`--threads` option. However, the author has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion, which may introduce performance overhead. Therefore, in summary:
+The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by me encodes in parallel, and the number of threads can be controlled by adjusting the `-T`/`--threads` option. However, I has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion （due to the [limitation of `gdk-pixbuf2`](https://docs.gtk.org/gdk-pixbuf/property.Pixbuf.colorspace.html)）, which may introduce performance overhead. Therefore, in summary:
 
 * When the selected image encoding is slow, GStreamer exports images faster.
 * When the selected image encoding is fast, FFmpeg exports images faster.
