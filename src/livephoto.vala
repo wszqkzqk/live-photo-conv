@@ -183,8 +183,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             Memory.copy (prev_buffer_tail, (void*) ((int64) buffer + bytes_read - TAG_LENGTH - 1), TAG_LENGTH - 1);
         }
 
-        // The feature of MP4: there is TAG_LENGTH bytes of size before the tag.
-        return offset - TAG_LENGTH;
+        // The feature of MP4: there is extra 4 bytes of size before the `ftyp` tag.
+        // (It's `....ftyp` instead of `ftyp`)
+        // See also: http://www.ftyps.com/
+        return offset - 4;
     }
     
     /**
