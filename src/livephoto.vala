@@ -312,9 +312,13 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         }
 
         var offset_string = reverse_offset.to_string ();
+
+        this.xmp_map.insert ("Xmp.GCamera.MicroVideo", "1");
+        this.xmp_map.insert ("Xmp.GCamera.MicroVideoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
+
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
+        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", offset_string);
         this.metadata.save_file (this.filename);
 
