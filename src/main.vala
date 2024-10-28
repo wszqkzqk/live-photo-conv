@@ -27,6 +27,7 @@ class LivePhotoConv.Main {
     static bool make_live_photo = false;
     static bool repair_live_photo = false;
     static bool force_repair = false;
+    static uint repair_with_video_size = 0;
     static int color_level = 1;
     static string? main_image_path = null;
     static string? video_path = null;
@@ -49,6 +50,7 @@ class LivePhotoConv.Main {
         { "extract", 'e', OptionFlags.REVERSE, OptionArg.NONE, ref make_live_photo, "Extract a live photo (default)", null },
         { "repair", 'r', OptionFlags.NONE, OptionArg.NONE, ref repair_live_photo, "Repair a live photo from missing XMP metadata", null },
         { "force-repair", '\0', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force repair a live photo (force update video offset in XMP metadata)", null },
+        { "repair-with-video-size", '\0', OptionFlags.NONE, OptionArg.INT, ref repair_with_video_size, "Force repair a live photo with the specified video size", "SIZE" },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to the video file", "PATH" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file", "PATH" },
@@ -153,10 +155,10 @@ class LivePhotoConv.Main {
 #else
                 LivePhoto live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir, export_metadata);
 #endif
-                if (repair_live_photo || force_repair) {
+                if (repair_live_photo || force_repair || repair_with_video_size > 0) {
                     // Default minimal export for repair mode
                     minimal_export = true;
-                    live_photo.repair_live_metadata (force_repair);
+                    live_photo.repair_live_metadata (force_repair, repair_with_video_size);
                 }
 
                 if (!minimal_export) {

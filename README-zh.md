@@ -104,25 +104,26 @@ Usage:
   live-photo-conv [OPTION…] - Extract, Repair or Make Live Photos
 
 Options:
-  -h, --help                  Show help message
-  -v, --version               Display version number
-  --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -g, --make                  Make a live photo
-  -e, --extract               Extract a live photo (default)
-  -r, --repair                Repair a live photo from missing XMP metadata
-  --force-repair              Force repair a live photo (force update video offset in XMP metadata)
-  -i, --image=PATH            The path to the main static image file
-  -m, --video=PATH            The path to the video file
-  -p, --live-photo=PATH       The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
-  -d, --dest-dir=PATH         The destination directory to export
-  --export-metadata           Export metadata (default)
-  --no-export-metadata        Do not export metadata
-  --frame-to-photos           Export every frame of a live photo's video as a photo
-  -f, --img-format=FORMAT     The format of the image exported from video
-  --minimal                   Minimal metadata export, ignore unspecified exports
-  -T, --threads=NUM           Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
-  --use-ffmpeg                Use FFmpeg to extract insdead of GStreamer
-  --use-gst                   Use GStreamer to extract insdead of FFmpeg (default)
+  -h, --help                        Show help message
+  -v, --version                     Display version number
+  --color=LEVEL                     Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -g, --make                        Make a live photo
+  -e, --extract                     Extract a live photo (default)
+  -r, --repair                      Repair a live photo from missing XMP metadata
+  --force-repair                    Force repair a live photo (force update video offset in XMP metadata)
+  --repair-with-video-size=SIZE     Force repair a live photo with the specified video size
+  -i, --image=PATH                  The path to the main static image file
+  -m, --video=PATH                  The path to the video file
+  -p, --live-photo=PATH             The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
+  -d, --dest-dir=PATH               The destination directory to export
+  --export-metadata                 Export metadata (default)
+  --no-export-metadata              Do not export metadata
+  --frame-to-photos                 Export every frame of a live photo's video as a photo
+  -f, --img-format=FORMAT           The format of the image exported from video
+  --minimal                         Minimal metadata export, ignore unspecified exports
+  -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
+  --use-ffmpeg                      Use FFmpeg to extract insdead of GStreamer
+  --use-gst                         Use GStreamer to extract insdead of FFmpeg (default)
 ```
 
 运行 `live-photo-conv --help` 查看所有命令行选项。（如果没有启用GStreamer支持，`--use-ffmpeg`与`--use-gst`选项将不可用）

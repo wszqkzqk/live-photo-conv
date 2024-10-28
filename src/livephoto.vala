@@ -295,17 +295,25 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * saves the changes to the file.
      *
      * @param force If true, forces the use of the fallback method to get the video offset.
-     * @return Returns true if the video offset was successfully repaired, false otherwise.
+     * @param manual_video_size If greater than 0, uses this value as the video size instead of calculating it.
      * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
      */
-    public void repair_live_metadata (bool force = false) throws Error {
+    public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
         GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
 
         var file_size = File.new_for_commandline_arg  (this.filename)
             .query_info ("standard::size", FileQueryInfoFlags.NONE)
             .get_size ();
 
-        int64 reverse_offset = file_size - ((force) ? this.get_video_offset_fallback () : this.video_offset);
+        int64 reverse_offset;
+
+        if (manual_video_size > 0) {
+            reverse_offset = manual_video_size;
+        } else if (force) {
+            reverse_offset = file_size - this.get_video_offset_fallback ();
+        } else {
+            reverse_offset = file_size - this.video_offset;
+        }
 
         if (reverse_offset < 0) {
             throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
