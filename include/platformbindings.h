@@ -26,12 +26,14 @@
 #define get_console_width() get_console_width_inline()
 #define is_a_tty(fd) is_a_tty_inline(fd)
 
+G_ALWAYS_INLINE static inline int get_console_width_inline ();
+G_ALWAYS_INLINE static inline gboolean is_a_tty_inline (int fd);
+
 #if defined(_WIN32)
 #include <windows.h>
 #include <io.h>
 
-G_ALWAYS_INLINE
-static inline int get_console_width_inline () {
+int get_console_width_inline () {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     int columns;
     // GetConsoleScreenBufferInfo will return 0 if it FAILS
@@ -44,16 +46,14 @@ static inline int get_console_width_inline () {
     }
 }
 
-G_ALWAYS_INLINE
-static inline gboolean is_a_tty_inline (int fd) {
+gboolean is_a_tty_inline (int fd) {
     return (gboolean) (_isatty (fd) != 0);
 }
 #else
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-G_ALWAYS_INLINE
-static inline int get_console_width_inline () {
+int get_console_width_inline () {
     struct winsize w;
     // ioctl will return 0 if it SUCCEEDS
     int fail  = ioctl (STDERR_FILENO, TIOCGWINSZ, &w);
@@ -64,8 +64,7 @@ static inline int get_console_width_inline () {
     }
 }
 
-G_ALWAYS_INLINE
-static inline gboolean is_a_tty_inline (int fd) {
+gboolean is_a_tty_inline (int fd) {
     return (gboolean) (isatty (fd) != 0);
 }
 #endif
