@@ -100,10 +100,13 @@ public class LivePhotoConv.LiveMaker {
 
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 
+        var output_stream = live_file.replace (null, false, FileCreateFlags.NONE);
         // Copy the main image to the live photo
         var main_input_stream = main_file.read ();
-        var output_stream = live_file.replace (null, false, FileCreateFlags.NONE);
         Utils.write_stream (main_input_stream, output_stream);
+        // Copy the video to the live photo
+        var video_input_stream = video_file.read ();
+        Utils.write_stream (video_input_stream, output_stream);
         output_stream.close ();
 
         // Copy the metadata from the main image to the live photo
@@ -118,12 +121,7 @@ public class LivePhotoConv.LiveMaker {
             throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
         }
 
-        // Copy the video to the live photo
-        var video_input_stream = video_file.read ();
-        var append_stream = live_file.append_to (FileCreateFlags.NONE, null);
-        Utils.write_stream (video_input_stream, append_stream);
-        append_stream.close ();
-
+        // Only when metadata is exported, the live photo is considered as successfully exported
         Reporter.info ("Exported live photo", this.dest);
     }
 }
