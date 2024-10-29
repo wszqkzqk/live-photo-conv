@@ -24,6 +24,7 @@ lib_sources = [
   'livephoto.vala',
   'livephotoffmpeg.vala',
   'main.vala',
+  'platformbindings.c',
   'reporter.vala',
   'utils.vala',
   version_file,
@@ -71,8 +72,9 @@ else
   )
 endif
 
+
 install_headers(
-  ['../include/bindings.h'],
+  ['../include/platformbindings.h'],
   subdir: 'livephototools',
 )
 
