@@ -95,20 +95,15 @@ public class LivePhotoConv.LiveMaker {
      */
     public void export (string? dest = null) throws Error {
         var live_file = File.new_for_commandline_arg  ((dest == null) ? this.dest : dest);
-        var output_stream = live_file.replace (null, false, FileCreateFlags.NONE);
-
         var main_file = File.new_for_commandline_arg  (this.main_image_path);
-        var main_input_stream = main_file.read ();
-
         var video_file = File.new_for_commandline_arg  (this.video_path);
-        var video_input_stream = video_file.read ();
+
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 
         // Copy the main image to the live photo
+        var main_input_stream = main_file.read ();
+        var output_stream = live_file.replace (null, false, FileCreateFlags.NONE);
         Utils.write_stream (main_input_stream, output_stream);
-        // Copy the video to the live photo
-        Utils.write_stream (video_input_stream, output_stream);
-
         output_stream.close ();
 
         // Copy the metadata from the main image to the live photo
@@ -123,9 +118,12 @@ public class LivePhotoConv.LiveMaker {
             throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
         }
 
-        // This is different from others: if metadata export fails,
-        // the live photo will be considered as invalid, so `Exported` message is not printed.
-        // This info report must be placed after the metadata export.
+        // Copy the video to the live photo
+        var video_input_stream = video_file.read ();
+        var append_stream = live_file.append_to (FileCreateFlags.NONE, null);
+        Utils.write_stream (video_input_stream, append_stream);
+        append_stream.close ();
+
         Reporter.info ("Exported live photo", this.dest);
     }
 }
