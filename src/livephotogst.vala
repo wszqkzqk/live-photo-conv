@@ -123,7 +123,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         Gst.Sample sample;
         uint index = 1;
         string filename_no_index_ext = Path.build_filename (
-            dest_dir,
+            (dest_dir == null) ? this.dest_dir : dest_dir,
             ((this.basename.has_prefix ("MVIMG")) ?
                 "IMG" + this.basename_no_ext[5:] :
                 this.basename_no_ext)
