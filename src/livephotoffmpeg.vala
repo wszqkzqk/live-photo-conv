@@ -1,6 +1,4 @@
-/* livephotoffmpeg.vala
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,14 +15,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
- */
+*/
 
 
 /**
  * @class LivePhotoConv.LivePhotoFFmpeg
  *
  * Represents a class that extends the LivePhoto class and provides functionality for working with live photos using FFmpeg.
- */
+*/
 public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 
     /**
@@ -42,7 +40,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
      * @param export_metadata Whether to export the original metadata of the live photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
-     */
+    */
     public LivePhotoFFmpeg (string filename, string? dest_dir = null, bool export_metadata = true,
                               FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
         base (filename, dest_dir, export_metadata, file_create_flags, make_backup);
@@ -61,7 +59,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
      *
      * @throws Error If FFmpeg exits with an error.
-     */
+    */
      public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 1) throws Error {
         /* Export the video of the live photo and split the video into images. */
         string name_to_printf;

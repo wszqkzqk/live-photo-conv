@@ -1,6 +1,4 @@
-/* platformbindings.h
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +15,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
- */
+*/
 
 #pragma once
 

@@ -1,6 +1,4 @@
-/* utils.vala
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,7 +30,7 @@ namespace LivePhotoConv.Utils {
      * @param input_stream The input stream to read from.
      * @throws IOError if an error occurs while reading from the input stream.
      * @return The string read from the input stream.
-     */
+    */
     public string get_string_from_file_input_stream (InputStream input_stream) throws IOError {
         StringBuilder? builder = null;
         uint8[] buffer = new uint8[BUFFER_SIZE + 1]; // allocate one more byte for the null terminator
@@ -58,7 +56,7 @@ namespace LivePhotoConv.Utils {
      * @param output_stream The output stream to write to.
      *
      * @throws IOError if an error occurs while reading from or writing to the streams.
-     */
+    */
     public void write_stream (InputStream input_stream, OutputStream output_stream) throws IOError {
         var buffer = new uint8[BUFFER_SIZE];
         ssize_t bytes_read;
@@ -77,7 +75,7 @@ namespace LivePhotoConv.Utils {
      * @param end The position in the input stream to stop writing data at.
      *
      * @throws IOError if an error occurs while reading from or writing to the streams.
-     */
+    */
     public void write_stream_before (InputStream input_stream, OutputStream output_stream, int64 end) throws IOError {
         var bytes_to_write = end;
         var buffer = new uint8[BUFFER_SIZE];

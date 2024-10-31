@@ -1,6 +1,4 @@
-/* sample2img.vala
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,13 +15,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
- */
+*/
 
 /**
  * @class LivePhotoConv.Sample2Img
  *
  * Represents a class for converting a GStreamer sample to an image file.
- */
+*/
 [Compact (opaque = true)]
 public class LivePhotoConv.Sample2Img {
     Gst.Sample sample;
@@ -36,7 +34,7 @@ public class LivePhotoConv.Sample2Img {
      * @param sample The Gst.Sample object to be processed.
      * @param filename The name of the output file.
      * @param output_format The format of the output file.
-     */
+    */
     public Sample2Img (Gst.Sample sample, string filename, string output_format) {
         this.sample = sample;
         this.filename = filename;
@@ -48,7 +46,7 @@ public class LivePhotoConv.Sample2Img {
      *
      * @param metadata The metadata to be saved along with the image. (optional)
      * @throws Error if an error occurs during the export process.
-     */
+    */
     public void export (GExiv2.Metadata? metadata = null) throws Error {
         unowned var buffer = this.sample.get_buffer ();
         unowned var caps = this.sample.get_caps ();

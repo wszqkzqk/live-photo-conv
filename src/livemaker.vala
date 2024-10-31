@@ -1,6 +1,4 @@
-/* livephoto.vala
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,14 +15,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
- */
+*/
 
 /**
  * @class LivePhotoConv.LiveMaker
  *
  * Represents a live photo maker. This class provides a set of functions
  * to create a live photo by combining a main image and a video file.
- */
+*/
 public class LivePhotoConv.LiveMaker {
 
     string main_image_path;
@@ -49,7 +47,7 @@ public class LivePhotoConv.LiveMaker {
      * If not provided, a default destination path will be generated based on the main image file.
      * @param export_original_metadata Whether to export the metadata from the main image to the live photo.
      * @throws Error if there is an error opening the main image file.
-     */
+    */
     public LiveMaker (string main_image_path, string video_path,
                         string? dest = null, bool export_original_metadata = true,
                         FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION,
@@ -92,7 +90,7 @@ public class LivePhotoConv.LiveMaker {
      *
      * @param dest The destination path for the live image file. If not provided, the default destination path will be used.
      * @throws Error if there is an error during the process.
-     */
+    */
     public void export (string? dest = null) throws Error {
         var live_file = File.new_for_commandline_arg  ((dest == null) ? this.dest : dest);
         var main_file = File.new_for_commandline_arg  (this.main_image_path);

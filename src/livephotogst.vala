@@ -1,6 +1,4 @@
-/* livephotogst.vala
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,7 +21,7 @@
  * @class LivePhotoConv.LivePhotoGst
  *
  * Represents a class that extends the LivePhoto class and provides functionality for working with live photos using GStreamer.
- */
+*/
 public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     /**
      * Creates a new instance of the LivePhotoGst class.
@@ -40,7 +38,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
      * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
      * @param export_metadata Whether to export the original metadata of the live photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
-     */
+    */
     public LivePhotoGst (string filename, string? dest_dir = null, bool export_metadata = true,
                            FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
         base (filename, dest_dir, export_metadata, file_create_flags, make_backup);
@@ -59,7 +57,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
      * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
      *
      * @throws Error If FFmpeg exits with an error.
-     */
+    */
     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error {
         // Enpty args to Gst
         unowned string[] args = null;

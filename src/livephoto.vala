@@ -1,6 +1,4 @@
-/* livephoto.vala
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +15,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
- */
+*/
 
 /**
  * @class LivePhotoConv.LivePhoto
@@ -26,7 +24,7 @@
  *
  * This class provides a set of functions to extract the main image and video from a live photo.
  * Also, it can split the video into images.
- */
+*/
 public abstract class LivePhotoConv.LivePhoto : Object {
 
     protected string basename;
@@ -56,7 +54,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
      * @param export_metadata Whether to export the original metadata of the live photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
-     */
+    */
     protected LivePhoto (string filename, string? dest_dir = null, bool export_metadata = true,
                         FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
         this.metadata = new GExiv2.Metadata ();
@@ -111,7 +109,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @throws Error if an error occurs while retrieving the offset.
      *
      * @returns the offset of the video data in the live photo， if the offset is not found, return value < 0.
-     */
+    */
     inline int64 get_video_offset () throws Error {
         // Get the offset of the video data from the XMP metadata
         // Look for the tag `Xmp.GCamera.MicroVideoOffset` in loaded `xmp_map`
@@ -141,7 +139,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * @return The offset of the video data in the live photo.
      * @throws Error if there is an issue reading the file.
-     */
+    */
     inline int64 get_video_offset_fallback () throws Error {
         const uint8[] MP4_VIDEO_HEADER = {'f', 't', 'y', 'p'}; // The tag `....ftyp` of MP4 header.
         const int TAG_LENGTH = MP4_VIDEO_HEADER.length; // The length of the tag.
@@ -198,7 +196,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @param dest The destination path for the exported main image. If null, a default path will be used.
      * @throws Error if there is an error during the export process.
      * @returns The path of the exported main image.
-     */
+    */
     public string export_main_image (string? dest = null) throws Error {
         // Export the bytes before `video_offset`
         var file = File.new_for_commandline_arg  (this.filename);
@@ -255,7 +253,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @param dest The destination path for the exported video. If not provided, a default path will be used.
      * @throws Error if there is an error during the export process.
      * @returns The path of the exported video file.
-     */
+    */
     public string export_video (string? dest = null) throws Error {
         /* Export the video of the live photo. */
         // Export the bytes after `video_offset`
@@ -297,7 +295,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @param force If true, forces the use of the fallback method to get the video offset.
      * @param manual_video_size If greater than 0, uses this value as the video size instead of calculating it.
      * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
-     */
+    */
     public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
         GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
 

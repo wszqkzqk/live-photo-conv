@@ -1,6 +1,4 @@
-/* reporter.vala
- *
- * Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -111,7 +109,7 @@ public class LivePhotoConv.Reporter {
      *
      * @param command The command that failed.
      * @param status The status code of the failed command.
-     */
+    */
     public static inline void report_failed_command (string command, int status) {
         if (color_setting.to_bool ()) {
             stderr.printf ("Command `%s%s%s' failed with status: %s%d%s\n",
@@ -135,7 +133,7 @@ public class LivePhotoConv.Reporter {
      * @param domain_name The domain name associated with the message.
      * @param msg The message to report.
      * @param args The arguments to format the message.
-     */
+    */
     public static inline void report (string color_code, string domain_name, string msg, va_list args) {
         if (color_setting.to_bool ()) {
             stderr.puts (Reporter.EscapeCode.ANSI_BOLD.concat (
@@ -158,7 +156,7 @@ public class LivePhotoConv.Reporter {
      * @param error_name The name of the error.
      * @param msg The error message.
      * @param ... Additional arguments for the error message.
-     */
+    */
     [PrintfFormat]
     public static void error (string error_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_RED, error_name, msg, va_list ());
@@ -170,7 +168,7 @@ public class LivePhotoConv.Reporter {
      * @param warning_name The name of the warning.
      * @param msg The warning message.
      * @param ... Additional arguments for the message format.
-     */
+    */
     [PrintfFormat]
     public static void warning (string warning_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_MAGENTA, warning_name, msg, va_list ());
@@ -182,7 +180,7 @@ public class LivePhotoConv.Reporter {
      * @param info_name The name of the information.
      * @param msg The message to be printed.
      * @param ... Additional arguments to be formatted.
-     */
+    */
     [PrintfFormat]
     public static void info (string info_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_CYAN, info_name, msg, va_list ());
@@ -193,7 +191,7 @@ public class LivePhotoConv.Reporter {
      *
      * @param msg The message to be printed.
      * @param show_progress_bar Whether to show a progress bar or not. Default is true.
-     */
+    */
     public static void clear_putserr (string msg, bool show_progress_bar = true) {
         if (show_progress_bar) {
             stderr.printf ("\r%s\r%s",
