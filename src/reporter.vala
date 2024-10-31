@@ -29,7 +29,6 @@
 [Compact (opaque = true)]
 public class LivePhotoConv.Reporter {
 
-    internal static ColorStats color_stats = ColorStats.UNKNOWN;
     public static ColorSettings color_setting = ColorSettings.AUTO;
 
     [CCode (cheader_filename = "platformbindings.h", cname = "is_a_tty")]
@@ -38,31 +37,16 @@ public class LivePhotoConv.Reporter {
     public extern static int get_console_width ();
 
     [CCode (has_type_id = false)]
-    internal enum ColorStats {
-        NO,
-        YES,
-        UNKNOWN;
-
-        internal inline bool to_bool () {
-            switch (this) {
-            case YES: return true;
-            case NO: return false;
-            default: return Log.writer_supports_color (stderr.fileno ());
-            }
-        }
-    }
-
-    [CCode (has_type_id = false)]
     public enum ColorSettings {
         NEVER,
         ALWAYS,
         AUTO;
 
-        internal inline ColorStats to_color_stats () {
+        public inline bool to_bool () {
             switch (this) {
-            case ALWAYS: return ColorStats.YES;
-            case NEVER: return ColorStats.NO;
-            default: return Log.writer_supports_color (stderr.fileno ()) ? ColorStats.YES : ColorStats.NO;
+            case NEVER: return false;
+            case ALWAYS: return true;
+            default: return Log.writer_supports_color (stderr.fileno ());
             }
         }
     }
@@ -129,10 +113,7 @@ public class LivePhotoConv.Reporter {
      * @param status The status code of the failed command.
      */
     public static inline void report_failed_command (string command, int status) {
-        if (unlikely (color_stats == ColorStats.UNKNOWN)) {
-            color_stats = color_setting.to_color_stats ();
-        }
-        if (color_stats.to_bool ()) {
+        if (color_setting.to_bool ()) {
             stderr.printf ("Command `%s%s%s' failed with status: %s%d%s\n",
                 Reporter.EscapeCode.ANSI_BOLD + EscapeCode.ANSI_YELLOW,
                 command,
@@ -156,10 +137,7 @@ public class LivePhotoConv.Reporter {
      * @param args The arguments to format the message.
      */
     public static inline void report (string color_code, string domain_name, string msg, va_list args) {
-        if (unlikely (color_stats == ColorStats.UNKNOWN)) {
-            color_stats = color_setting.to_color_stats ();
-        }
-        if (color_stats.to_bool ()) {
+        if (color_setting.to_bool ()) {
             stderr.puts (Reporter.EscapeCode.ANSI_BOLD.concat (
                     color_code,
                     domain_name,
@@ -217,9 +195,6 @@ public class LivePhotoConv.Reporter {
      * @param show_progress_bar Whether to show a progress bar or not. Default is true.
      */
     public static void clear_putserr (string msg, bool show_progress_bar = true) {
-        if (unlikely (color_stats == ColorStats.UNKNOWN)) {
-            color_stats = color_setting.to_color_stats ();
-        }
         if (show_progress_bar) {
             stderr.printf ("\r%s\r%s",
                 string.nfill (get_console_width (), ' '),
