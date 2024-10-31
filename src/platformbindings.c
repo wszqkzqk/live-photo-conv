@@ -21,11 +21,17 @@
 
 #include <glib.h>
 
-#if defined(_WIN32)
+#if defined(_WIN32) // Windows
 #include <windows.h>
 #include <io.h>
 
+#else // Unix
+#include <sys/ioctl.h>
+#include <unistd.h>
+#endif
+
 int get_console_width () {
+#if defined(_WIN32)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     int columns;
     // GetConsoleScreenBufferInfo will return 0 if it FAILS
@@ -36,16 +42,7 @@ int get_console_width () {
     } else {
         return 0;
     }
-}
-
-gboolean is_a_tty (int fd) {
-    return (gboolean) (_isatty (fd) != 0);
-}
-#else
-#include <sys/ioctl.h>
-#include <unistd.h>
-
-int get_console_width () {
+#else // Unix
     struct winsize w;
     // ioctl will return 0 if it SUCCEEDS
     int fail  = ioctl (STDERR_FILENO, TIOCGWINSZ, &w);
@@ -54,9 +51,13 @@ int get_console_width () {
     } else {
         return (int) w.ws_col;
     }
+#endif
 }
 
 gboolean is_a_tty (int fd) {
+#if defined(_WIN32)
+    return (gboolean) (_isatty (fd) != 0);
+#else // Unix
     return (gboolean) (isatty (fd) != 0);
-}
 #endif
+}
