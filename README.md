@@ -47,6 +47,8 @@ This tool can be used for extracting, repairing, editing, and composing such liv
   * GStreamer (required when built with GStreamer support)
     * `gstreamer`
     * `gst-plugins-base-libs`
+    * `gst-plugins-good`
+    * `gst-plugins-bad`
   * gdk-pixbuf2 (required when built with GStreamer support)
     * `gdk-pixbuf2`
     * To support more export formats, you can install optional dependencies such as:
@@ -59,13 +61,13 @@ This tool can be used for extracting, repairing, editing, and composing such liv
 For example, to install dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad
 ```
 
 To install dependencies on Windows by MSYS2 (UCRT64 environment):
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
 ```
 
 ### Compilation

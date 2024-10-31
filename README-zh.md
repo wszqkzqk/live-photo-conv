@@ -47,6 +47,8 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
   * GStreamer （在针对GStreamer构建时需要）
     * `gstreamer`
     * `gst-plugins-base-libs`
+    * `gst-plugins-good`
+    * `gst-plugins-bad`
   * gdk-pixbuf2 （在针对GStreamer构建时需要）
     * `gdk-pixbuf2`
     * 如果想要支持更多导出格式，可以安装可选依赖，例如：
@@ -59,13 +61,13 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 例如，在Arch Linux上安装依赖：
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad
 ```
 
 在Windows的MSYS2（UCRT64）环境上安装依赖：
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base-libs mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
 ```
 
 ### 编译

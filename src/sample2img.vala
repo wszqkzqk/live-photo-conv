@@ -37,7 +37,7 @@ public class LivePhotoConv.Sample2Img {
      * @param filename The name of the output file.
      * @param output_format The format of the output file.
      */
-    public Sample2Img (owned Gst.Sample sample, string filename, string output_format) {
+    public Sample2Img (Gst.Sample sample, string filename, string output_format) {
         this.sample = sample;
         this.filename = filename;
         this.output_format = output_format;
