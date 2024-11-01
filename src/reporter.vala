@@ -201,4 +201,111 @@ public class LivePhotoConv.Reporter {
             stderr.puts (msg);
         }
     }
+
+    /**
+     * @class LivePhotoConv.Reporter.ProgressBar
+     * @brief A progress bar class for displaying progress in the terminal.
+     *
+     * The ProgressBar class provides a simple implementation of a progress bar that
+     * can display the progress of operations in the terminal, including counts of
+     * successes and failures.
+     */
+    [Compact (opaque = true)]
+    public class ProgressBar {
+
+        string title;
+        double percentage = 0.0;
+        int total_steps;
+        int current_step = 0;
+        char fill_char;
+        char empty_char;
+
+        /**
+         * Constructs a ProgressBar object.
+         *
+         * @param total_steps The total number of steps.
+         * @param title The title of the progress bar, defaults to "Progress".
+         * @param fill_char The character for the completed portion, defaults to '#'.
+         * @param empty_char The character for the incomplete portion, defaults to '-'.
+         */
+        public ProgressBar (int total_steps,
+                            string title = "Progress",
+                            char fill_char = '#',
+                            char empty_char = '-') {
+            this.title = title;
+            this.total_steps = total_steps;
+            this.fill_char = fill_char;
+            this.empty_char = empty_char;
+        }
+
+        /**
+         * Updates the progress bar state.
+         *
+         * @param success_count The number of successes.
+         * @param failure_count The number of failures.
+         * @return The current step number.
+         */
+        public inline int update (uint success_count, uint failure_count) {
+            current_step += 1;
+            current_step = (current_step > total_steps) ? total_steps : current_step;
+            percentage = (double) current_step / total_steps * 100.0;
+            print_progress (success_count, failure_count);
+            return current_step;
+        }
+
+        /**
+         * Prints the current progress bar to the standard error output.
+         *
+         * @param success_count The number of successes.
+         * @param failure_count The number of failures.
+         */
+        public inline void print_progress (uint success_count, uint failure_count) {
+            // The actual length of the prefix is the length of UNCOLORED prefix
+            // ANSI escapecode should not be counted
+            var prefix = "\rSuccess: %u Failure: %u ".printf (success_count, failure_count);
+            var prelength = prefix.length - 1; // -1 for \r
+            if (Reporter.color_setting.to_bool ()) {
+                // Optimized for string literal concatenation:
+                // Use `+` to concatenate string literals
+                // so that the compiler can optimize it to a single string literal at compile time
+                // But still use `concat` to concatenate non-literal strings, use `,` to split args
+                prefix = "\r".concat (
+                    Reporter.EscapeCode.ANSI_BOLD +
+                    Reporter.EscapeCode.ANSI_GREEN +
+                    "Success: ",
+                    success_count.to_string (),
+                    Reporter.EscapeCode.ANSI_RESET +
+                    " " +
+                    Reporter.EscapeCode.ANSI_BOLD +
+                    Reporter.EscapeCode.ANSI_RED +
+                    "Failure: ",
+                    failure_count.to_string (),
+                    Reporter.EscapeCode.ANSI_RESET +
+                    " ");
+            }
+            var builder = new StringBuilder (prefix);
+            builder.append (title);
+            // 12 is the length of ": [] 100.00%"
+            int bar_length = Reporter.get_console_width () - prelength - title.length - 12;
+            // Only the the effictive length of progressbar is no less than 5, the progressbar will be shown
+            if (Reporter.color_setting.to_bool () && bar_length >= 5) {
+                builder.append (": [");
+                var fill_length = (int) (percentage / 100.0 * bar_length);
+                builder.append (Reporter.EscapeCode.ANSI_INVERT);
+                builder.append (string.nfill (fill_length, fill_char));
+                builder.append (Reporter.EscapeCode.ANSI_RESET);
+                builder.append (string.nfill (bar_length - fill_length, empty_char));
+                builder.append_printf ("] %6.2f%%", percentage);
+            } else if (isatty (stderr.fileno ()) && bar_length >= 5) {
+                builder.append (": [");
+                var fill_length = (int) (percentage / 100.0 * bar_length);
+                builder.append (string.nfill (fill_length, fill_char));
+                builder.append (string.nfill (bar_length - fill_length, empty_char));
+                builder.append_printf ("] %6.2f%%", percentage);
+            } else {
+                builder.append_printf (": %6.2f%%", percentage);
+            }
+            stderr.puts (builder.str);
+        }
+    }
 }
