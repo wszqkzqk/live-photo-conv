@@ -119,14 +119,14 @@ class LivePhotoConv.Main {
         }
 
         if (make_live_photo) {
-            if (main_image_path == null || video_path == null) {
-                Reporter.error ("OptionError", "`--image' and `--video' are required in 'make' mode");
+            if (video_path == null) {
+                Reporter.error ("OptionError", "`--video' are required in 'make' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
 
             try {
-                var live_maker = new LiveMaker (main_image_path, video_path, live_photo_path) {
+                var live_maker = new LiveMakerFFmpeg (main_image_path, video_path, live_photo_path) {
                     export_original_metadata = export_metadata,
                 };
                 live_maker.export ();

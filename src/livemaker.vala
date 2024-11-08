@@ -23,12 +23,12 @@
  * Represents a live photo maker. This class provides a set of functions
  * to create a live photo by combining a main image and a video file.
 */
-public class LivePhotoConv.LiveMaker : Object {
+public abstract class LivePhotoConv.LiveMaker : Object {
 
-    GExiv2.Metadata metadata;
-    string main_image_path;
-    string video_path;
-    string dest;
+    protected GExiv2.Metadata metadata;
+    string? main_image_path = null;
+    protected string video_path;
+    protected string dest;
 
     public bool make_backup {
         get;
@@ -61,26 +61,34 @@ public class LivePhotoConv.LiveMaker : Object {
      * If not provided, a default destination path will be generated based on the main image file.
      * @throws Error if there is an error opening the main image file.
     */
-    public LiveMaker (string main_image_path, string video_path, string? dest = null) {
+    protected LiveMaker (string? main_image_path, string video_path, string? dest = null) {
         this.main_image_path = main_image_path;
         this.video_path = video_path;
 
         if (dest != null) {
             this.dest = dest;
-        } else {
+        } else if (main_image_path != null && main_image_path.has_prefix ("IMG")) {
             var main_basename = Path.get_basename (main_image_path);
-            if (main_basename.has_prefix ("IMG")) {
-                main_basename = "MVIMG" + main_basename[3:];
-                this.dest = Path.build_filename (Path.get_dirname (main_image_path), main_basename);
+            main_basename = "MVIMG" + main_basename[3:];
+            this.dest = Path.build_filename (Path.get_dirname (main_image_path), main_basename);
+        } else {
+            string dest_name;
+            var video_basename = Path.get_basename (video_path);
+            if (video_basename.has_prefix ("VID")) {
+                dest_name = "MVIMG" + video_basename[3:];
             } else {
-                var video_basename = Path.get_basename (video_path);
-                if (video_basename.has_prefix ("VID")) {
-                    video_basename = "MVIMG" + video_basename[3:];
-                    this.dest = Path.build_filename (Path.get_dirname (main_image_path), video_basename);
-                } else {
-                    this.dest = Path.build_filename (Path.get_dirname (main_image_path), "MVIMG_" + main_basename);
-                }
+                dest_name = "MVIMG" + video_basename;
             }
+
+            var last_dot = dest_name.last_index_of_char ('.');
+            if (last_dot != -1) {
+                dest_name = dest_name[0:last_dot];
+            }
+
+            this.dest = Path.build_filename (
+                Path.get_dirname (video_path),
+                dest_name + ".jpg"
+            );
         }
 
         this.metadata = new GExiv2.Metadata ();
@@ -95,27 +103,12 @@ public class LivePhotoConv.LiveMaker : Object {
      * @throws Error if there is an error during the process.
     */
     public void export () throws Error {
-        this.metadata.open_path (main_image_path);
-        if (! this.export_original_metadata) {
-            // Need to manually clear the metadata if it's not to be exported
-            // Because the main image including the metadata is fully copied
-            this.metadata.clear ();
+        int64 video_size = 0;
+        if (this.main_image_path != null) {
+            video_size = this.export_with_main_image ();
+        } else {
+            video_size = this.export_with_video_only ();
         }
-
-        var live_file = File.new_for_commandline_arg  (this.dest);
-        var main_file = File.new_for_commandline_arg  (this.main_image_path);
-        var video_file = File.new_for_commandline_arg  (this.video_path);
-
-        var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
-
-        var output_stream = live_file.replace (null, false, FileCreateFlags.NONE);
-        // Copy the main image to the live photo
-        var main_input_stream = main_file.read ();
-        Utils.write_stream (main_input_stream, output_stream);
-        // Copy the video to the live photo
-        var video_input_stream = video_file.read ();
-        Utils.write_stream (video_input_stream, output_stream);
-        output_stream.close ();
 
         // Copy the metadata from the main image to the live photo
         // Set the XMP tag `LivePhoto` to `True`
@@ -128,8 +121,34 @@ public class LivePhotoConv.LiveMaker : Object {
         }  catch (Error e) {
             throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
         }
-
-        // Only when metadata is exported, the live photo is considered as successfully exported
         Reporter.info ("Exported live photo", this.dest);
     }
+
+    inline int64 export_with_main_image () throws Error {
+        this.metadata.open_path (main_image_path);
+        if (! this._export_original_metadata) {
+            // Need to manually clear the metadata if it's not to be exported
+            // Because the main image including the metadata is fully copied
+            this.metadata.clear ();
+        }
+
+        var live_file = File.new_for_commandline_arg  (this.dest);
+        var main_file = File.new_for_commandline_arg  (this.main_image_path);
+        var video_file = File.new_for_commandline_arg  (this.video_path);
+
+        var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+
+        var output_stream = live_file.replace (null, this._make_backup, this._file_create_flags);
+        // Copy the main image to the live photo
+        var main_input_stream = main_file.read ();
+        Utils.write_stream (main_input_stream, output_stream);
+        // Copy the video to the live photo
+        var video_input_stream = video_file.read ();
+        Utils.write_stream (video_input_stream, output_stream);
+        output_stream.close ();
+
+        return video_size;
+    }
+
+    protected abstract int64 export_with_video_only () throws Error;
 }

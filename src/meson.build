@@ -21,6 +21,7 @@ gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 lib_sources = [
   'errordomains.vala',
   'livemaker.vala',
+  'livemakerffmpeg.vala',
   'livephoto.vala',
   'livephotoffmpeg.vala',
   'main.vala',
@@ -71,7 +72,6 @@ else
     install_dir: [true, 'include/livephototools', true]
   )
 endif
-
 
 install_headers(
   ['../include/platformbindings.h'],
