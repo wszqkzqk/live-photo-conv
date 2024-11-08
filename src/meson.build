@@ -42,6 +42,7 @@ if gst.found() and gst_app.found() and gdk_pixbuf.found()
   ]
 
   lib_sources += [
+    'livemakergst.vala',
     'livephotogst.vala',
     'sample2img.vala'
   ]

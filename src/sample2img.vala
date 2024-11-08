@@ -78,4 +78,27 @@ public class LivePhotoConv.Sample2Img {
             }
         }
     }
+
+    public void save_to_stream (OutputStream stream) throws Error {
+        unowned var buffer = this.sample.get_buffer ();
+        unowned var caps = this.sample.get_caps ();
+        unowned var info = caps.get_structure (0);
+        int width, height;
+        info.get_int ("width", out width);
+        info.get_int ("height", out height);
+        
+        Gst.MapInfo map;
+        buffer.map (out map, Gst.MapFlags.READ);
+        Gdk.Pixbuf pixbuf = new Gdk.Pixbuf.from_data (
+            map.data,
+            Gdk.Colorspace.RGB,
+            false,
+            8,
+            width,
+            height,
+            width * 3
+        );
+
+        pixbuf.save_to_stream (stream, output_format);
+    }
 }

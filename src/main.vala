@@ -126,10 +126,24 @@ class LivePhotoConv.Main {
             }
 
             try {
-                var live_maker = new LiveMakerFFmpeg (main_image_path, video_path, live_photo_path) {
+#if ENABLE_GST
+                LiveMaker live_maker;
+                if (use_ffmpeg) {
+                    live_maker = new LiveMakerFFmpeg (main_image_path, video_path, live_photo_path)  {
+                        export_original_metadata = export_metadata,
+                    };
+                } else {
+                    live_maker = new LiveMakerGst (main_image_path, video_path, live_photo_path)  {
+                        export_original_metadata = export_metadata,
+                    };
+                }
+                live_maker.export ();
+#else
+                LiveMaker live_maker = new LiveMakerFFmpeg (main_image_path, video_path, live_photo_path)  {
                     export_original_metadata = export_metadata,
                 };
                 live_maker.export ();
+#endif
             } catch (IOError e) {
                 Reporter.error ("IOError", e.message);
                 return 1;
