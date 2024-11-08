@@ -34,10 +34,23 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     protected GExiv2.Metadata metadata;
     protected string dest_dir;
     protected int64 video_offset;
-    protected bool make_backup;
-    protected bool export_original_metadata;
-    protected FileCreateFlags file_create_flags;
     protected Tree<string?, string?> xmp_map;
+
+    public bool make_backup {
+        get;
+        set;
+        default = false;
+    }
+    public bool export_original_metadata {
+        get;
+        set;
+        default = true;
+    }
+    public FileCreateFlags file_create_flags {
+        get;
+        set;
+        default = FileCreateFlags.REPLACE_DESTINATION;
+    }
 
     /**
      * Creates a new instance of the LivePhoto class.
@@ -52,11 +65,9 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * @param filename The path to the live photo file.
      * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
-     * @param export_metadata Whether to export the original metadata of the live photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
     */
-    protected LivePhoto (string filename, string? dest_dir = null, bool export_metadata = true,
-                        FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
+    protected LivePhoto (string filename, string? dest_dir = null) throws Error {
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
         this.make_backup = make_backup;
@@ -95,8 +106,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         if (this.video_offset < 0) {
             throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
         }
-
-        this.export_original_metadata = export_metadata;
     }
 
     /**

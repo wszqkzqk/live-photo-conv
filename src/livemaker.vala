@@ -23,14 +23,28 @@
  * Represents a live photo maker. This class provides a set of functions
  * to create a live photo by combining a main image and a video file.
 */
-public class LivePhotoConv.LiveMaker {
+public class LivePhotoConv.LiveMaker : Object {
 
+    GExiv2.Metadata metadata;
     string main_image_path;
     string video_path;
     string dest;
-    GExiv2.Metadata metadata;
-    bool make_backup;
-    FileCreateFlags file_create_flags;
+
+    public bool make_backup {
+        get;
+        set;
+        default = false;
+    }
+    public FileCreateFlags file_create_flags {
+        get;
+        set;
+        default = FileCreateFlags.REPLACE_DESTINATION;
+    }
+    public bool export_original_metadata {
+        get;
+        set;
+        default = true;
+    }
     
     /**
      * Creates a LiveMaker object. The **main image** and **video file** paths are required.
@@ -45,17 +59,11 @@ public class LivePhotoConv.LiveMaker {
      * @param video_path The path to the video file.
      * @param dest The destination path for the live image file.
      * If not provided, a default destination path will be generated based on the main image file.
-     * @param export_original_metadata Whether to export the metadata from the main image to the live photo.
      * @throws Error if there is an error opening the main image file.
     */
-    public LiveMaker (string main_image_path, string video_path,
-                        string? dest = null, bool export_original_metadata = true,
-                        FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION,
-                        bool make_backup = false) throws Error {
+    public LiveMaker (string main_image_path, string video_path, string? dest = null) {
         this.main_image_path = main_image_path;
         this.video_path = video_path;
-        this.make_backup = make_backup;
-        this.file_create_flags = file_create_flags;
 
         if (dest != null) {
             this.dest = dest;
@@ -76,10 +84,6 @@ public class LivePhotoConv.LiveMaker {
         }
 
         this.metadata = new GExiv2.Metadata ();
-        if (export_original_metadata) {
-            // Copy the metadata from the main image to the live photo
-            this.metadata.open_path (main_image_path);
-        }
     }
 
     /**
@@ -88,11 +92,17 @@ public class LivePhotoConv.LiveMaker {
      * This function creates a live photo by combining a main image and a video file.
      * The live photo is saved to the specified destination path.
      *
-     * @param dest The destination path for the live image file. If not provided, the default destination path will be used.
      * @throws Error if there is an error during the process.
     */
-    public void export (string? dest = null) throws Error {
-        var live_file = File.new_for_commandline_arg  ((dest == null) ? this.dest : dest);
+    public void export () throws Error {
+        this.metadata.open_path (main_image_path);
+        if (! this.export_original_metadata) {
+            // Need to manually clear the metadata if it's not to be exported
+            // Because the main image including the metadata is fully copied
+            this.metadata.clear ();
+        }
+
+        var live_file = File.new_for_commandline_arg  (this.dest);
         var main_file = File.new_for_commandline_arg  (this.main_image_path);
         var video_file = File.new_for_commandline_arg  (this.video_path);
 

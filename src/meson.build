@@ -48,7 +48,7 @@ endif
 
 g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
 lib_gi_name = 'LivePhotoTools'
-lib_gi_version = '0.2'
+lib_gi_version = '0.3'
 lib_gi = 'LivePhotoTools-' + lib_gi_version
 lib_gir = lib_gi + '.gir'
 lib_typelib = lib_gi + '.typelib'

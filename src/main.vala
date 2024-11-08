@@ -126,8 +126,10 @@ class LivePhotoConv.Main {
             }
 
             try {
-                var live_maker = new LiveMaker (main_image_path, video_path, live_photo_path, export_metadata);
-                live_maker.export (live_photo_path);
+                var live_maker = new LiveMaker (main_image_path, video_path, live_photo_path) {
+                    export_original_metadata = export_metadata,
+                };
+                live_maker.export ();
             } catch (IOError e) {
                 Reporter.error ("IOError", e.message);
                 return 1;
@@ -146,12 +148,18 @@ class LivePhotoConv.Main {
 #if ENABLE_GST
                 LivePhoto live_photo;
                 if (use_ffmpeg) {
-                    live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir, export_metadata);
+                    live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir) {
+                        export_original_metadata = export_metadata,
+                    };
                 } else {
-                    live_photo = new LivePhotoGst (live_photo_path, dest_dir, export_metadata);
+                    live_photo = new LivePhotoGst (live_photo_path, dest_dir) {
+                        export_original_metadata = export_metadata,
+                    };
                 }
 #else
-                LivePhoto live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir, export_metadata);
+                LivePhoto live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir) {
+                    export_original_metadata = export_metadata,
+                };
 #endif
                 if (repair_live_photo || force_repair || repair_with_video_size > 0) {
                     // Default minimal export for repair mode

@@ -38,12 +38,10 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      *
      * @param filename The path to the live photo file.
      * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
-     * @param export_metadata Whether to export the original metadata of the live photo. Default is true.
      * @throws Error if an error occurs while retrieving the offset.
     */
-    public LivePhotoFFmpeg (string filename, string? dest_dir = null, bool export_metadata = true,
-                              FileCreateFlags file_create_flags = FileCreateFlags.REPLACE_DESTINATION, bool make_backup = false) throws Error {
-        base (filename, dest_dir, export_metadata, file_create_flags, make_backup);
+    public LivePhotoFFmpeg (string filename, string? dest_dir = null) throws Error {
+        base (filename, dest_dir);
     }
 
     /**
