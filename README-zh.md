@@ -2,7 +2,7 @@
 
 * [English Version](README.md)
 
-Live Photo Converter 是一个用于处理动态照片的跨平台的工具。它可以将静态图像和视频合成为动态照片，修复受损的动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
+Live Photo Converter 是一个用于处理动态照片的跨平台的工具。它可以将静态图像和视频合成为动态照片，直接将视频转化为动态照片，修复受损的动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
 
 ## 功能
 
@@ -136,6 +136,12 @@ Options:
 
 ```bash
 live-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
+```
+
+将视频直接转化为动态照片：
+
+```bash
+live-photo-conv --make --video /path/to/video.mp4 --live-photo /path/to/output.jpg
 ```
 
 提取动态照片：
