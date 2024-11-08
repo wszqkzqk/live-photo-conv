@@ -21,7 +21,8 @@
  * @class LivePhotoConv.LiveMaker
  *
  * Represents a live photo maker. This class provides a set of functions
- * to create a live photo by combining a main image and a video file.
+ * to create a live photo by combining an optional main image and a video file.
+ * If the main image is `null`, the live photo will be created using only the video.
 */
 public abstract class LivePhotoConv.LiveMaker : Object {
 
@@ -48,18 +49,20 @@ public abstract class LivePhotoConv.LiveMaker : Object {
     
     /**
      * Creates a LiveMaker object. The **main image** and **video file** paths are required.
+     * If the main image path is set to null, it will use the first frame of the video as the main image.
+     * with the first frame as the main image.
      * The destination path for the live image file is optional.
-     * If not provided, a **default destination** path will be generated based on the main image file.
+     * If not provided, a **default destination** path will be generated.
      * The metadata from the main image can be exported to the live photo. By default, the metadata is exported.
      * The file creation flags can be specified to control the behavior of the file creation process.
      * By default, the destination file will be replaced if it already exists.
      * A backup of the destination file can be created before replacing it.
      *
-     * @param main_image_path The path to the main image file.
+     * @param main_image_path The path to the main image file. Can be null.
      * @param video_path The path to the video file.
      * @param dest The destination path for the live image file.
-     * If not provided, a default destination path will be generated based on the main image file.
-     * @throws Error if there is an error opening the main image file.
+     * If not provided, a default destination path will be generated.
+     * @throws Error if there is an error during the creation process.
     */
     protected LiveMaker (string? main_image_path, string video_path, string? dest = null) {
         this.main_image_path = main_image_path;
@@ -97,8 +100,9 @@ public abstract class LivePhotoConv.LiveMaker : Object {
     /**
      * Make a live photo.
      *
-     * This function creates a live photo by combining a main image and a video file.
+     * This function creates a live photo by combining an optional main image and a video file.
      * The live photo is saved to the specified destination path.
+     * If the main image is `null`, it will use the first frame of the video as the main image.
      *
      * @throws Error if there is an error during the process.
     */

@@ -17,6 +17,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
+/**
+ * Class representing a Live Maker using FFmpeg.
+ */
 public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
     static string[] commands = {
         "ffmpeg",
@@ -29,10 +32,21 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         "pipe:1"
     }; // Subprocess.newv() doesn't accept const string[]
 
+    /**
+     * Constructs a new LiveMakerFFmpeg.
+     * @param main_image_path Path to the main image.
+     * @param video_path Path to the video.
+     * @param dest Destination path, optional.
+     */
     public LiveMakerFFmpeg (string? main_image_path, string video_path, string? dest = null) {
         base (main_image_path, video_path, dest);
     }
 
+    /**
+     * Exports the live photo with video only.
+     * @return The size of the video.
+     * @throws Error If an error occurs during export.
+     */
     public override int64 export_with_video_only () throws Error {
         this.metadata.open_path (this.video_path);
         if (! this.export_original_metadata) {

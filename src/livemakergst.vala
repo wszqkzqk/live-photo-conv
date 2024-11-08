@@ -17,12 +17,27 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
+/**
+ * @class LiveMakerGst
+ * @brief A class for creating live photos using GStreamer.
+ */
 public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
 
+    /**
+     * @brief Constructs a new LiveMakerGst instance.
+     * @param main_image_path The path to the main image.
+     * @param video_path The path to the video file.
+     * @param dest The destination path for the output.
+     */
     public LiveMakerGst (string? main_image_path, string video_path, string? dest = null) {
         base (main_image_path, video_path, dest);
     }
 
+    /**
+     * @brief Exports the live photo with video only.
+     * @return The size of the video file.
+     * @throws Error if an error occurs during export.
+     */
     public override int64 export_with_video_only () throws Error {
         this.metadata.open_path (this.video_path);
         if (! this.export_original_metadata) {
