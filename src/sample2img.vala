@@ -48,26 +48,9 @@ public class LivePhotoConv.Sample2Img {
      * @throws Error if an error occurs during the export process.
     */
     public void export (GExiv2.Metadata? metadata = null) throws Error {
-        unowned var buffer = this.sample.get_buffer ();
-        unowned var caps = this.sample.get_caps ();
-        unowned var info = caps.get_structure (0);
-        int width, height;
-        info.get_int ("width", out width);
-        info.get_int ("height", out height);
-        
-        Gst.MapInfo map;
-        buffer.map (out map, Gst.MapFlags.READ);
-        Gdk.Pixbuf pixbuf = new Gdk.Pixbuf.from_data (
-            map.data,
-            Gdk.Colorspace.RGB,
-            false,
-            8,
-            width,
-            height,
-            width * 3
-        );
-
+        var pixbuf = this.to_pixbuf ();
         pixbuf.save (filename, output_format);
+
         Reporter.info ("Exported image", filename);
 
         if (metadata != null) {
@@ -80,6 +63,11 @@ public class LivePhotoConv.Sample2Img {
     }
 
     public void save_to_stream (OutputStream stream) throws Error {
+        var pixbuf = this.to_pixbuf ();
+        pixbuf.save_to_stream (stream, output_format);
+    }
+
+    public Gdk.Pixbuf to_pixbuf () {
         unowned var buffer = this.sample.get_buffer ();
         unowned var caps = this.sample.get_caps ();
         unowned var info = caps.get_structure (0);
@@ -89,7 +77,8 @@ public class LivePhotoConv.Sample2Img {
         
         Gst.MapInfo map;
         buffer.map (out map, Gst.MapFlags.READ);
-        Gdk.Pixbuf pixbuf = new Gdk.Pixbuf.from_data (
+
+        return new Gdk.Pixbuf.from_data (
             map.data,
             Gdk.Colorspace.RGB,
             false,
@@ -98,7 +87,5 @@ public class LivePhotoConv.Sample2Img {
             height,
             width * 3
         );
-
-        pixbuf.save_to_stream (stream, output_format);
     }
 }

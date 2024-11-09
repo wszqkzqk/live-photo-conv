@@ -40,7 +40,7 @@ public class LivePhotoConv.Reporter {
         ALWAYS,
         AUTO;
 
-        public inline bool to_bool () {
+        public bool to_bool () {
             switch (this) {
             case NEVER: return false;
             case ALWAYS: return true;
@@ -83,7 +83,7 @@ public class LivePhotoConv.Reporter {
         public const string ANSI_INVERT = "\x1b[7m";
         public const string ANSI_RESET = "\x1b[0m";
 
-        public inline unowned string to_string () {
+        public unowned string to_string () {
             switch (this) {
             case RESET: return ANSI_RESET;
             case RED: return ANSI_RED;
@@ -110,7 +110,7 @@ public class LivePhotoConv.Reporter {
      * @param command The command that failed.
      * @param status The status code of the failed command.
     */
-    public static inline void report_failed_command (string command, int status) {
+    public static void report_failed_command (string command, int status) {
         if (color_setting.to_bool ()) {
             stderr.printf ("Command `%s%s%s' failed with status: %s%d%s\n",
                 Reporter.EscapeCode.ANSI_BOLD + EscapeCode.ANSI_YELLOW,
@@ -134,7 +134,7 @@ public class LivePhotoConv.Reporter {
      * @param msg The message to report.
      * @param args The arguments to format the message.
     */
-    public static inline void report (string color_code, string domain_name, string msg, va_list args) {
+    public static void report (string color_code, string domain_name, string msg, va_list args) {
         if (color_setting.to_bool ()) {
             stderr.puts (Reporter.EscapeCode.ANSI_BOLD.concat (
                     color_code,
@@ -245,7 +245,7 @@ public class LivePhotoConv.Reporter {
          * @param failure_count The number of failures.
          * @return The current step number.
          */
-        public inline int update (uint success_count, uint failure_count) {
+        public int update (uint success_count, uint failure_count) {
             current_step += 1;
             current_step = (current_step > total_steps) ? total_steps : current_step;
             percentage = (double) current_step / total_steps * 100.0;
@@ -259,7 +259,7 @@ public class LivePhotoConv.Reporter {
          * @param success_count The number of successes.
          * @param failure_count The number of failures.
          */
-        public inline void print_progress (uint success_count, uint failure_count) {
+        public void print_progress (uint success_count, uint failure_count) {
             // The actual length of the prefix is the length of UNCOLORED prefix
             // ANSI escapecode should not be counted
             var prefix = "\rSuccess: %u Failure: %u ".printf (success_count, failure_count);
