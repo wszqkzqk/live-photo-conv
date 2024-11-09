@@ -21,7 +21,7 @@
  * Class representing a Live Maker using FFmpeg.
  */
 public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
-    const string[] commands = {
+    const string[] FFMPEG_COMMANDS = {
         "ffmpeg",
         "-loglevel", "fatal",
         "-hwaccel", "auto",
@@ -59,7 +59,7 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 
         // Create a subprocess to run FFmpeg
-        var subprcs = new Subprocess.newv (commands,
+        var subprcs = new Subprocess.newv (FFMPEG_COMMANDS,
             SubprocessFlags.STDOUT_PIPE |
             SubprocessFlags.STDERR_PIPE |
             SubprocessFlags.STDIN_PIPE);
@@ -86,13 +86,13 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
                 var subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
                 throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                     "Command `%s' failed with %d - `%s'",
-                    string.joinv (" ", commands),
+                    string.joinv (" ", FFMPEG_COMMANDS),
                     exit_code,
                     subprcs_error);
             } catch { // If failed, throw the error without the error message
                 throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                     "Command `%s' failed with %d",
-                    string.joinv (" ", commands),
+                    string.joinv (" ", FFMPEG_COMMANDS),
                     exit_code);
             }
         }
