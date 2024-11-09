@@ -58,13 +58,13 @@ public abstract class LivePhotoConv.LiveMaker : Object {
      * By default, the destination file will be replaced if it already exists.
      * A backup of the destination file can be created before replacing it.
      *
-     * @param main_image_path The path to the main image file. Can be null.
      * @param video_path The path to the video file.
+     * @param main_image_path The path to the main image file. Can be null.
      * @param dest The destination path for the live image file.
      * If not provided, a default destination path will be generated.
      * @throws Error if there is an error during the creation process.
     */
-    protected LiveMaker (string? main_image_path, string video_path, string? dest = null) {
+    protected LiveMaker (string video_path, string? main_image_path = null, string? dest = null) {
         this.main_image_path = main_image_path;
         this.video_path = video_path;
 

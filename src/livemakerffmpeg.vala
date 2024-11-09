@@ -34,12 +34,12 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
 
     /**
      * Constructs a new LiveMakerFFmpeg.
-     * @param main_image_path Path to the main image.
      * @param video_path Path to the video.
+     * @param main_image_path Path to the main image.
      * @param dest Destination path, optional.
      */
-    public LiveMakerFFmpeg (string? main_image_path, string video_path, string? dest = null) {
-        base (main_image_path, video_path, dest);
+    public LiveMakerFFmpeg (string video_path, string? main_image_path = null, string? dest = null) {
+        base (video_path, main_image_path, dest);
     }
 
     /**

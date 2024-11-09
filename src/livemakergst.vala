@@ -25,12 +25,12 @@ public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
 
     /**
      * @brief Constructs a new LiveMakerGst instance.
-     * @param main_image_path The path to the main image.
      * @param video_path The path to the video file.
+     * @param main_image_path The path to the main image.
      * @param dest The destination path for the output.
      */
-    public LiveMakerGst (string? main_image_path, string video_path, string? dest = null) {
-        base (main_image_path, video_path, dest);
+    public LiveMakerGst (string video_path, string? main_image_path = null, string? dest = null) {
+        base (video_path, main_image_path, dest);
     }
 
     /**
