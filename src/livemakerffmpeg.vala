@@ -21,7 +21,7 @@
  * Class representing a Live Maker using FFmpeg.
  */
 public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
-    static string[] commands = {
+    const string[] commands = {
         "ffmpeg",
         "-loglevel", "fatal",
         "-hwaccel", "auto",
@@ -29,8 +29,8 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         "-vf", "select=eq(n\\,0)",
         "-f", "image2pipe",
         "-vcodec", "mjpeg",
-        "pipe:1"
-    }; // Subprocess.newv() doesn't accept const string[]
+        "pipe:1", null, // Need to be null-terminated
+    };
 
     /**
      * Constructs a new LiveMakerFFmpeg.

@@ -84,20 +84,24 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         string[] commands;
         if (format.ascii_down () == "webp") {
             // Spcify the `libwebp` encoder to avoid the `libwebp_anim` encoder in `ffmpeg`
-            commands = {"ffmpeg", "-progress", "-", // Split progress to stdout
-                        "-loglevel", "fatal",
-                        "-hwaccel", "auto",
-                        "-i", "pipe:0",
-                        "-f", "image2",
-                        "-c:v", "libwebp",
-                        "-y", dest};
+            commands = {
+                "ffmpeg", "-progress", "-", // Split progress to stdout
+                "-loglevel", "fatal",
+                "-hwaccel", "auto",
+                "-i", "pipe:0",
+                "-f", "image2",
+                "-c:v", "libwebp",
+                "-y", dest, null
+            };
         } else {
-            commands = {"ffmpeg", "-progress", "-",
-                        "-loglevel", "fatal",
-                        "-hwaccel", "auto",
-                        "-i", "pipe:0",
-                        "-f", "image2",
-                        "-y", dest};
+            commands = {
+                "ffmpeg", "-progress", "-",
+                "-loglevel", "fatal",
+                "-hwaccel", "auto",
+                "-i", "pipe:0",
+                "-f", "image2",
+                "-y", dest, null
+            };
         }
 
         var subprcs = new Subprocess.newv (commands,
