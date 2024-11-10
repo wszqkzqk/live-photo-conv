@@ -72,6 +72,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.metadata.open_path (filename);
         this.make_backup = make_backup;
         this.file_create_flags = file_create_flags;
+
         // Copy the XMP metadata to the map
         this.xmp_map = new Tree<string?, string?> ((CompareDataFunc) strcmp);
         foreach (unowned var tag in this.metadata.get_xmp_tags ()) {
@@ -81,6 +82,8 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 Reporter.warning ("XMPWarning", "Cannot get the value of the XMP tag %s: %s", tag, e.message);
             }
         }
+        // Clear some XMP metadata to export the images which are not live photos
+        this.clear_live_xmp_tags ();
 
         this.filename = filename;
         this.basename = Path.get_basename (filename);
@@ -231,22 +234,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         if (export_original_metadata) {
             // Copy the metadata from the live photo to the main image
-            // Temporarily remove the XMP metadata of the main image since it is not a live photo anymore
-            this.metadata.clear_xmp ();
             try {
                 this.metadata.save_file (main_image_filename);
             } catch (Error e) {
                 throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s", main_image_filename, e.message);
             }
-            // Restore the XMP metadata of the live photo
-            this.xmp_map.foreach ((key, value) => {
-                try {
-                    this.metadata.try_set_tag_string (key, value);
-                } catch (Error e) {
-                    Reporter.warning ("XMPWarning", "Cannot restore the value of the XMP tag %s: %s", key, e.message);
-                }
-                return false; // Continue the loop
-            });
         }
 
         return (owned) main_image_filename;
@@ -332,12 +324,38 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
 
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", offset_string);
+        // Restore the XMP metadata for the live photo
+        Error? metadata_error = null;
+        this.xmp_map.foreach ((key, value) => {
+            try {
+                this.metadata.try_set_tag_string (key, value);
+                return false;
+            } catch (Error e) {
+                metadata_error = e;
+                return true;
+            }
+        });
+        if (metadata_error != null) {
+            throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot set the XMP metadata: %s", metadata_error.message);
+        }
+
         this.metadata.save_file (this.filename);
 
+        // Clear some XMP metadata to export the images which are not live photos
+        this.clear_live_xmp_tags ();
+
         Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
+    }
+
+    inline void clear_live_xmp_tags () {
+        try {
+            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideo");
+            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoVersion");
+            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoOffset");
+            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+        } catch (Error e) {
+            Reporter.warning ("XMPWarning", "Cannot clear the XMP metadata: %s", e.message);
+        }
     }
 
     public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error;
