@@ -24,9 +24,10 @@
 */
 [Compact (opaque = true)]
 public class LivePhotoConv.Sample2Img {
-    Gst.Sample sample;
-    string filename;
-    string output_format;
+
+    public string output_format {get; set;}
+    public string filename {get; set;}
+    public Gdk.Pixbuf pixbuf {get; private set;}
 
     /**
      * Constructor for the Sample2Img class.
@@ -36,9 +37,28 @@ public class LivePhotoConv.Sample2Img {
      * @param output_format The format of the output file.
     */
     public Sample2Img (Gst.Sample sample, string filename, string output_format) {
-        this.sample = sample;
         this.filename = filename;
         this.output_format = output_format;
+
+        unowned var buffer = sample.get_buffer ();
+        unowned var caps = sample.get_caps ();
+        unowned var info = caps.get_structure (0);
+        int width, height;
+        info.get_int ("width", out width);
+        info.get_int ("height", out height);
+        
+        Gst.MapInfo map;
+        buffer.map (out map, Gst.MapFlags.READ);
+
+        pixbuf = new Gdk.Pixbuf.from_data (
+            map.data,
+            Gdk.Colorspace.RGB,
+            false,
+            8,
+            width,
+            height,
+            width * 3
+        );
     }
 
     /**
@@ -48,7 +68,6 @@ public class LivePhotoConv.Sample2Img {
      * @throws Error if an error occurs during the export process.
     */
     public void export (GExiv2.Metadata? metadata = null) throws Error {
-        var pixbuf = this.to_pixbuf ();
         pixbuf.save (filename, output_format);
 
         Reporter.info ("Exported image", filename);
@@ -63,29 +82,6 @@ public class LivePhotoConv.Sample2Img {
     }
 
     public void save_to_stream (OutputStream stream) throws Error {
-        var pixbuf = this.to_pixbuf ();
         pixbuf.save_to_stream (stream, output_format);
-    }
-
-    public Gdk.Pixbuf to_pixbuf () {
-        unowned var buffer = this.sample.get_buffer ();
-        unowned var caps = this.sample.get_caps ();
-        unowned var info = caps.get_structure (0);
-        int width, height;
-        info.get_int ("width", out width);
-        info.get_int ("height", out height);
-        
-        Gst.MapInfo map;
-        buffer.map (out map, Gst.MapFlags.READ);
-
-        return new Gdk.Pixbuf.from_data (
-            map.data,
-            Gdk.Colorspace.RGB,
-            false,
-            8,
-            width,
-            height,
-            width * 3
-        );
     }
 }
