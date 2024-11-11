@@ -198,6 +198,42 @@ copy-img-meta /path/to/exif-source.jpg /path/to/dest.webp
 copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/dest.webp
 ```
 
+### `liblivephototools`
+
+* **警告：** 该库的API可能会随着版本的更新而发生变化。
+
+`liblivephototools` 是一个用于创建和提取动态照片以及从内嵌视频中导出帧的库。它可以在支持 **GObject Introspection** 的**任何**语言中使用，例如 C、Vala、Rust、C++、Python 等。
+
+#### 示例
+
+以 Python 为例，导入库：
+
+```python
+import gi
+gi.require_version('LivePhotoTools', '0.3') # 请根据实际版本号调整
+from gi.repository import LivePhotoTools
+```
+
+使用示例：
+  
+```python
+# 加载动态照片
+livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
+# 从动态照片中提取静态图像
+livephoto.export_main_image()
+# 从动态照片中提取视频
+livephoto.export_video()
+# 从内嵌视频中导出帧
+livephoto.splites_images_from_video(None, None, 0)
+```
+
+```python
+# 创建动态照片
+livemaker=LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
+# 导出
+livemaker.export()
+```
+
 ## 由嵌入视频导出图片：用FFmpeg还是用GStreamer？
 
 如果在构建时启用了GStreamer支持，那么默认将使用GStreamer来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建FFmpeg子进程来导出图片。在启用了GStreamer支持的情况下，也可以通过`--use-ffmpeg`选项来使用FFmpeg。

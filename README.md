@@ -184,6 +184,42 @@ Options:
 
 Please run `copy-img-meta --help` to see the command-line options.
 
+### `liblivephototools`
+
+* **Warning:** The API of this library may change with future versions.
+
+`liblivephototools` is a library for creating and extracting live photos, as well as exporting frames from embedded videos. It can be used in **any** language that supports **GObject Introspection**, such as C, Vala, Rust, C++, Python, etc.
+
+#### Example
+
+For example, in Python, import the library:
+
+```python
+import gi
+gi.require_version('LivePhotoTools', '0.3') # Adjust according to the actual version number
+from gi.repository import LivePhotoTools
+```
+
+Usage example:
+  
+```python
+# Load a live photo
+livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
+# Extract the static image from the live photo
+livephoto.export_main_image()
+# Extract the video from the live photo
+livephoto.export_video()
+# Export frames from the embedded video
+livephoto.splites_images_from_video(None, None, 0)
+```
+
+```python
+# Create a live photo
+livemaker = LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
+# Export
+livemaker.export()
+```
+
 #### Examples
 
 Copy metadata from one image to another:
