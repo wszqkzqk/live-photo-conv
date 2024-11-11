@@ -206,7 +206,7 @@ copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/des
 
 #### 示例
 
-以 Python 为例，导入库：
+以 Python 为例，确保已经安装了 `python-gobject` 包，然后可以通过以下代码导入库：
 
 ```python
 import gi

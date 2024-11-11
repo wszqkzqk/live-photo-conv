@@ -192,7 +192,7 @@ Please run `copy-img-meta --help` to see the command-line options.
 
 #### Example
 
-For example, in Python, import the library:
+For example, in Python, make sure the `python-gobject` package has been installed, and then import the library:
 
 ```python
 import gi
