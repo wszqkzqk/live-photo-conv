@@ -1,5 +1,5 @@
 project('live-photo-conv', ['c', 'vala'],
-          version: run_command('git', 'describe', '--tags', check: true).stdout().strip(),
+          version: '0.3.6',
     meson_version: '>= 0.59.0',
 )
 
