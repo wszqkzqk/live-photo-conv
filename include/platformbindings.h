@@ -21,6 +21,10 @@
 
 #include <glib.h>
 
+#ifndef G_ALWAYS_INLINE // Be compatible with older versions of GLib
+#define G_ALWAYS_INLINE // empty
+#endif
+
 #if defined(_WIN32) // Windows
 #include <windows.h>
 #include <io.h>
