@@ -78,15 +78,21 @@ Meson build options:
 
 * `gst`
   * Whether to enable GStreamer
-  * Possible values are `auto`, `true`, `false`. Default is `auto`.
+  * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 * `gir`
   * Whether to generate GObject Introspection information
-  * Possible values are `auto`, `true`, `false`. Default is `auto`.
+  * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 
 You can configure the build with the following command:
 
 ```bash
 meson setup builddir --buildtype=release
+```
+
+If you do not want to generate GObject Introspection information, for example, you can disable it with the following command:
+
+```bash
+meson setup builddir --buildtype=release -D gir=disabled
 ```
 
 Then compile the project:
