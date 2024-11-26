@@ -18,7 +18,7 @@
  */
 
 namespace LivePhotoConv.Utils {
-    const int BUFFER_SIZE = 1 << 14; // 2^4 * 2^10 B = 16 KiB
+    const int BUFFER_SIZE = 1 << 16; // 2^6 * 2^10 B = 64 KiB
 
     /**
      * Reads a string from an input stream.
