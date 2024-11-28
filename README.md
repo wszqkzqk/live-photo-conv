@@ -27,7 +27,38 @@ Essentially, an Android live photo appends a video file directly to the end of a
 
 This tool can be used for extracting, repairing, editing, and composing such live photos.
 
-## Build
+## Build Scripts
+
+This project provides build scripts for Arch Linux and Windows (MSYS2) environments.
+
+#### Arch Linux
+
+On Arch Linux, you can install directly from the AUR using an AUR helper like `paru`:
+
+```bash
+paru -S live-photo-conv
+```
+
+Alternatively, you can manually clone the AUR repository and build/install:
+
+```bash
+git clone https://aur.archlinux.org/live-photo-conv.git
+cd live-photo-conv
+makepkg -si
+```
+
+#### Windows (MSYS2)
+
+On Windows (MSYS2), you can use the provided [`PKGBUILD`](https://gist.github.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d) to build. For example, execute the following commands in the `bash` shell of the MSYS2 UCRT64 environment:
+
+```bash
+mkdir live-photo-conv
+cd live-photo-conv
+wget https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/21bf5bcbc046978fbe8f85cb126f59936a478cad/PKGBUILD
+makepkg-mingw -si
+```
+
+## Manual Build
 
 ### Dependencies
 
@@ -100,6 +131,12 @@ Then compile the project:
 
 ```bash
 meson compile -C builddir
+```
+
+Install the project:
+
+```bash
+meson install -C builddir
 ```
 
 ## Usage
