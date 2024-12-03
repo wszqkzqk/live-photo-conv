@@ -1,6 +1,6 @@
 project('live-photo-conv', ['c', 'vala'],
           version: '0.3.7',
-    meson_version: '>= 0.59.0',
+    meson_version: '>= 1.1',
 )
 
 glib = dependency('glib-2.0')
