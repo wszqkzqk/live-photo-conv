@@ -54,7 +54,7 @@ Windows (MSYS2) 可以使用提供的 [`PKGBUILD`](https://gist.github.com/wszqk
 ```bash
 mkdir live-photo-conv
 cd live-photo-conv
-wget https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/21bf5bcbc046978fbe8f85cb126f59936a478cad/PKGBUILD
+wget https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/PKGBUILD
 makepkg-mingw -si
 ```
 
@@ -99,7 +99,7 @@ sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-li
 在Windows的MSYS2（UCRT64）环境上安装依赖：
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-cc mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
 ```
 
 ### 编译
