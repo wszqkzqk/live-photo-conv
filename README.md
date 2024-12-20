@@ -228,6 +228,20 @@ Options:
 
 Please run `copy-img-meta --help` to see the command-line options.
 
+#### Examples
+
+Copy metadata from one image to another:
+
+```bash
+copy-img-meta /path/to/exif-source.jpg /path/to/dest.webp
+```
+
+Choose not to copy certain metadata:
+
+```bash
+copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/dest.webp
+```
+
 ### `liblivephototools`
 
 * **Warning:** The API of this library may change with future versions.
@@ -264,19 +278,9 @@ livemaker = LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_2024
 livemaker.export()
 ```
 
-#### Examples
+#### Known Issues
 
-Copy metadata from one image to another:
-
-```bash
-copy-img-meta /path/to/exif-source.jpg /path/to/dest.webp
-```
-
-Choose not to copy certain metadata:
-
-```bash
-copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/dest.webp
-```
+Vala [will support exporting documentation comments to GObject Introspection in version 0.58](https://gitlab.gnome.org/GNOME/vala/-/merge_requests/303), so documentation comments cannot be seen in GObject Introspection information if using vala versions before 0.58.
 
 ## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
 
