@@ -81,6 +81,7 @@ makepkg-mingw -si
     * `gst-plugins-base-libs`
     * `gst-plugins-good`
     * `gst-plugins-bad`
+    * `gst-plugin-va` (optional, for hardware acceleration)
   * gdk-pixbuf2 (required when built with GStreamer support)
     * `gdk-pixbuf2`
     * To support more export formats, you can install optional dependencies such as:
@@ -93,7 +94,7 @@ makepkg-mingw -si
 For example, to install dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
 To install dependencies on Windows by MSYS2 (UCRT64 environment):

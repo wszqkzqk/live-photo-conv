@@ -81,6 +81,7 @@ makepkg-mingw -si
     * `gst-plugins-base-libs`
     * `gst-plugins-good`
     * `gst-plugins-bad`
+    * `gst-plugin-va` （可选，用于硬件加速）
   * gdk-pixbuf2 （在针对GStreamer构建时需要）
     * `gdk-pixbuf2`
     * 如果想要支持更多导出格式，可以安装可选依赖，例如：
@@ -93,7 +94,7 @@ makepkg-mingw -si
 例如，在Arch Linux上安装依赖：
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad
+sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
 在Windows的MSYS2（UCRT64）环境上安装依赖：
