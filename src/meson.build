@@ -90,7 +90,8 @@ pkg.generate(
   requires: basic_deps,
 )
 
-executable('live-photo-conv',
+live_photo_conv_name = 'live-photo-conv'
+live_photo_conv_bin = executable(live_photo_conv_name,
   ['main.vala'],
   install: true,
   link_with: liblivephototools,
@@ -98,7 +99,8 @@ executable('live-photo-conv',
   include_directories: incdir,
 )
 
-executable('copy-img-meta',
+copy_img_meta_name = 'copy-img-meta'
+copy_img_meta_bin = executable(copy_img_meta_name,
   ['copyimgmeta.vala'],
   install: true,
   link_with: liblivephototools,
@@ -121,5 +123,37 @@ if g_ir_compiler.found()
     ],
     install: true,
     install_dir: get_option('libdir') / 'girepository-1.0',
+  )
+endif
+
+help2man_prog = find_program('help2man', required: get_option('manpages'))
+
+if help2man_prog.found()
+  custom_target('manpage-' + live_photo_conv_name,
+    output : live_photo_conv_name + '.1',
+    command : [
+      help2man_prog,
+      '-N',
+      '-o',
+      '@OUTPUT@',
+      live_photo_conv_bin,
+      '--no-discard-stderr',
+    ],
+    install : true,
+    install_dir : get_option('mandir') / 'man1',
+  )
+
+  custom_target('manpage-' + copy_img_meta_name,
+    output : copy_img_meta_name + '.1',
+    command : [
+      help2man_prog,
+      '-N',
+      '-o',
+      '@OUTPUT@',
+      copy_img_meta_bin,
+      '--no-discard-stderr',
+    ],
+    install : true,
+    install_dir : get_option('mandir') / 'man1',
   )
 endif
