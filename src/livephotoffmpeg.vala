@@ -19,9 +19,7 @@
 
 
 /**
- * @class LivePhotoConv.LivePhotoFFmpeg
- *
- * Represents a class that extends the LivePhoto class and provides functionality for working with live photos using FFmpeg.
+ * Implementation of LivePhoto using FFmpeg.
 */
 public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 

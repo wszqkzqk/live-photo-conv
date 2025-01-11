@@ -18,13 +18,11 @@
 */
 
 /**
- * @class LivePhotoConv.LivePhoto
- *
  * Represents a live photo.
  *
  * This class provides a set of functions to extract the main image and video from a live photo.
  * Also, it can split the video into images.
-*/
+ */
 public abstract class LivePhotoConv.LivePhoto : Object {
 
     protected string basename;
@@ -120,7 +118,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * @throws Error if an error occurs while retrieving the offset.
      *
-     * @returns the offset of the video data in the live photo， if the offset is not found, return value < 0.
+     * @return the offset of the video data in the live photo， if the offset is not found, return value < 0.
     */
     inline int64 get_video_offset () throws Error {
         // Get the offset of the video data from the XMP metadata
@@ -207,7 +205,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * @param dest The destination path for the exported main image. If null, a default path will be used.
      * @throws Error if there is an error during the export process.
-     * @returns The path of the exported main image.
+     * @return The path of the exported main image.
     */
     public string export_main_image (string? dest = null) throws Error {
         // Export the bytes before `video_offset`
@@ -253,7 +251,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * @param dest The destination path for the exported video. If not provided, a default path will be used.
      * @throws Error if there is an error during the export process.
-     * @returns The path of the exported video file.
+     * @return The path of the exported video file.
     */
     public string export_video (string? dest = null) throws Error {
         /* Export the video of the live photo. */

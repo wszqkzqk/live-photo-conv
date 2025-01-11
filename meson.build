@@ -16,3 +16,8 @@ if target_machine.system() == 'windows'
 endif
 
 subdir('src')
+
+valadoc = find_program('valadoc', required: get_option('docs'))
+if valadoc.found()
+  subdir('docs')
+endif

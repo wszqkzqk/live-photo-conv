@@ -18,8 +18,6 @@
 */
 
 /**
- * @class LivePhotoConv.Sample2Img
- *
  * Represents a class for converting a GStreamer sample to an image file.
 */
 [Compact (opaque = true)]

@@ -28,7 +28,7 @@ lib_sources = [
   'platformbindings.c',
   'reporter.vala',
   'utils.vala',
-  version_file,
+  version_file.full_path(),
 ]
 
 # Check if all GStreamer dependencies are found

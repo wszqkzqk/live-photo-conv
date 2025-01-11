@@ -18,26 +18,16 @@
  */
 
 /**
- * @class LivePhotoConv.LivePhotoGst
- *
- * Represents a class that extends the LivePhoto class and provides functionality for working with live photos using GStreamer.
-*/
+ * Implementation of LivePhoto using GStreamer for video processing.
+ */
 public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     /**
-     * Creates a new instance of the LivePhotoGst class.
+     * Creates a new instance.
      *
-     * The path to the **live photo** file is required.
-     * The destination directory for the converted live photo is optional.
-     * If not provided, the directory of the input file will be used.
-     * The file creation flags can be specified to control the behavior of the file creation process.
-     * By default, the destination file will be replaced if it already exists.
-     * A backup of the destination file can be created before replacing it.
-     * The original metadata of the live photo can be exported.
-     *
-     * @param filename The path to the live photo file.
-     * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
-     * @throws Error if an error occurs while retrieving the offset.
-    */
+     * @param filename The path to the live photo file
+     * @param dest_dir The destination directory for the converted live photo
+     * @throws Error If an error occurs while retrieving the offset
+     */
     public LivePhotoGst (string filename, string? dest_dir = null) throws Error {
         base (filename, dest_dir);
     }
@@ -45,17 +35,11 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     /**
      * Split the video into images.
      *
-     * The video of the live photo is split into images.
-     * The images are saved to the destination directory with the specified output format.
-     * If the output format is not provided, the default extension name will be used.
-     * The name of the images is generated based on the basename of the live photo.
-     *
-     * @param output_format The format of the output images. If not provided, the default extension name will be used.
-     * @param video_source The path to the video source. If not provided or the file does not exist, the video will be exported from the live photo.
-     * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
-     *
-     * @throws Error If FFmpeg exits with an error.
-    */
+     * @param output_format The format of the output images
+     * @param dest_dir The destination directory for output
+     * @param jobs Number of concurrent jobs for processing
+     * @throws Error If an error occurs during processing
+     */
     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error {
         // Enpty args to Gst
         unowned string[] args = null;

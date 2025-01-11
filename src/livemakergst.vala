@@ -18,25 +18,26 @@
 */
 
 /**
- * @class LiveMakerGst
- * @brief A class for creating live photos using GStreamer.
+ * A class for creating live photos using GStreamer.
  */
 public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
 
     /**
-     * @brief Constructs a new LiveMakerGst instance.
-     * @param video_path The path to the video file.
-     * @param main_image_path The path to the main image.
-     * @param dest The destination path for the output.
+     * Creates a new LiveMakerGst instance.
+     *
+     * @param video_path Path to the video file
+     * @param main_image_path Path to the main image
+     * @param dest The destination path for output
      */
     public LiveMakerGst (string video_path, string? main_image_path = null, string? dest = null) {
         base (video_path, main_image_path, dest);
     }
 
     /**
-     * @brief Exports the live photo with video only.
-     * @return The size of the video file.
-     * @throws Error if an error occurs during export.
+     * Exports the live photo with video only.
+     *
+     * @throws Error If an error occurs during export
+     * @return The size of the video file
      */
     public override int64 export_with_video_only () throws Error {
         this.metadata.open_path (this.video_path);

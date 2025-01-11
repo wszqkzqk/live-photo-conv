@@ -18,7 +18,7 @@
 */
 
 /**
- * Class representing a Live Maker using FFmpeg.
+ * Implementation of LiveMaker using FFmpeg.
  */
 public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
     const string[] FFMPEG_COMMANDS = {
@@ -33,19 +33,21 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
     };
 
     /**
-     * Constructs a new LiveMakerFFmpeg.
-     * @param video_path Path to the video.
-     * @param main_image_path Path to the main image.
-     * @param dest Destination path, optional.
+     * Creates a new instance.
+     *
+     * @param video_path Path to the video file
+     * @param main_image_path Path to the main image
+     * @param dest Destination path for output
      */
     public LiveMakerFFmpeg (string video_path, string? main_image_path = null, string? dest = null) {
         base (video_path, main_image_path, dest);
     }
 
     /**
-     * Exports the live photo with video only.
-     * @return The size of the video.
-     * @throws Error If an error occurs during export.
+     * Exports live photo using video only.
+     *
+     * @return The size of the video file
+     * @throws Error If an error occurs during export
      */
     public override int64 export_with_video_only () throws Error {
         this.metadata.open_path (this.video_path);

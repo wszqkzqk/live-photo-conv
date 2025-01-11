@@ -18,9 +18,6 @@
 */
 
 /**
- * @class LivePhotoConv.Reporter
- * @brief A class for reporting messages, errors, and warnings with optional color coding.
- *
  * The Reporter class provides methods to report failed commands, general messages,
  * errors, and warnings. It supports color-coded output based on the terminal's capabilities.
 */
@@ -203,9 +200,6 @@ public class LivePhotoConv.Reporter {
     }
 
     /**
-     * @class LivePhotoConv.Reporter.ProgressBar
-     * @brief A progress bar class for displaying progress in the terminal.
-     *
      * The ProgressBar class provides a simple implementation of a progress bar that
      * can display the progress of operations in the terminal, including counts of
      * successes and failures.
