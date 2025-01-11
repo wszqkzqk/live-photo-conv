@@ -29,10 +29,10 @@ doc_target = custom_target(
     command: [
         doc_command,
         '-o', '@OUTPUT@',
-        '--doclet=gtkdoc',
         '@INPUT@'
     ],
     build_by_default: true,
     input: lib_in_src,
     output: doc_dir,
+    depends: liblivephototools
 )
