@@ -17,7 +17,6 @@ endif
 
 subdir('src')
 
-valadoc = find_program('valadoc', required: get_option('docs'))
-if valadoc.found()
+if get_option('documentation')
   subdir('docs')
 endif

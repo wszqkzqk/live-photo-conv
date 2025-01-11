@@ -4,5 +4,5 @@ option('gir', type: 'feature', value: 'auto',
     description: 'Enable GObject introspection')
 option('manpages', type: 'feature', value: 'auto',
     description: 'Build manpages')
-option('docs', type: 'feature', value: 'auto',
+option('documentation', type: 'boolean', value: false,
     description: 'Build documentation')

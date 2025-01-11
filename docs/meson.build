@@ -17,19 +17,22 @@ doc_command = [
     '--use-svg-images'
 ]
 
+doc_dir = 'livephototools'
+
 lib_in_src = []
 foreach src : lib_sources
     lib_in_src += [join_paths(meson.global_source_root(), 'src', src)]
 endforeach
 
 doc_target = custom_target(
-    'library documentation',
+    'livephototools documentation',
     command: [
         doc_command,
         '-o', '@OUTPUT@',
+        '--doclet=gtkdoc',
         '@INPUT@'
     ],
     build_by_default: true,
     input: lib_in_src,
-    output: 'library'
+    output: doc_dir,
 )
