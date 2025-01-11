@@ -279,10 +279,6 @@ livemaker = LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_2024
 livemaker.export()
 ```
 
-#### Known Issues
-
-Vala [will support exporting documentation comments to GObject Introspection in version 0.58](https://gitlab.gnome.org/GNOME/vala/-/merge_requests/303), so documentation comments cannot be seen in GObject Introspection information if using vala versions before 0.58.
-
 ## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
 
 If GStreamer support is enabled during the build, GStreamer will be used by default to export images from embedded videos. Otherwise, the program will attempt to create an FFmpeg subprocess via command to export images. Even with GStreamer support enabled, you can use the `--use-ffmpeg` option to use FFmpeg.
