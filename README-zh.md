@@ -279,10 +279,6 @@ livemaker=LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_202411
 livemaker.export()
 ```
 
-#### 已知问题
-
-Vala[将在0.58支持将Vala代码中的注释文档导出到GObject Introspection](https://gitlab.gnome.org/GNOME/vala/-/merge_requests/303)中，因此如果使用0.58之前的Vala版本构建，会导致GObject Introspection信息中没有文档。
-
 ## 由嵌入视频导出图片：用 FFmpeg 还是用 GStreamer？
 
 如果在构建时启用了GStreamer支持，那么默认将使用GStreamer来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建FFmpeg子进程来导出图片。在启用了GStreamer支持的情况下，也可以通过`--use-ffmpeg`选项来使用FFmpeg。

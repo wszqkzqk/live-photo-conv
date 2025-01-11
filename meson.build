@@ -16,7 +16,3 @@ if target_machine.system() == 'windows'
 endif
 
 subdir('src')
-
-if get_option('documentation')
-  subdir('docs')
-endif
