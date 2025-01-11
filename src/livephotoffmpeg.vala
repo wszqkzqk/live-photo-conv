@@ -172,19 +172,22 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         var exit_code = subprcs.get_exit_status ();
 
         if (exit_code != 0) {
+            string? subprcs_error = null;
             try { // Try to get the error message from stderr
-                var subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
-                throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
-                    "Command `%s' failed with %d - `%s'",
-                    string.joinv (" ", commands),
-                    exit_code,
-                    subprcs_error);
-            } catch { // If failed, throw the error without the error message
+                subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
+            } catch {} // If failed, throw the error without the error message
+
+            if (subprcs_error == null) {
                 throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                     "Command `%s' failed with %d",
                     string.joinv (" ", commands),
                     exit_code);
             }
+            throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
+                "Command `%s' failed with %d - `%s'",
+                string.joinv (" ", commands),
+                exit_code,
+                subprcs_error);
         }
     }
 }
