@@ -1,3 +1,5 @@
+valadoc = find_program('valadoc')
+
 deps_command = []
 
 foreach dep : basic_deps
@@ -20,15 +22,17 @@ doc_command = [
 doc_dir = 'livephototools'
 
 lib_in_src = []
-foreach src : lib_sources
+foreach src : lib_common_sources
     lib_in_src += [join_paths(meson.global_source_root(), 'src', src)]
 endforeach
 
-doc_target = custom_target(
+custom_target(
     'livephototools documentation',
     command: [
         doc_command,
         '-o', '@OUTPUT@',
+        # Addition version_file
+        version_file.full_path(),
         '@INPUT@'
     ],
     build_by_default: true,

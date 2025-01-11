@@ -18,7 +18,7 @@ gst = dependency('gstreamer-1.0', required: require_gst)
 gst_app = dependency('gstreamer-app-1.0', required: require_gst)
 gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 
-lib_sources = [
+lib_common_sources = [
   'errordomains.vala',
   'livemaker.vala',
   'livemakerffmpeg.vala',
@@ -28,8 +28,9 @@ lib_sources = [
   'platformbindings.c',
   'reporter.vala',
   'utils.vala',
-  version_file.full_path(),
 ]
+
+lib_sources = lib_common_sources + [version_file]
 
 # Check if all GStreamer dependencies are found
 if gst.found() and gst_app.found() and gdk_pixbuf.found()
