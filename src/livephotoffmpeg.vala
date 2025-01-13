@@ -51,8 +51,8 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      * The name of the images is generated based on the basename of the live photo.
      *
      * @param output_format The format of the output images. If not provided, the default extension name will be used.
-     * @param video_source The path to the video source. If not provided or the file does not exist, the video will be exported from the live photo.
      * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
+     * @param jobs The number of jobs to run in parallel. (Ignored in this implementation)
      *
      * @throws Error If FFmpeg exits with an error.
     */
