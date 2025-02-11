@@ -25,6 +25,13 @@
  */
 public abstract class LivePhotoConv.LivePhoto : Object {
 
+    // The tag `....ftyp` of MP4 header.
+    const uint8[] MP4_VIDEO_HEADER = {'f', 't', 'y', 'p'};
+    // The feature of MP4: there is extra 4 bytes of size before the `ftyp` tag.
+    // (It's `....ftyp` instead of `ftyp`)
+    // See also: http://www.ftyps.com/
+    const int BYTES_BEFORE_FTYP = 4;
+
     protected string basename;
     protected string basename_no_ext;
     protected string extension_name;
@@ -151,8 +158,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @throws Error if there is an issue reading the file.
     */
     inline int64 get_video_offset_fallback () throws Error {
-        const uint8[] MP4_VIDEO_HEADER = {'f', 't', 'y', 'p'}; // The tag `....ftyp` of MP4 header.
-        const int TAG_LENGTH = MP4_VIDEO_HEADER.length; // The length of the tag.
         int64 offset = -1; // The offset of the video data in the live photo.
     
         var file = File.new_for_commandline_arg  (this.filename);
@@ -161,21 +166,21 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         ssize_t bytes_read; // The number of bytes read from the input stream.
         int64 position = 0; // The current position in the input stream.
         uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
-        uint8[] prev_buffer_tail = new uint8[TAG_LENGTH - 1]; // The tail of the previous buffer to avoid boundary crossing.
-        uint8[] search_buffer = new uint8[Utils.BUFFER_SIZE + TAG_LENGTH - 1];
+        uint8[] prev_buffer_tail = new uint8[MP4_VIDEO_HEADER.length - 1]; // The tail of the previous buffer to avoid boundary crossing.
+        uint8[] search_buffer = new uint8[Utils.BUFFER_SIZE + MP4_VIDEO_HEADER.length - 1];
 
         while ((bytes_read = input_stream.read (buffer)) > 0) {
             // Copy the tail of the previous buffer to check for boundary crossing
-            Memory.copy (search_buffer, prev_buffer_tail, TAG_LENGTH - 1);
+            Memory.copy (search_buffer, prev_buffer_tail, MP4_VIDEO_HEADER.length - 1);
             // Copy the current buffer to the search buffer
-            Memory.copy ((void*) ((int64) search_buffer + TAG_LENGTH - 1), buffer, bytes_read); // Vala does not support pointer arithmetic, so we have to cast the pointer to int64 first.
+            Memory.copy ((void*) ((int64) search_buffer + MP4_VIDEO_HEADER.length - 1), buffer, bytes_read); // Vala does not support pointer arithmetic, so we have to cast the pointer to int64 first.
     
             ssize_t buffer_offset = 0;
             for (uint i = 0; i < bytes_read; i += 1) {
                 if (buffer[i] == MP4_VIDEO_HEADER[buffer_offset]) {
                     buffer_offset += 1;
-                    if (buffer_offset == TAG_LENGTH) {
-                        offset = position - TAG_LENGTH + 1;
+                    if (buffer_offset == MP4_VIDEO_HEADER.length) {
+                        offset = position - MP4_VIDEO_HEADER.length + 1;
                         break;
                     }
                 } else {
@@ -188,13 +193,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 break;
             }
             // Store the tail of the current buffer
-            Memory.copy (prev_buffer_tail, (void*) ((int64) buffer + bytes_read - TAG_LENGTH - 1), TAG_LENGTH - 1);
+            Memory.copy (prev_buffer_tail, (void*) ((int64) buffer + bytes_read - MP4_VIDEO_HEADER.length - 1), MP4_VIDEO_HEADER.length - 1);
         }
 
-        // The feature of MP4: there is extra 4 bytes of size before the `ftyp` tag.
-        // (It's `....ftyp` instead of `ftyp`)
-        // See also: http://www.ftyps.com/
-        return offset - 4;
+        return offset - BYTES_BEFORE_FTYP;
     }
     
     /**
@@ -309,7 +311,27 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         } else if (force) {
             reverse_offset = file_size - this.get_video_offset_fallback ();
         } else {
-            reverse_offset = file_size - this.video_offset;
+            // Check whether the current video offset is valid
+            var file = File.new_for_commandline_arg (this.filename);
+            var input_stream = file.read ();
+            input_stream.seek (this.video_offset + BYTES_BEFORE_FTYP, SeekType.SET);
+            uint8[] header = new uint8[MP4_VIDEO_HEADER.length];
+            ssize_t read_bytes = input_stream.read (header, null);
+            bool header_valid = (read_bytes == MP4_VIDEO_HEADER.length);
+            if (header_valid) {
+                for (int i = 0; i < MP4_VIDEO_HEADER.length; i += 1) {
+                    if (header[i] != MP4_VIDEO_HEADER[i]) {
+                        header_valid = false;
+                        break;
+                    }
+                }
+            }
+            if (header_valid) {
+                reverse_offset = file_size - this.video_offset;
+            } else {
+                Reporter.info_puts ("Info", "Broken video offset detected. Trying to repair...");
+                reverse_offset = file_size - this.get_video_offset_fallback ();
+            }
         }
 
         if (reverse_offset < 0) {
