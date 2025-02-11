@@ -61,7 +61,7 @@ if g_ir_compiler.found()
     'livephototools', lib_sources,
     vala_gir: lib_gir,
     dependencies: basic_deps,
-    include_directories: incdir,
+    #include_directories: incdir,
     install: true,
     install_dir: [true, 'include/livephototools', true, true]
   )
@@ -69,16 +69,11 @@ else
   liblivephototools = shared_library(
     'livephototools', lib_sources,
     dependencies: basic_deps,
-    include_directories: incdir,
+    #include_directories: incdir,
     install: true,
     install_dir: [true, 'include/livephototools', true]
   )
 endif
-
-install_headers(
-  ['../include/platformbindings.h'],
-  subdir: 'livephototools',
-)
 
 pkg = import('pkgconfig')
 pkg.generate(
@@ -97,7 +92,7 @@ live_photo_conv_bin = executable(live_photo_conv_name,
   install: true,
   link_with: liblivephototools,
   dependencies: basic_deps,
-  include_directories: incdir,
+  #include_directories: incdir,
 )
 
 copy_img_meta_name = 'copy-img-meta'
@@ -106,7 +101,7 @@ copy_img_meta_bin = executable(copy_img_meta_name,
   install: true,
   link_with: liblivephototools,
   dependencies: basic_deps,
-  include_directories: incdir,
+  #include_directories: incdir,
 )
 
 if g_ir_compiler.found()

@@ -26,9 +26,9 @@ public class LivePhotoConv.Reporter {
 
     public static ColorSettings color_setting = ColorSettings.AUTO;
 
-    [CCode (cheader_filename = "platformbindings.h", cname = "is_a_tty")]
+    [CCode (cname = "is_a_tty")]
     public extern static bool isatty (int fd);
-    [CCode (cheader_filename = "platformbindings.h", cname = "get_console_width")]
+    [CCode (cname = "get_console_width")]
     public extern static int get_console_width ();
 
     [CCode (has_type_id = false)]
