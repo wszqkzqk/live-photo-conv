@@ -61,7 +61,7 @@ class LivePhotoConv.CopyImgMeta {
         try {
             opt_context.parse_strv (ref args);
         } catch (OptionError e) {
-            Reporter.error ("OptionError", e.message);
+            Reporter.error_puts ("OptionError", e.message);
             stderr.printf ("\n%s", opt_context.get_help (true, null));
             return 1;
         }
@@ -77,7 +77,7 @@ class LivePhotoConv.CopyImgMeta {
             Reporter.color_setting = Reporter.ColorSettings.ALWAYS;
             break;
         default:
-            Reporter.warning ("OptionWarning", "invalid color level, fallback to level 1 (auto)");
+            Reporter.warning_puts ("OptionWarning", "invalid color level, fallback to level 1 (auto)");
             Reporter.color_setting = Reporter.ColorSettings.AUTO;
             break;
         }
@@ -88,13 +88,13 @@ class LivePhotoConv.CopyImgMeta {
         }
 
         if (show_version) {
-            Reporter.info ("EXIF Copy Tool", VERSION);
+            Reporter.info_puts ("EXIF Copy Tool", VERSION);
             return 0;
         }
 
         // Note that args[0] is the program path
         if (args.length != 3) {
-            Reporter.error ("ArgumentError",
+            Reporter.error_puts ("ArgumentError",
                 (args.length < 3) ? "Two image files are required" : "Too many arguments");
             stderr.printf ("\n%s", opt_context.get_help (true, null));
             return 1;
@@ -120,7 +120,7 @@ class LivePhotoConv.CopyImgMeta {
             metadata.save_file (dest_path);
             Reporter.info ("MetadataCopied", "EXIF data copied from `%s' to `%s'", source_path, dest_path);
         } catch (Error e) {
-            Reporter.error ("MetadataError", e.message);
+            Reporter.error_puts ("MetadataError", e.message);
             return 1;
         }
 

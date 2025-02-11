@@ -135,7 +135,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         }
 
         // If the XMP metadata does not contain the video offset, search for the video tag in the live photo
-        Reporter.warning ("XMPOffsetNotFoundWarning",
+        Reporter.warning_puts ("XMPOffsetNotFoundWarning",
         "The XMP metadata does not contain the video offset. Searching for the video tag in the live photo.");
 
         return this.get_video_offset_fallback ();
@@ -228,7 +228,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         // Write the bytes before `video_offset` to the main image file
         Utils.write_stream_before (input_stream, output_stream, this.video_offset);
 
-        Reporter.info ("Exported main image", main_image_filename);
+        Reporter.info_puts ("Exported main image", main_image_filename);
 
         if (export_original_metadata) {
             // Copy the metadata from the live photo to the main image
@@ -278,7 +278,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         input_stream.seek (this.video_offset, SeekType.SET);
         Utils.write_stream (input_stream, output_stream);
 
-        Reporter.info ("Exported video file", video_filename);
+        Reporter.info_puts ("Exported video file", video_filename);
 
         return (owned) video_filename;
     }

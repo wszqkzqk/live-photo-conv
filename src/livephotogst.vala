@@ -96,7 +96,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                     item.export ();
                 }
             } catch (Error e) {
-                Reporter.error ("Error", e.message);
+                Reporter.error_puts ("Error", e.message);
             }
         }, jobs, false);
 

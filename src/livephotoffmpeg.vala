@@ -64,7 +64,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         var format = (output_format != null) ? output_format : this.extension_name;
 
         if (jobs != 0 && jobs != 1) {
-            Reporter.warning ("NotImplementedWarning", "The `jobs` parameter of FFmpeg mode is not implemented.");
+            Reporter.warning_puts ("NotImplementedWarning", "The `jobs` parameter of FFmpeg mode is not implemented.");
         }
 
         if (this.basename.has_prefix ("MVIMG")) {
@@ -144,7 +144,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                         (dest_dir == null) ? this.dest_dir : dest_dir,
                         name_to_printf.printf (frame_processed + 1)
                     );
-                    Reporter.info ("Exported image", image_filename);
+                    Reporter.info_puts ("Exported image", image_filename);
 
                     if (export_original_metadata) {
                         try {
@@ -152,7 +152,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                         } catch (Error e) {
                             // DO NOT throw the error, just report it
                             // because the image exporting is not affected
-                            Reporter.error ("Error", e.message);
+                            Reporter.error_puts ("Error", e.message);
                         }
                     }
                 }
@@ -163,7 +163,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         // Report the error of data pushing,
         // report here instead of throwing it to avoid zombie subprocess
         if (push_file_error != null) {
-            Reporter.error ("FilePushError", push_file_error.message);
+            Reporter.error_puts ("FilePushError", push_file_error.message);
         }
         subprcs.wait ();
 

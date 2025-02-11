@@ -114,7 +114,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }  catch (Error e) {
             throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
         }
-        Reporter.info ("Exported live photo", this.dest);
+        Reporter.info_puts ("Exported live photo", this.dest);
     }
 
     inline int64 export_with_main_image () throws Error {

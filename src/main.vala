@@ -87,7 +87,7 @@ class LivePhotoConv.Main {
         try {
             opt_context.parse_strv (ref args);
         } catch (OptionError e) {
-            Reporter.error ("OptionError", e.message);
+            Reporter.error_puts ("OptionError", e.message);
             stderr.printf ("\n%s", opt_context.get_help (true, null));
             return 1;
         }
@@ -103,7 +103,7 @@ class LivePhotoConv.Main {
             Reporter.color_setting = Reporter.ColorSettings.ALWAYS;
             break;
         default:
-            Reporter.warning ("OptionWarning", "invalid color level, fallback to level 1 (auto)");
+            Reporter.warning_puts ("OptionWarning", "invalid color level, fallback to level 1 (auto)");
             Reporter.color_setting = Reporter.ColorSettings.AUTO;
             break;
         }
@@ -114,13 +114,13 @@ class LivePhotoConv.Main {
         }
 
         if (show_version) {
-            Reporter.info ("Live Photo Converter", VERSION);
+            Reporter.info_puts ("Live Photo Converter", VERSION);
             return 0;
         }
 
         if (make_live_photo) {
             if (video_path == null) {
-                Reporter.error ("OptionError", "`--video' are required in 'make' mode");
+                Reporter.error_puts ("OptionError", "`--video' are required in 'make' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
@@ -145,15 +145,15 @@ class LivePhotoConv.Main {
                 live_maker.export ();
 #endif
             } catch (IOError e) {
-                Reporter.error ("IOError", e.message);
+                Reporter.error_puts ("IOError", e.message);
                 return 1;
             } catch (Error e) {
-                Reporter.error ("Error", e.message);
+                Reporter.error_puts ("Error", e.message);
                 return 1;
             }
         } else {
             if (live_photo_path == null) {
-                Reporter.error ("OptionError", "`--live-photo' is required in 'extract' and 'repair' mode");
+                Reporter.error_puts ("OptionError", "`--live-photo' is required in 'extract' and 'repair' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
@@ -197,10 +197,10 @@ class LivePhotoConv.Main {
                     live_photo.splites_images_from_video (img_format, dest_dir, threads);
                 }
             } catch (NotLivePhotosError e) {
-                Reporter.error ("NotLivePhotosError", e.message);
+                Reporter.error_puts ("NotLivePhotosError", e.message);
                 return 1;
             } catch (Error e) {
-                Reporter.error ("Error", e.message);
+                Reporter.error_puts ("Error", e.message);
                 return 1;
             }
         }

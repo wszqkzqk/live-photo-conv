@@ -124,7 +124,7 @@ public class LivePhotoConv.Reporter {
     }
 
     /**
-     * Reports a message with optional color code and domain name.
+     * Reports a message with optional color code and domain name. (with printf-style arguments)
      *
      * @param color_code The color code to apply to the message. Can be null.
      * @param domain_name The domain name associated with the message.
@@ -147,8 +147,31 @@ public class LivePhotoConv.Reporter {
         stderr.puts (domain_name.concat (": ", msg.vprintf (args), "\n"));
     }
 
+    /*
+     * Reports a message with optional color code and domain name. (no printf-style arguments)
+     *
+     * @param color_code The color code to apply to the message. Can be null.
+     * @param domain_name The domain name associated with the message.
+     * @param msg The message to report.
+     */
+    public static void report_puts (string color_code, string domain_name, string msg) {
+        if (color_setting.to_bool ()) {
+            stderr.puts (Reporter.EscapeCode.ANSI_BOLD.concat (
+                    color_code,
+                    domain_name,
+                    Reporter.EscapeCode.ANSI_RESET +
+                    ": " +
+                    Reporter.EscapeCode.ANSI_BOLD,
+                    msg,
+                    Reporter.EscapeCode.ANSI_RESET +
+                    "\n"));
+            return;
+        }
+        stderr.puts (domain_name.concat (": ", msg, "\n"));
+    }
+
     /**
-     * Reports an error with the specified error name and message.
+     * Reports an error with the specified error name and message. (with printf-style arguments)
      *
      * @param error_name The name of the error.
      * @param msg The error message.
@@ -160,7 +183,18 @@ public class LivePhotoConv.Reporter {
     }
 
     /**
-     * Prints a warning message with the specified warning name and message.
+     * Reports an error with the specified error name and message. (no printf-style arguments)
+     *
+     * @param error_name The name of the error.
+     * @param msg The error message.
+     * @param ... Additional arguments for the error message.
+    */
+    public static void error_puts (string error_name, string msg) {
+        report_puts (Reporter.EscapeCode.ANSI_RED, error_name, msg);
+    }
+
+    /**
+     * Prints a warning message with the specified warning name and message. (with printf-style arguments)
      *
      * @param warning_name The name of the warning.
      * @param msg The warning message.
@@ -169,6 +203,17 @@ public class LivePhotoConv.Reporter {
     [PrintfFormat]
     public static void warning (string warning_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_MAGENTA, warning_name, msg, va_list ());
+    }
+
+    /**
+     * Prints a warning message with the specified warning name and message. (no printf-style arguments)
+     *
+     * @param warning_name The name of the warning.
+     * @param msg The warning message.
+     * @param ... Additional arguments for the message format.
+    */
+    public static void warning_puts (string warning_name, string msg) {
+        report_puts (Reporter.EscapeCode.ANSI_MAGENTA, warning_name, msg);
     }
 
     /**
@@ -181,6 +226,16 @@ public class LivePhotoConv.Reporter {
     [PrintfFormat]
     public static void info (string info_name, string msg, ...) {
         report (Reporter.EscapeCode.ANSI_CYAN, info_name, msg, va_list ());
+    }
+
+    /**
+     * Print an informational message. (no printf-style arguments)
+     *
+     * @param info_name The name of the information.
+     * @param msg The message to be printed.
+    */
+    public static void info_puts (string info_name, string msg) {
+        report_puts (Reporter.EscapeCode.ANSI_CYAN, info_name, msg);
     }
 
     /**

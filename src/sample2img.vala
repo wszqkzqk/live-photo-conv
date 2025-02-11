@@ -68,7 +68,7 @@ public class LivePhotoConv.Sample2Img {
     public void export (GExiv2.Metadata? metadata = null) throws Error {
         pixbuf.save (filename, output_format);
 
-        Reporter.info ("Exported image", filename);
+        Reporter.info_puts ("Exported image", filename);
 
         if (metadata != null) {
             try {
