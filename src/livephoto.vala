@@ -368,7 +368,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.clear_live_xmp_tags ();
 
         // Refresh the video_offset field
-        this.video_offset = this.get_video_offset ();
+        this.video_offset = file_size - reverse_offset;
 
         Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
     }
