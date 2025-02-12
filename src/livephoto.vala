@@ -79,7 +79,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.file_create_flags = file_create_flags;
 
         // Copy the XMP metadata to the map
-        this.xmp_map = new Tree<string?, string?> ((CompareDataFunc) strcmp);
+        this.xmp_map = new Tree<string?, string?> ((a, b) => {return strcmp (a, b);});
         foreach (unowned var tag in this.metadata.get_xmp_tags ()) {
             try {
                 this.xmp_map.insert (tag, this.metadata.try_get_tag_string (tag));
