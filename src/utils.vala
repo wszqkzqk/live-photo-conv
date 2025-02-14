@@ -46,7 +46,7 @@ namespace LivePhotoConv.Utils {
             }
         }
 
-        return (builder != null) ? (owned) ((!) builder).str : "";
+        return (builder == null) ? "" : (owned) ((!) builder).str;
     }
 
     /**

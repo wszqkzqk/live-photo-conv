@@ -51,7 +51,7 @@ class LivePhotoConv.CopyImgMeta {
 #else
         var args = strdupv (original_args);
 #endif
-        var opt_context = new OptionContext ("<exif-source-img> <dest-img> - Copy all metadata from one image to another");
+        var opt_context = new OptionContext ("<exif-source-img> <dest-img> - Copy the metadata from one image to another");
         // DO NOT use the default help option provided by g_print
         // g_print will force to convert character set to windows's code page
         // which is imcompatible windows's bash, zsh, etc.

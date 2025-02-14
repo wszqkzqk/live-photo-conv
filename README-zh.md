@@ -283,7 +283,7 @@ livemaker.export()
 
 Vala[将在0.58支持将Vala代码中的注释文档导出到GObject Introspection](https://gitlab.gnome.org/GNOME/vala/-/merge_requests/303)中，因此如果使用0.58之前的Vala版本构建，会导致GObject Introspection信息中没有文档。
 
-## 由嵌入视频导出图片：用FFmpeg还是用GStreamer？
+## 由嵌入视频导出图片：用 FFmpeg 还是用 GStreamer？
 
 如果在构建时启用了GStreamer支持，那么默认将使用GStreamer来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建FFmpeg子进程来导出图片。在启用了GStreamer支持的情况下，也可以通过`--use-ffmpeg`选项来使用FFmpeg。
 
@@ -296,6 +296,21 @@ Vala[将在0.58支持将Vala代码中的注释文档导出到GObject Introspecti
 
 该项目使用 LGPL-2.1-or-later 许可证。详细信息请参阅 [`COPYING`](COPYING) 文件。
 
-## 已知问题
+## FAQ
+
+### Windows 下的路径编码：无法向包含非 ASCII 字符的路径读取或写入元数据
 
 由于 Exiv2 的限制与 GExiv2 绑定的不完善，目前无法在 Windows 下向包含非 ASCII 字符的路径读取或写入元数据。
+
+### Android 手机厂商的分裂：无法识别动态照片
+
+由于 Android 手机厂商的分裂，不同厂商还可以需要动态照片中有自己的“私货”元数据才能识别动态照片。可能直接使用本工具生成的动态照片在某些手机上无法识别。
+
+解决方案：
+
+* 使用对应厂商的手机拍摄一张普通照片
+* 使用 `copy-img-meta` 工具将这张照片的元数据复制到生成的动态照片上
+* 如果在手机上发现能识别但无法播放，使用 `live-photo-conv` 工具修复动态照片
+  * 例如，使用 `live-photo-conv --repair -p /path/to/live_photo.jpg`
+  * 或者强制修复 `live-photo-conv --force-repair -p /path/to/live_photo.jpg`
+  * 极少数情况下如果仍然无法修复，可以尝试指定嵌入视频大小 `live-photo-conv --repair-with-video-size=SIZE -p /path/to/live_photo.jpg` （一般情况下不需要）

@@ -120,7 +120,7 @@ class LivePhotoConv.Main {
 
         if (make_live_photo) {
             if (video_path == null) {
-                Reporter.error_puts ("OptionError", "`--video' are required in 'make' mode");
+                Reporter.error_puts ("OptionError", "`--video' is required in 'make' mode");
                 stderr.printf ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
@@ -137,13 +137,12 @@ class LivePhotoConv.Main {
                         export_original_metadata = export_metadata,
                     };
                 }
-                live_maker.export ();
 #else
                 LiveMaker live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path)  {
                     export_original_metadata = export_metadata,
                 };
-                live_maker.export ();
 #endif
+                live_maker.export ();
             } catch (IOError e) {
                 Reporter.error_puts ("IOError", e.message);
                 return 1;
