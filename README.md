@@ -115,6 +115,9 @@ Meson build options:
 * `gir`
   * Whether to generate GObject Introspection information
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
+* `docs`
+  * Whether to generate documentation
+  * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 
 You can configure the build with the following command:
 

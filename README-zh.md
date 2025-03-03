@@ -115,6 +115,9 @@ Meson 构建选项：
 * `gir`
   * 是否生成 GObject Introspection 信息
   * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
+* `docs`
+  * 是否在 GObject Introspection 信息中生成文档
+  * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
 
 可以通过以下命令配置构建：
 
