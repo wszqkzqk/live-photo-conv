@@ -115,6 +115,9 @@ Meson build options:
 * `gir`
   * Whether to generate GObject Introspection information
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
+* `docs`
+  * Whether to generate documentation
+  * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 
 You can configure the build with the following command:
 
@@ -278,10 +281,6 @@ livemaker = LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_2024
 # Export
 livemaker.export()
 ```
-
-#### Known Issues
-
-Vala [will support exporting documentation comments to GObject Introspection in version 0.58](https://gitlab.gnome.org/GNOME/vala/-/merge_requests/303), so documentation comments cannot be seen in GObject Introspection information if using vala versions before 0.58.
 
 ## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
 

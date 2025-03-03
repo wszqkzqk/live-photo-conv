@@ -115,6 +115,9 @@ Meson 构建选项：
 * `gir`
   * 是否生成 GObject Introspection 信息
   * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
+* `docs`
+  * 是否在 GObject Introspection 信息中生成文档
+  * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
 
 可以通过以下命令配置构建：
 
@@ -278,10 +281,6 @@ livemaker=LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_202411
 # 导出
 livemaker.export()
 ```
-
-#### 已知问题
-
-Vala[将在0.58支持将Vala代码中的注释文档导出到GObject Introspection](https://gitlab.gnome.org/GNOME/vala/-/merge_requests/303)中，因此如果使用0.58之前的Vala版本构建，会导致GObject Introspection信息中没有文档。
 
 ## 由嵌入视频导出图片：用 FFmpeg 还是用 GStreamer？
 
