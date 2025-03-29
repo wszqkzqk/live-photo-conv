@@ -76,8 +76,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     protected LivePhoto (string filename, string? dest_dir = null) throws Error {
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
-        this.make_backup = make_backup;
-        this.file_create_flags = file_create_flags;
 
         // Copy the XMP metadata to the map
         this.xmp_map = new Tree<string?, string?> ((a, b) => {return strcmp (a, b);});
