@@ -300,7 +300,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     */
     public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
         GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "Camera");
         GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
         GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
 
@@ -344,14 +343,26 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         var offset_string = reverse_offset.to_string ();
 
+        string presentation_timestamp_us_to_write = "-1";
+        // this.xmp_map contains tags loaded in the constructor
+        var original_motion_photo_ts = this.xmp_map.lookup("Xmp.Camera.MotionPhotoPresentationTimestampUs");
+        var original_gcamera_ts = this.xmp_map.lookup("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+
+        if (original_motion_photo_ts != null && original_motion_photo_ts != "") {
+            presentation_timestamp_us_to_write = original_motion_photo_ts;
+        } else if (original_gcamera_ts != null && original_gcamera_ts != "") {
+            presentation_timestamp_us_to_write = original_gcamera_ts;
+        }
+
         this.xmp_map.insert ("Xmp.GCamera.MicroVideo", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
+        this.xmp_map.insert ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
 
-        // Add new MotionPhoto standard tags
-        this.xmp_map.insert ("Xmp.Camera.MotionPhoto", "1");
-        this.xmp_map.insert ("Xmp.Camera.MotionPhotoVersion", "1");
-        this.xmp_map.insert ("Xmp.Camera.MotionPhotoPresentationTimestampUs", "-1"); // Default value
+        // Add/Update new MotionPhoto standard tags in xmp_map
+        this.xmp_map.insert ("Xmp.GCamera.MotionPhoto", "1");
+        this.xmp_map.insert ("Xmp.GCamera.MotionPhotoVersion", "1");
+        this.xmp_map.insert ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
 
         // Add Container and Item tags for MotionPhoto
         // Item 1: Primary Image (assuming JPEG based on typical output)
