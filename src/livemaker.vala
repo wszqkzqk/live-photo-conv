@@ -103,12 +103,35 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             video_size = this.export_with_video_only ();
         }
 
-        // Copy the metadata from the main image to the live photo
-        // Set the XMP tag `LivePhoto` to `True`
+        // Register XMP namespaces
         GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "Camera");
+        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
+        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+
+        // Set MicroVideo (old standard) tags
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
         this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
+
+        // Set MotionPhoto (new standard) tags
+        this.metadata.try_set_tag_string ("Xmp.Camera.MotionPhoto", "1");
+        this.metadata.try_set_tag_string ("Xmp.Camera.MotionPhotoVersion", "1");
+        this.metadata.try_set_tag_string ("Xmp.Camera.MotionPhotoPresentationTimestampUs", "-1"); // Default value
+
+        // Set Container and Item tags for MotionPhoto
+        // Item 1: Primary Image (assuming JPEG)
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Item:Mime", "image/jpeg");
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Item:Semantic", "Primary");
+        // Item:Padding is optional for JPEG, so we omit it or can set to "0"
+        // this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Item:Padding", "0");
+
+
+        // Item 2: Video (assuming MP4)
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Item:Mime", "video/mp4");
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Item:Semantic", "MotionPhoto");
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Item:Length", video_size.to_string ());
+        
         try {
             this.metadata.save_file (this.dest);
         }  catch (Error e) {
