@@ -26,7 +26,7 @@
 public abstract class LivePhotoConv.LiveMaker : Object {
 
     protected GExiv2.Metadata metadata;
-    string? main_image_path = null;
+    protected string? main_image_path = null;
     protected string video_path;
     protected string dest;
 
@@ -125,16 +125,13 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             this.metadata.clear ();
         }
 
-        var live_file = File.new_for_commandline_arg  (this.dest);
-        var main_file = File.new_for_commandline_arg  (this.main_image_path);
+        // Create the live photo file from the main image and then append the video
+        var live_file = this.export_main_image ();
         var video_file = File.new_for_commandline_arg  (this.video_path);
 
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 
-        var output_stream = live_file.replace (null, this._make_backup, this._file_create_flags);
-        // Copy the main image to the live photo
-        var main_input_stream = main_file.read ();
-        Utils.write_stream (main_input_stream, output_stream);
+        var output_stream = live_file.append_to (GLib.FileCreateFlags.NONE, null);
         // Copy the video to the live photo
         var video_input_stream = video_file.read ();
         Utils.write_stream (video_input_stream, output_stream);
@@ -143,5 +140,21 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         return video_size;
     }
 
+    protected static bool is_supported_main_image (File file) {
+        try {
+            var file_info = file.query_info ("standard::content-type", FileQueryInfoFlags.NONE);
+            var content_type = file_info.get_content_type ();
+            if (content_type == "image/jpeg" || content_type == "image/heic" || content_type == "image/avif") {
+                return true;
+            }
+            return false;
+        } catch (Error e) {
+            Reporter.error ("Cannot query file info for `%s': %s", file.get_path (), e.message);
+            return false;
+        }
+    }
+
     protected abstract int64 export_with_video_only () throws Error;
+
+    protected abstract File export_main_image () throws Error;
 }

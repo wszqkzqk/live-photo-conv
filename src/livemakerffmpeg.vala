@@ -105,4 +105,39 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
 
         return video_size;
     }
+
+    public override File export_main_image () throws Error {
+        var main_file = File.new_for_commandline_arg (this.main_image_path);
+        var live_file = File.new_for_commandline_arg (this.dest);
+
+        if (is_supported_main_image (main_file)) {
+            // If the main image is supported, copy it to the live photo
+            this.metadata.open_path (this.main_image_path);
+            if (! this.export_original_metadata) {
+                this.metadata.clear ();
+            }
+
+            var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+            var main_input_stream = main_file.read ();
+            Utils.write_stream (main_input_stream, output_stream);
+        } else {
+            Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
+            // Convert the main image to supported format
+            var main_file_stream = main_file.read ();
+            var subprcs = new Subprocess.newv (FFMPEG_COMMANDS,
+                SubprocessFlags.STDOUT_PIPE |
+                SubprocessFlags.STDERR_PIPE |
+                SubprocessFlags.STDIN_PIPE);
+            var pipe_stdin = subprcs.get_stdin_pipe ();
+            Utils.write_stream (main_file_stream, pipe_stdin);
+            pipe_stdin.close ();
+
+            // Read the image from the subprocess's stdout
+            var pipe_stdout = subprcs.get_stdout_pipe ();
+            var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+            Utils.write_stream (pipe_stdout, output_stream);
+        }
+
+        return live_file;
+    }
 }

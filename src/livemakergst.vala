@@ -77,4 +77,30 @@ public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
 
         return video_size;
     }
+
+    public override File export_main_image () throws Error {
+        var main_file = File.new_for_commandline_arg (this.main_image_path);
+        var live_file = File.new_for_commandline_arg (this.dest);
+
+        if (is_supported_main_image (main_file)) {
+            // If the main image is supported, copy it to the live photo
+            this.metadata.open_path (this.main_image_path);
+            if (! this.export_original_metadata) {
+                this.metadata.clear ();
+            }
+
+            var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+            var main_input_stream = main_file.read ();
+            Utils.write_stream (main_input_stream, output_stream);
+        } else {
+            // Convert the main image to supported format
+            Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
+            var main_file_stream = main_file.read ();
+            var pixbuf = new Gdk.Pixbuf.from_stream (main_file_stream, null);
+            var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+            pixbuf.save_to_stream (output_stream, "jpeg");
+        }
+
+        return live_file;
+    }
 }
