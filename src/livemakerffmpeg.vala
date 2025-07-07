@@ -121,6 +121,7 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
             var main_input_stream = main_file.read ();
             Utils.write_stream (main_input_stream, output_stream);
         } else {
+            Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             // Convert the main image to supported format
             var main_file_stream = main_file.read ();
             var subprcs = new Subprocess.newv (FFMPEG_COMMANDS,

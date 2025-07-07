@@ -94,6 +94,7 @@ public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
             Utils.write_stream (main_input_stream, output_stream);
         } else {
             // Convert the main image to supported format
+            Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             var main_file_stream = main_file.read ();
             var pixbuf = new Gdk.Pixbuf.from_stream (main_file_stream, null);
             var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
