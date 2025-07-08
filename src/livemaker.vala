@@ -144,12 +144,14 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         try {
             var file_info = file.query_info ("standard::content-type", FileQueryInfoFlags.NONE);
             var content_type = file_info.get_content_type ();
-            if (content_type == "image/jpeg" || content_type == "image/heic" || content_type == "image/avif") {
+            // FIXME: Currently only JPEG is supported as the main image format
+            // Google also supports "image/heif" and "image/avif", but GExiv2 does not support them yet
+            if (content_type == "image/jpeg") {
                 return true;
             }
             return false;
         } catch (Error e) {
-            Reporter.error ("Cannot query file info for `%s': %s", file.get_path (), e.message);
+            Reporter.warning ("FormatWarning", "Cannot query file info for `%s': %s", file.get_path (), e.message);
             return false;
         }
     }
