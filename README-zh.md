@@ -1,5 +1,7 @@
 # Live Photo Converter
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wszqkzqk/live-photo-conv)
+
 * [English Version](README.md)
 
 Live Photo Converter 是一个用于处理动态照片的跨平台的工具。它可以将静态图像和视频合成为动态照片，直接将视频转化为动态照片，修复受损的动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
