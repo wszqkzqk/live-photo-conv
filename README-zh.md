@@ -310,8 +310,17 @@ livemaker.export()
 解决方案：
 
 * 使用对应厂商的手机拍摄一张普通照片
-* 使用 `copy-img-meta` 工具将这张照片的元数据复制到生成的动态照片上
+* 使用 `copy-img-meta --exclude-xmp <source_image> <dest_image>` 将这张照片的元数据复制到生成的动态照片上
 * 如果在手机上发现能识别但无法播放，使用 `live-photo-conv` 工具修复动态照片
   * 例如，使用 `live-photo-conv --repair -p /path/to/live_photo.jpg`
   * 或者强制修复 `live-photo-conv --force-repair -p /path/to/live_photo.jpg`
   * 极少数情况下如果仍然无法修复，可以尝试指定嵌入视频大小 `live-photo-conv --repair-with-video-size=SIZE -p /path/to/live_photo.jpg` （一般情况下不需要）
+
+也可以事先先将元数据复制到用来制作动态照片的普通照片上，然后再使用 `live-photo-conv` 工具创建动态照片（推荐）：
+
+```bash
+copy-img-meta --exclude-xmp /path/to/source.jpg /path/to/dest.jpg
+live-photo-conv --make --image /path/to/dest.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
+```
+
+这样可以一次性得到可以在对应品牌的手机上正常识别的动态照片。

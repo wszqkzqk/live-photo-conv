@@ -310,8 +310,17 @@ Due to the fragmentation among Android phone manufacturers, different vendors ma
 Workarounds:
 
 * Take a photo (usually not live photo) with a phone from the respective manufacturer.
-* Use the `copy-img-meta` tool to copy the metadata from that photo to the generated live photo.
+* Use `copy-img-meta --exclude-xmp <source_image> <dest_image>` to copy the metadata from that photo to the generated live photo.
 * If the phone recognizes the live photo but fails to play it, repair the live photo using the `live-photo-conv` tool:
   * For example, run `live-photo-conv --repair -p /path/to/live_photo.jpg`
   * Or force a repair with `live-photo-conv --force-repair -p /path/to/live_photo.jpg`
   * In rare cases where the repair still fails, you can try specifying the embedded video size using `live-photo-conv --repair-with-video-size=SIZE -p /path/to/live_photo.jpg` (usually not necessary)
+
+You can also copy the metadata to the ordinary photo used to create the live photo beforehand, and then use the `live-photo-conv` tool to create the live photo (recommended):
+
+```bash
+copy-img-meta --exclude-xmp /path/to/source.jpg /path/to/dest.jpg
+live-photo-conv --make --image /path/to/dest.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
+```
+
+This way, you can obtain a live photo that is recognized and playable on the respective brand's phone.
