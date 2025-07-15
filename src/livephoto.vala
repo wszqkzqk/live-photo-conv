@@ -128,8 +128,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     */
     inline int64 get_video_offset () throws Error {
         // Get the offset of the video data from the XMP metadata
-        // Look for the tag `Xmp.GCamera.MicroVideoOffset` in loaded `xmp_map`
-        var tag_value = this.xmp_map.lookup ("Xmp.GCamera.MicroVideoOffset");
+        var tag_value = this.xmp_map.lookup ("Xmp.GCamera.MotionPhotoOffset");
+        if (tag_value == null) {
+            // Fallback to the old standard
+            tag_value = this.xmp_map.lookup ("Xmp.GCamera.MicroVideoOffset");
+        }
         if (tag_value != null) {
             int64 reverse_offset = int64.parse (tag_value);
             if (reverse_offset > 0) {
