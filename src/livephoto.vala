@@ -343,7 +343,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         var offset_string = reverse_offset.to_string ();
 
-        string presentation_timestamp_us_to_write = "-1";
+        string presentation_timestamp_us_to_write = "0";
         // this.xmp_map contains tags loaded in the constructor
         var original_motion_photo_ts = this.xmp_map.lookup("Xmp.Camera.MotionPhotoPresentationTimestampUs");
         var original_gcamera_ts = this.xmp_map.lookup("Xmp.GCamera.MicroVideoPresentationTimestampUs");
@@ -354,6 +354,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             presentation_timestamp_us_to_write = original_gcamera_ts;
         }
 
+        // Set GCamera (old standard) tags
         this.xmp_map.insert ("Xmp.GCamera.MicroVideo", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
@@ -363,6 +364,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.xmp_map.insert ("Xmp.GCamera.MotionPhoto", "1");
         this.xmp_map.insert ("Xmp.GCamera.MotionPhotoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        // Set Container and Item tags for MotionPhoto
+        this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
 
         // Add Container and Item tags for MotionPhoto
         // Item 1: Primary Image (assuming JPEG based on typical output)
