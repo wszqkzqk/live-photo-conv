@@ -128,8 +128,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     */
     inline int64 get_video_offset () throws Error {
         // Get the offset of the video data from the XMP metadata
-        // Look for the tag `Xmp.GCamera.MicroVideoOffset` in loaded `xmp_map`
-        var tag_value = this.xmp_map.lookup ("Xmp.GCamera.MicroVideoOffset");
+        var tag_value = this.xmp_map.lookup ("Xmp.GCamera.MotionPhotoOffset");
+        if (tag_value == null) {
+            // Fallback to the old standard
+            tag_value = this.xmp_map.lookup ("Xmp.GCamera.MicroVideoOffset");
+        }
         if (tag_value != null) {
             int64 reverse_offset = int64.parse (tag_value);
             if (reverse_offset > 0) {
@@ -300,6 +303,8 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     */
     public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
         GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
+        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
 
         var file_size = File.new_for_commandline_arg  (this.filename)
             .query_info ("standard::size", FileQueryInfoFlags.NONE)
@@ -341,9 +346,52 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         var offset_string = reverse_offset.to_string ();
 
+        string presentation_timestamp_us_to_write = "0";
+        // this.xmp_map contains tags loaded in the constructor
+        var original_motion_photo_ts = this.xmp_map.lookup("Xmp.Camera.MotionPhotoPresentationTimestampUs");
+        var original_gcamera_ts = this.xmp_map.lookup("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+
+        if (original_motion_photo_ts != null && original_motion_photo_ts != "") {
+            presentation_timestamp_us_to_write = original_motion_photo_ts;
+        } else if (original_gcamera_ts != null && original_gcamera_ts != "") {
+            presentation_timestamp_us_to_write = original_gcamera_ts;
+        }
+
+        // Set GCamera (old standard) tags
         this.xmp_map.insert ("Xmp.GCamera.MicroVideo", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
+        this.xmp_map.insert ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
+
+        // Add/Update new MotionPhoto standard tags in xmp_map
+        this.xmp_map.insert ("Xmp.GCamera.MotionPhoto", "1");
+        this.xmp_map.insert ("Xmp.GCamera.MotionPhotoVersion", "1");
+        this.xmp_map.insert ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        // Set Container and Item tags for MotionPhoto
+        this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+
+        // Add Container and Item tags for MotionPhoto
+        // Item 1: Primary Image (assuming JPEG based on typical output)
+        var image_mime_type = "image/jpeg"; // Default, could be refined based on actual extension
+        if (this.extension_name.down () == "heic" || this.extension_name.down () == "heif") {
+            image_mime_type = "image/heic";
+        } else if (this.extension_name.down () == "avif") {
+            image_mime_type = "image/avif";
+        }
+        this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Mime", image_mime_type);
+        this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Semantic", "Primary");
+        // Item:Padding: For JPEG, optional (can be 0 or omitted). For HEIC/AVIF, must be 8.
+        // This example assumes JPEG or doesn't set padding. A more robust solution would check image_mime_type.
+        // if (image_mime_type == "image/heic" || image_mime_type == "image/avif") {
+        //    this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Padding", "8");
+        // }
+
+        // Item 2: Video (assuming MP4)
+        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Mime", "video/mp4");
+        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Semantic", "MotionPhoto");
+        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
 
         // Restore the XMP metadata for the live photo
         Error? metadata_error = null;
@@ -373,10 +421,21 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
     inline void clear_live_xmp_tags () {
         try {
+            // Clear GCamera (old standard) tags
             this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideo");
             this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoVersion");
             this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoOffset");
             this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+
+            // Clear Camera (new standard) tags
+            this.metadata.try_clear_tag ("Xmp.GCamera.MotionPhoto");
+            this.metadata.try_clear_tag ("Xmp.GCamera.MotionPhotoVersion");
+            this.metadata.try_clear_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+
+            // Clearing structured Container:Directory tags might require specific path handling
+            // or clearing the parent Xmp.Container.Directory tag if supported.
+            // For simplicity, we are clearing the main identifiable tags.
+            this.metadata.try_clear_tag ("Xmp.Container.Directory");
         } catch (Error e) {
             Reporter.warning ("XMPWarning", "Cannot clear the XMP metadata: %s", e.message);
         }
