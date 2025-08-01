@@ -63,6 +63,13 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             var main_basename = Path.get_basename (main_image_path);
             main_basename = "MVIMG" + main_basename[3:];
             this.dest = Path.build_filename (Path.get_dirname (main_image_path), main_basename);
+            // Currently only JPEG is supported as the main image format
+            // Google also supports "image/heif" and "image/avif", but GExiv2 does not support them yet
+            // So we need to ensure the exported live photo has a JPEG extension
+            var lower_dest = this.dest.down();
+            if (!(lower_dest.has_suffix (".jpg") || lower_dest.has_suffix (".jpeg"))) {
+                this.dest += ".jpg";
+            }
         } else {
             string dest_name;
             var video_basename = Path.get_basename (video_path);
@@ -70,11 +77,6 @@ public abstract class LivePhotoConv.LiveMaker : Object {
                 dest_name = "MVIMG" + video_basename[3:];
             } else {
                 dest_name = "MVIMG" + video_basename;
-            }
-
-            var last_dot = dest_name.last_index_of_char ('.');
-            if (last_dot != -1) {
-                dest_name = dest_name[0:last_dot];
             }
 
             this.dest = Path.build_filename (
