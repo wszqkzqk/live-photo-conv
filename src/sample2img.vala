@@ -74,7 +74,7 @@ public class LivePhotoConv.Sample2Img {
             try {
                 metadata.save_file (filename);
             } catch (Error e) {
-                throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", filename, e.message);
+                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", filename, e.message);
             }
         }
     }

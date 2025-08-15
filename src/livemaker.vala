@@ -156,7 +156,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         try {
             this.metadata.save_file (this.dest);
         }  catch (Error e) {
-            throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
+            throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
         }
         Reporter.info_puts ("Exported live photo", this.dest);
     }

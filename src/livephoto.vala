@@ -241,7 +241,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             try {
                 this.metadata.save_file (main_image_filename);
             } catch (Error e) {
-                throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s", main_image_filename, e.message);
+                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s", main_image_filename, e.message);
             }
         }
 
@@ -405,7 +405,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             }
         });
         if (metadata_error != null) {
-            throw new ExportError.MATEDATA_EXPORT_ERROR ("Cannot set the XMP metadata: %s", metadata_error.message);
+            throw new ExportError.METADATA_EXPORT_ERROR ("Cannot set the XMP metadata: %s", metadata_error.message);
         }
 
         this.metadata.save_file (this.filename);

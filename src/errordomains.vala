@@ -17,7 +17,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
-namespace LivePhotoConv{
+namespace LivePhotoConv {
 
     public errordomain NotLivePhotosError {
         OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the live photo is not found.
@@ -25,7 +25,7 @@ namespace LivePhotoConv{
 
     public errordomain ExportError {
         FFMPEG_EXIED_WITH_ERROR, // FFmpeg failed to split the video into images.
-        MATEDATA_EXPORT_ERROR, // Failed to export the metadata.
+        METADATA_EXPORT_ERROR, // Failed to export the metadata.
         FILE_PUSH_ERROR, // Failed to push data
     }
 }
