@@ -71,11 +71,22 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * @param filename The path to the live photo file.
      * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
-     * @throws Error if an error occurs while retrieving the offset.
+     * @throws ValidationError if the file path is invalid or the file doesn't exist.
+     * @throws NotLivePhotosError if the file is not a valid live photo.
+     * @throws IOError if there's an I/O error reading the file.
     */
-    protected LivePhoto (string filename, string? dest_dir = null) throws Error {
-        this.metadata = new GExiv2.Metadata ();
-        this.metadata.open_path (filename);
+    protected LivePhoto (string filename, string? dest_dir = null) throws ValidationError, NotLivePhotosError, IOError {
+        var file = File.new_for_commandline_arg (filename);
+        if (!file.query_exists ()) {
+            throw new ValidationError.MISSING_REQUIRED_FILE ("Live photo file does not exist: %s".printf (filename));
+        }
+
+        try {
+            this.metadata = new GExiv2.Metadata ();
+            this.metadata.open_path (filename);
+        } catch (Error e) {
+            throw new NotLivePhotosError.INVALID_FILE_FORMAT ("Failed to read metadata from file: %s".printf (e.message));
+        }
 
         // Copy the XMP metadata to the map
         this.xmp_map = new Tree<string?, string?> ((a, b) => {return strcmp (a, b);});
@@ -122,11 +133,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * This function first tries to get the offset from the XMP metadata.
      * If the offset is not found, it searches for the MP4 header in the live photo.
      *
-     * @throws Error if an error occurs while retrieving the offset.
+     * @throws IOError if there's an I/O error reading the file.
      *
      * @return the offset of the video data in the live photo， if the offset is not found, return value < 0.
     */
-    inline int64 get_video_offset () throws Error {
+    inline int64 get_video_offset () throws IOError {
         // Get the offset of the video data from the XMP metadata
         var tag_value = this.xmp_map.lookup ("Xmp.GCamera.MotionPhotoOffset");
         if (tag_value == null) {
@@ -136,10 +147,14 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         if (tag_value != null) {
             int64 reverse_offset = int64.parse (tag_value);
             if (reverse_offset > 0) {
-                var file_size = File.new_for_commandline_arg  (this.filename)
-                    .query_info ("standard::size", FileQueryInfoFlags.NONE)
-                    .get_size ();
-                return file_size - reverse_offset;
+                try {
+                    var file_size = File.new_for_commandline_arg  (this.filename)
+                        .query_info ("standard::size", FileQueryInfoFlags.NONE)
+                        .get_size ();
+                    return file_size - reverse_offset;
+                } catch (Error e) {
+                    throw new IOError.FAILED ("Failed to get file size: %s".printf (e.message));
+                }
             }
         }
 
@@ -157,12 +172,19 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * It reads the file in chunks and checks for the tag, handling boundary crossing between chunks.
      *
      * @return The offset of the video data in the live photo.
-     * @throws Error if there is an issue reading the file.
+     * @throws IOError if there is an issue reading the file.
     */
-    inline int64 get_video_offset_fallback () throws Error {
+    inline int64 get_video_offset_fallback () throws IOError {
         int64 offset = -1; // Record the offset of the video data in the live photo
         var file = File.new_for_commandline_arg (this.filename);
-        var input_stream = file.read ();
+        FileInputStream input_stream;
+        
+        try {
+            input_stream = file.read ();
+        } catch (Error e) {
+            throw new IOError.FAILED ("Failed to open file for reading: %s".printf (e.message));
+        }
+        
         ssize_t bytes_read;
         int64 global_pos = 0; // Global byte position
         uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
@@ -210,13 +232,22 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * If not provided, a default path will be used.
      *
      * @param dest The destination path for the exported main image. If null, a default path will be used.
-     * @throws Error if there is an error during the export process.
+     * @throws IOError if there's an I/O error during the export process.
+     * @throws ExportError if there's an error during export operations.
      * @return The path of the exported main image.
     */
-    public string export_main_image (string? dest = null) throws Error {
+    public string export_main_image (string? dest = null) throws IOError, ExportError {
         // Export the bytes before `video_offset`
         var file = File.new_for_commandline_arg  (this.filename);
-        var input_stream = file.read ();
+        FileInputStream input_stream;
+        FileOutputStream output_stream;
+        
+        try {
+            input_stream = file.read ();
+        } catch (Error e) {
+            throw new IOError.FAILED ("Failed to read live photo file: %s".printf (e.message));
+        }
+        
         string main_image_filename;
         if (dest != null) {
             main_image_filename = dest;
@@ -228,9 +259,18 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             main_image_filename = Path.build_filename (this.dest_dir, this.basename_no_ext + "_0." + this.extension_name);
         }
 
-        var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
+        try {
+            output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
+        } catch (Error e) {
+            throw new ExportError.FILE_WRITE_ERROR ("Failed to create output file %s: %s".printf (main_image_filename, e.message));
+        }
+
         // Write the bytes before `video_offset` to the main image file
-        Utils.write_stream_before (input_stream, output_stream, this.video_offset);
+        try {
+            Utils.write_stream_before (input_stream, output_stream, this.video_offset);
+        } catch (IOError e) {
+            throw new ExportError.STREAM_WRITE_ERROR ("Failed to write main image data: %s".printf (e.message));
+        }
 
         Reporter.info_puts ("Exported main image", main_image_filename);
 
@@ -254,14 +294,23 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * The video is exported from the live photo and saved as an MP4 file.
      *
      * @param dest The destination path for the exported video. If not provided, a default path will be used.
-     * @throws Error if there is an error during the export process.
+     * @throws IOError if there's an I/O error during the export process.
+     * @throws ExportError if there's an error during export operations.
      * @return The path of the exported video file.
     */
-    public string export_video (string? dest = null) throws Error {
+    public string export_video (string? dest = null) throws IOError, ExportError {
         /* Export the video of the live photo. */
         // Export the bytes after `video_offset`
         var file = File.new_for_commandline_arg  (this.filename);
-        var input_stream = file.read ();
+        FileInputStream input_stream;
+        FileOutputStream output_stream;
+        
+        try {
+            input_stream = file.read ();
+        } catch (Error e) {
+            throw new IOError.FAILED ("Failed to read live photo file: %s".printf (e.message));
+        }
+        
         string video_filename;
         if (dest != null) {
             video_filename = dest;
@@ -275,10 +324,21 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             video_filename = Path.build_filename (this.dest_dir, "VID_" + this.basename_no_ext + ".mp4");
         }
 
-        var output_stream = File.new_for_commandline_arg (video_filename).replace (null, make_backup, file_create_flags);
+        try {
+            output_stream = File.new_for_commandline_arg (video_filename).replace (null, make_backup, file_create_flags);
+        } catch (Error e) {
+            throw new ExportError.FILE_WRITE_ERROR ("Failed to create output file %s: %s".printf (video_filename, e.message));
+        }
+
         // Write the bytes after `video_offset` to the video file
-        input_stream.seek (this.video_offset, SeekType.SET);
-        Utils.write_stream (input_stream, output_stream);
+        try {
+            input_stream.seek (this.video_offset, SeekType.SET);
+            Utils.write_stream (input_stream, output_stream);
+        } catch (Error e) {
+            // input_stream.seek may throw GLib.Error (not specifically IOError),
+            // catch the general Error and map it to a domain-specific ExportError.
+            throw new ExportError.STREAM_WRITE_ERROR ("Failed to write video data: %s".printf (e.message));
+        }
 
         Reporter.info_puts ("Exported video file", video_filename);
 
@@ -295,16 +355,26 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * @param force If true, forces the use of the fallback method to get the video offset.
      * @param manual_video_size If greater than 0, uses this value as the video size instead of calculating it.
-     * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
+     * @throws IOError if there's an I/O error during the repair process.
+     * @throws ExportError if there's an error during metadata operations.
     */
-    public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+    public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws IOError, ExportError, NotLivePhotosError {
+        try {
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Failed to register XMP namespaces: %s", e.message);
+        }
 
-        var file_size = File.new_for_commandline_arg  (this.filename)
-            .query_info ("standard::size", FileQueryInfoFlags.NONE)
-            .get_size ();
+        int64 file_size;
+        try {
+            file_size = File.new_for_commandline_arg  (this.filename)
+                .query_info ("standard::size", FileQueryInfoFlags.NONE)
+                .get_size ();
+        } catch (Error e) {
+            throw new IOError.FAILED ("Failed to get file size: %s".printf (e.message));
+        }
 
         int64 reverse_offset;
 
@@ -315,10 +385,21 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         } else {
             // Check whether the current video offset is valid
             var file = File.new_for_commandline_arg (this.filename);
-            var input_stream = file.read ();
-            input_stream.seek (this.video_offset + LENGTH_BEFORE_FTYP, SeekType.SET);
+            FileInputStream input_stream;
+            
+            try {
+                input_stream = file.read ();
+            } catch (Error e) {
+                throw new IOError.FAILED ("Failed to open file for validation: %s".printf (e.message));
+            }
             uint8[] header = new uint8[PATTERN_LENGTH];
-            ssize_t read_bytes = input_stream.read (header, null);
+            ssize_t read_bytes;
+            try {
+                input_stream.seek (this.video_offset + LENGTH_BEFORE_FTYP, SeekType.SET);
+                read_bytes = input_stream.read (header, null);
+            } catch (Error e) {
+                throw new IOError.FAILED ("Failed to seek/read file for validation: %s".printf (e.message));
+            }
             bool header_valid = (read_bytes == PATTERN_LENGTH);
             if (header_valid) {
                 for (int i = 0; i < PATTERN_LENGTH; i += 1) {
@@ -364,9 +445,13 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.xmp_map.insert ("Xmp.GCamera.MotionPhotoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
         // Set Container and Item tags for MotionPhoto
-        this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+        try {
+            this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Failed to set Container/Item structure: %s", e.message);
+        }
 
         // Add Container and Item tags for MotionPhoto
         // Item 1: Primary Image (assuming JPEG based on typical output)
@@ -404,7 +489,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             throw new ExportError.METADATA_EXPORT_ERROR ("Cannot set the XMP metadata: %s", metadata_error.message);
         }
 
-        this.metadata.save_file (this.filename);
+        try {
+            this.metadata.save_file (this.filename);
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Failed to save metadata to %s: %s", this.filename, e.message);
+        }
 
         // Clear some XMP metadata to export the images which are not live photos
         this.clear_live_xmp_tags ();
@@ -437,6 +526,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         }
     }
 
-    public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error;
+    public abstract void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws ProcessError, ExportError, IOError;
 }
 

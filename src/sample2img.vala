@@ -63,10 +63,15 @@ public class LivePhotoConv.Sample2Img {
      * Export the sample as an image.
      *
      * @param metadata The metadata to be saved along with the image. (optional)
-     * @throws Error if an error occurs during the export process.
+     * @throws ExportError if an error occurs during the export process.
+     * @throws IOError if there's an I/O error during export.
     */
-    public void export (GExiv2.Metadata? metadata = null) throws Error {
-        pixbuf.save (filename, output_format);
+    public void export (GExiv2.Metadata? metadata = null) throws ExportError, IOError {
+        try {
+            pixbuf.save (filename, output_format);
+        } catch (Error e) {
+            throw new ExportError.FILE_WRITE_ERROR ("Failed to save image to %s: %s".printf (filename, e.message));
+        }
 
         Reporter.info_puts ("Exported image", filename);
 
@@ -79,7 +84,11 @@ public class LivePhotoConv.Sample2Img {
         }
     }
 
-    public void save_to_stream (OutputStream stream) throws Error {
-        pixbuf.save_to_stream (stream, output_format);
+    public void save_to_stream (OutputStream stream) throws ExportError {
+        try {
+            pixbuf.save_to_stream (stream, output_format);
+        } catch (Error e) {
+            throw new ExportError.STREAM_WRITE_ERROR ("Failed to save image to stream: %s".printf (e.message));
+        }
     }
 }

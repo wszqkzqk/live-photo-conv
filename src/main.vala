@@ -146,8 +146,11 @@ class LivePhotoConv.Main {
             } catch (IOError e) {
                 Reporter.error_puts ("IOError", e.message);
                 return 1;
-            } catch (Error e) {
-                Reporter.error_puts ("Error", e.message);
+            } catch (ExportError e) {
+                Reporter.error_puts ("ExportError", e.message);
+                return 1;
+            } catch (ProcessError e) {
+                Reporter.error_puts ("ProcessError", e.message);
                 return 1;
             }
         } else {
@@ -198,8 +201,17 @@ class LivePhotoConv.Main {
             } catch (NotLivePhotosError e) {
                 Reporter.error_puts ("NotLivePhotosError", e.message);
                 return 1;
-            } catch (Error e) {
-                Reporter.error_puts ("Error", e.message);
+            } catch (ExportError e) {
+                Reporter.error_puts ("ExportError", e.message);
+                return 1;
+            } catch (ValidationError e) {
+                Reporter.error_puts ("ValidationError", e.message);
+                return 1;
+            } catch (ProcessError e) {
+                Reporter.error_puts ("ProcessError", e.message);
+                return 1;
+            } catch (IOError e) {
+                Reporter.error_puts ("IOError", e.message);
                 return 1;
             }
         }

@@ -36,9 +36,11 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      *
      * @param filename The path to the live photo file.
      * @param dest_dir The destination directory for the converted live photo. If not provided, the directory of the input file will be used.
-     * @throws Error if an error occurs while retrieving the offset.
+     * @throws ValidationError if the file path is invalid or the file doesn't exist.
+     * @throws NotLivePhotosError if the file is not a valid live photo.
+     * @throws IOError if there's an I/O error reading the file.
     */
-    public LivePhotoFFmpeg (string filename, string? dest_dir = null) throws Error {
+    public LivePhotoFFmpeg (string filename, string? dest_dir = null) throws ValidationError, NotLivePhotosError, IOError {
         base (filename, dest_dir);
     }
 
@@ -54,9 +56,11 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
      * @param jobs The number of jobs to run in parallel. (Ignored in this implementation)
      *
-     * @throws Error If FFmpeg exits with an error.
+     * @throws ProcessError If FFmpeg exits with an error or command execution fails.
+     * @throws ExportError If there's an error during export operations.
+     * @throws IOError if there's an I/O error during processing.
     */
-     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 1) throws Error {
+     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 1) throws ProcessError, ExportError, IOError {
         /* Export the video of the live photo and split the video into images. */
         string name_to_printf;
         string dest;
@@ -102,10 +106,15 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             };
         }
 
-        var subprcs = new Subprocess.newv (commands,
-            SubprocessFlags.STDOUT_PIPE |
-            SubprocessFlags.STDERR_PIPE |
-            SubprocessFlags.STDIN_PIPE);
+        Subprocess subprcs;
+        try {
+            subprcs = new Subprocess.newv (commands,
+                SubprocessFlags.STDOUT_PIPE |
+                SubprocessFlags.STDERR_PIPE |
+                SubprocessFlags.STDIN_PIPE);
+        } catch (Error e) {
+            throw new ProcessError.COMMAND_EXECUTION_FAILED ("Failed to start FFmpeg process: %s".printf (e.message));
+        }
 
         Thread<ExportError?> push_thread = new Thread<ExportError?> ("file_pusher", () => {
             try {
@@ -165,7 +174,12 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         if (push_file_error != null) {
             Reporter.error_puts ("FilePushError", push_file_error.message);
         }
-        subprcs.wait ();
+        
+        try {
+            subprcs.wait ();
+        } catch (Error e) {
+            throw new ProcessError.COMMAND_EXECUTION_FAILED ("Failed to wait for FFmpeg process: %s".printf (e.message));
+        }
 
         var exit_code = subprcs.get_exit_status ();
 
@@ -176,12 +190,12 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             } catch {} // If failed, throw the error without the error message
 
             if (subprcs_error == null) {
-                throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
+                throw new ProcessError.COMMAND_EXECUTION_FAILED (
                     "Command `%s' failed with %d",
                     string.joinv (" ", commands),
                     exit_code);
             }
-            throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
+            throw new ProcessError.COMMAND_EXECUTION_FAILED (
                 "Command `%s' failed with %d - `%s'",
                 string.joinv (" ", commands),
                 exit_code,

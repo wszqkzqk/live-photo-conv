@@ -26,9 +26,11 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
      *
      * @param filename The path to the live photo file
      * @param dest_dir The destination directory for the converted live photo
-     * @throws Error If an error occurs while retrieving the offset
+     * @throws ValidationError if the file path is invalid or the file doesn't exist.
+     * @throws NotLivePhotosError if the file is not a valid live photo.
+     * @throws IOError if there's an I/O error reading the file.
      */
-    public LivePhotoGst (string filename, string? dest_dir = null) throws Error {
+    public LivePhotoGst (string filename, string? dest_dir = null) throws ValidationError, NotLivePhotosError, IOError {
         base (filename, dest_dir);
     }
 
@@ -38,15 +40,23 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
      * @param output_format The format of the output images
      * @param dest_dir The destination directory for output
      * @param jobs Number of concurrent jobs for processing
-     * @throws Error If an error occurs during processing
+     * @throws ProcessError If GStreamer processing fails
+     * @throws ExportError If there's an error during export operations
+     * @throws IOError if there's an I/O error during processing
      */
-    public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error {
+    public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws ProcessError, ExportError, IOError {
         // Enpty args to Gst
         unowned string[] args = null;
         Gst.init (ref args);
 
-        // Create a pipeline
-        var pipeline = Gst.parse_launch ("appsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink") as Gst.Bin;
+        Gst.Bin pipeline;
+        try {
+            // Create a pipeline
+            pipeline = Gst.parse_launch ("appsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink") as Gst.Bin;
+        } catch (Error e) {
+            throw new ExportError.GST_PIPELINE_ERROR ("Failed to initialize GStreamer or create pipeline: %s", e.message);
+        }
+
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
 
@@ -88,7 +98,9 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         if (jobs == 0) {
             jobs = (int) get_num_processors ();
         }
-        var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
+        ThreadPool<Sample2Img> pool = null;
+        try {
+            pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
             try {
                 if (export_original_metadata) {
                     item.export (this.metadata);
@@ -98,7 +110,10 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
             }
-        }, jobs, false);
+            }, jobs, false);
+        } catch (GLib.ThreadError e) {
+            throw new ExportError.FILE_PUSH_ERROR ("Failed to create thread pool: %s", e.message);
+        }
 
         Gst.Sample sample;
         uint index = 1;
@@ -114,7 +129,11 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         while ((sample = appsink.pull_sample ()) != null) {
             string filename = filename_no_index_ext + "_%u.".printf (index) + extension;
             var item = new Sample2Img (sample, filename, format);
-            pool.add ((owned) item);
+            try {
+                pool.add ((owned) item);
+            } catch (GLib.ThreadError e) {
+                Reporter.warning ("ThreadWarning", "Failed to add job to thread pool: %s", e.message);
+            }
             index += 1;
         }
 

@@ -100,9 +100,11 @@ public abstract class LivePhotoConv.LiveMaker : Object {
      * The live photo is saved to the specified destination path.
      * If the main image is `null`, it will use the first frame of the video as the main image.
      *
-     * @throws Error if there is an error during the process.
+     * @throws IOError if there's an I/O error during the process.
+     * @throws ExportError if there's an error during export operations.
+     * @throws ProcessError if external process execution fails.
     */
-    public void export () throws Error {
+    public void export () throws IOError, ExportError, ProcessError {
         int64 video_size = 0;
         if (this.main_image_path != null) {
             video_size = this.export_with_main_image ();
@@ -111,9 +113,13 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
 
         // Register XMP namespaces
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+        try {
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Failed to register XMP namespaces: %s", e.message);
+        }
 
         string presentation_timestamp_us_to_write = "-1";
         string? existing_motion_photo_ts = null;
@@ -134,29 +140,35 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             presentation_timestamp_us_to_write = existing_gcamera_ts;
         }
 
-        // Set MicroVideo (old standard) tags
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        // Set MicroVideo (old standard) tags and MotionPhoto (new standard) tags
+        try {
+            // MicroVideo tags
+            this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
+            this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
+            this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
+            this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
 
-        // Set MotionPhoto (new standard) tags
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
-        // Set Container and Item tags for MotionPhoto
-        this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
-        // Item 1: Primary Image (assuming JPEG)
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
-        // Item:Padding is optional for JPEG, so we omit it or can set to "0"
-        // this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
-        // Item 2: Video (assuming MP4)
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
+            // MotionPhoto tags
+            this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
+            this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
+            this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
+
+            // Set Container and Item tags for MotionPhoto
+            this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+            // Item 1: Primary Image (assuming JPEG)
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
+            // Item:Padding is optional for JPEG, so we omit it or can set to "0"
+            // this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
+            // Item 2: Video (assuming MP4)
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
+            this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Failed to set XMP metadata: %s", e.message);
+        }
 
         try {
             this.metadata.save_file (this.dest);
@@ -166,8 +178,13 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         Reporter.info_puts ("Exported live photo", this.dest);
     }
 
-    inline int64 export_with_main_image () throws Error {
-        this.metadata.open_path (main_image_path);
+    inline int64 export_with_main_image () throws IOError, ExportError {
+        try {
+            this.metadata.open_path (main_image_path);
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Failed to read metadata from main image: %s".printf (e.message));
+        }
+        
         if (! this._export_original_metadata) {
             // Need to manually clear the metadata if it's not to be exported
             // Because the main image including the metadata is fully copied
@@ -175,16 +192,27 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
 
         // Create the live photo file from the main image and then append the video
-        var live_file = this.export_main_image ();
+        File live_file = this.export_main_image ();
         var video_file = File.new_for_commandline_arg  (this.video_path);
 
-        var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+        int64 video_size;
+        try {
+            video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+        } catch (Error e) {
+            throw new IOError.FAILED ("Failed to get video file size: %s".printf (e.message));
+        }
 
-        var output_stream = live_file.append_to (GLib.FileCreateFlags.NONE, null);
-        // Copy the video to the live photo
-        var video_input_stream = video_file.read ();
-        Utils.write_stream (video_input_stream, output_stream);
-        output_stream.close ();
+        FileOutputStream output_stream;
+        FileInputStream video_input_stream;
+        
+        try {
+            output_stream = live_file.append_to (GLib.FileCreateFlags.NONE, null);
+            video_input_stream = video_file.read ();
+            Utils.write_stream (video_input_stream, output_stream);
+            output_stream.close ();
+        } catch (Error e) {
+            throw new ExportError.FILE_WRITE_ERROR ("Failed to append video to live photo: %s".printf (e.message));
+        }
 
         return video_size;
     }
@@ -205,7 +233,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
     }
 
-    protected abstract int64 export_with_video_only () throws Error;
+    protected abstract int64 export_with_video_only () throws IOError, ExportError, ProcessError;
 
-    protected abstract File export_main_image () throws Error;
+    protected abstract File export_main_image () throws IOError, ExportError;
 }

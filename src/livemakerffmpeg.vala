@@ -47,28 +47,49 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
      * Exports live photo using video only.
      *
      * @return The size of the video file
-     * @throws Error If an error occurs during export
+     * @throws IOError If an I/O error occurs during export
+     * @throws ExportError If an export error occurs
+     * @throws ProcessError If external process execution fails
      */
-    public override int64 export_with_video_only () throws Error {
-        this.metadata.open_path (this.video_path);
-        if (! this.export_original_metadata) {
-            this.metadata.clear ();
+    public override int64 export_with_video_only () throws IOError, ExportError, ProcessError {
+        try {
+            this.metadata.open_path (this.video_path);
+            if (! this.export_original_metadata) {
+                this.metadata.clear ();
+            }
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Failed to open metadata for video: %s", e.message);
         }
 
         var live_file = File.new_for_commandline_arg  (this.dest);
         var video_file = File.new_for_commandline_arg  (this.video_path);
 
-        var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+        int64 video_size;
+        try {
+            video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+        } catch (Error e) {
+            throw new IOError.FAILED ("Failed to get video file size: %s".printf (e.message));
+        }
 
         // Create a subprocess to run FFmpeg
-        var subprcs = new Subprocess.newv (FFMPEG_COMMANDS,
-            SubprocessFlags.STDOUT_PIPE |
-            SubprocessFlags.STDERR_PIPE |
-            SubprocessFlags.STDIN_PIPE);
+        Subprocess subprcs;
+        try {
+            subprcs = new Subprocess.newv (FFMPEG_COMMANDS,
+                SubprocessFlags.STDOUT_PIPE |
+                SubprocessFlags.STDERR_PIPE |
+                SubprocessFlags.STDIN_PIPE);
+        } catch (Error e) {
+            throw new ProcessError.COMMAND_EXECUTION_FAILED ("Failed to start ffmpeg subprocess: %s", e.message);
+        }
         
         // Set the video source
         var pipe_stdin = subprcs.get_stdin_pipe ();
-        var video_stream = video_file.read ();
+        FileInputStream video_stream;
+        try {
+            video_stream = video_file.read ();
+        } catch (Error e) {
+            throw new IOError.FAILED ("Failed to open video file for reading: %s".printf (e.message));
+        }
         Utils.write_stream (video_stream, pipe_stdin);
         // Close the pipe to signal the end of the input stream,
         // otherwise the process will be **blocked**.
@@ -76,10 +97,19 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
 
         // Read the image from the subprocess's stdout
         var pipe_stdout = subprcs.get_stdout_pipe ();
-        var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+        FileOutputStream output_stream;
+        try {
+            output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+        } catch (Error e) {
+            throw new ExportError.FILE_WRITE_ERROR ("Failed to create output live file: %s", e.message);
+        }
         Utils.write_stream (pipe_stdout, output_stream);
 
-        subprcs.wait ();
+        try {
+            subprcs.wait ();
+        } catch (Error e) {
+            throw new ProcessError.COMMAND_EXECUTION_FAILED ("FFmpeg process wait failed: %s", e.message);
+        }
 
         var exit_code = subprcs.get_exit_status ();
         if (exit_code != 0) {
@@ -100,42 +130,63 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         }
 
         // Write the video to the live photo
-        video_stream.seek (0, SeekType.SET);
-        Utils.write_stream (video_stream, output_stream);
+        try {
+            video_stream.seek (0, SeekType.SET);
+            Utils.write_stream (video_stream, output_stream);
+        } catch (Error e) {
+            throw new ExportError.FILE_WRITE_ERROR ("Failed to write video to live file: %s", e.message);
+        }
 
         return video_size;
     }
 
-    public override File export_main_image () throws Error {
+    public override File export_main_image () throws IOError, ExportError {
         var main_file = File.new_for_commandline_arg (this.main_image_path);
         var live_file = File.new_for_commandline_arg (this.dest);
 
         if (is_supported_main_image (main_file)) {
             // If the main image is supported, copy it to the live photo
-            this.metadata.open_path (this.main_image_path);
-            if (! this.export_original_metadata) {
-                this.metadata.clear ();
+            try {
+                this.metadata.open_path (this.main_image_path);
+                if (! this.export_original_metadata) {
+                    this.metadata.clear ();
+                }
+            } catch (Error e) {
+                throw new ExportError.METADATA_EXPORT_ERROR ("Failed to open metadata for main image: %s", e.message);
             }
 
-            var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
-            var main_input_stream = main_file.read ();
-            Utils.write_stream (main_input_stream, output_stream);
+            try {
+                var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+                var main_input_stream = main_file.read ();
+                Utils.write_stream (main_input_stream, output_stream);
+            } catch (Error e) {
+                throw new ExportError.FILE_WRITE_ERROR ("Failed to copy main image to live file: %s", e.message);
+            }
         } else {
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             // Convert the main image to supported format
-            var main_file_stream = main_file.read ();
-            var subprcs = new Subprocess.newv (FFMPEG_COMMANDS,
-                SubprocessFlags.STDOUT_PIPE |
-                SubprocessFlags.STDERR_PIPE |
-                SubprocessFlags.STDIN_PIPE);
-            var pipe_stdin = subprcs.get_stdin_pipe ();
-            Utils.write_stream (main_file_stream, pipe_stdin);
-            pipe_stdin.close ();
+            try {
+                var main_file_stream = main_file.read ();
+                Subprocess subprcs_conv = new Subprocess.newv (FFMPEG_COMMANDS,
+                    SubprocessFlags.STDOUT_PIPE |
+                    SubprocessFlags.STDERR_PIPE |
+                    SubprocessFlags.STDIN_PIPE);
+                var pipe_stdin = subprcs_conv.get_stdin_pipe ();
+                Utils.write_stream (main_file_stream, pipe_stdin);
+                pipe_stdin.close ();
 
-            // Read the image from the subprocess's stdout
-            var pipe_stdout = subprcs.get_stdout_pipe ();
-            var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
-            Utils.write_stream (pipe_stdout, output_stream);
+                // Read the image from the subprocess's stdout
+                var pipe_stdout = subprcs_conv.get_stdout_pipe ();
+                var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
+                Utils.write_stream (pipe_stdout, output_stream);
+                try {
+                    subprcs_conv.wait ();
+                } catch (Error e) {
+                    throw new ProcessError.COMMAND_EXECUTION_FAILED ("FFmpeg conversion failed: %s", e.message);
+                }
+            } catch (Error e) {
+                throw new ExportError.FILE_WRITE_ERROR ("Failed to convert/copy main image: %s", e.message);
+            }
         }
 
         return live_file;
