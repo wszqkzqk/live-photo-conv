@@ -220,14 +220,12 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         string main_image_filename;
         if (dest != null) {
             main_image_filename = dest;
+        } else if (this.basename.has_prefix ("MVIMG")) {
+            // The main image of a live photo is named as `IMG_YYYYMMDD_HHMMSS.xxx`
+            main_image_filename = Path.build_filename (this.dest_dir, "IMG" + this.basename[5:]);
         } else {
-            if (this.basename.has_prefix ("MVIMG")) {
-                // The main image of a live photo is named as `IMG_YYYYMMDD_HHMMSS.xxx`
-                main_image_filename = Path.build_filename (this.dest_dir, "IMG" + this.basename[5:]);
-            } else {
-                // If the original image is xxx.yyy, the main image is xxx_0.yyy
-                main_image_filename = Path.build_filename (this.dest_dir, this.basename_no_ext + "_0." + this.extension_name);
-            }
+            // If the original image is xxx.yyy, the main image is xxx_0.yyy
+            main_image_filename = Path.build_filename (this.dest_dir, this.basename_no_ext + "_0." + this.extension_name);
         }
 
         var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
@@ -267,16 +265,14 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         string video_filename;
         if (dest != null) {
             video_filename = dest;
+        } else if (this.basename.has_prefix ("MVIMG")) {
+            // The video of a live photo is named as `VID_YYYYMMDD_HHMMSS.mp4`
+            video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename_no_ext[5:] + ".mp4");
+        } else if (this.basename.has_prefix ("IMG")) {
+            // If the original image is IMG_YYYYMMDD_HHMMSS.xxx, the video is VID_YYYYMMDD_HHMMSS.mp4
+            video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename_no_ext[3:] + ".mp4");
         } else {
-            if (this.basename.has_prefix ("MVIMG")) {
-                // The video of a live photo is named as `VID_YYYYMMDD_HHMMSS.mp4`
-                video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename_no_ext[5:] + ".mp4");
-            } else if (this.basename.has_prefix ("IMG")) {
-                // If the original image is IMG_YYYYMMDD_HHMMSS.xxx, the video is VID_YYYYMMDD_HHMMSS.mp4
-                video_filename = Path.build_filename (this.dest_dir, "VID" + this.basename_no_ext[3:] + ".mp4");
-            } else {
-                video_filename = Path.build_filename (this.dest_dir, "VID_" + this.basename_no_ext + ".mp4");
-            }
+            video_filename = Path.build_filename (this.dest_dir, "VID_" + this.basename_no_ext + ".mp4");
         }
 
         var output_stream = File.new_for_commandline_arg (video_filename).replace (null, make_backup, file_create_flags);
