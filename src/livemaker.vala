@@ -174,6 +174,9 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             this.metadata.clear ();
         }
 
+        // Clear previous XMP metadata to avoid conflicts
+        this.metadata.clear_xmp ();
+
         // Create the live photo file from the main image and then append the video
         var live_file = this.export_main_image ();
         var video_file = File.new_for_commandline_arg  (this.video_path);
