@@ -55,6 +55,9 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
             this.metadata.clear ();
         }
 
+        // Clear previous XMP metadata to avoid conflicts
+        this.metadata.clear_xmp ();
+
         var live_file = File.new_for_commandline_arg  (this.dest);
         var video_file = File.new_for_commandline_arg  (this.video_path);
 
