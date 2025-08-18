@@ -121,6 +121,13 @@ Meson 构建选项：
   * 是否在 GObject Introspection 信息中生成文档
   * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
 
+首先需要克隆项目并进入项目顶级目录，后续给出的参考命令均需要在**项目顶级目录**下执行：
+
+```bash
+git clone https://github.com/wszqkzqk/live-photo-conv.git
+cd live-photo-conv
+```
+
 可以通过以下命令配置构建：
 
 ```bash

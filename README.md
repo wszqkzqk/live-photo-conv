@@ -121,6 +121,13 @@ Meson build options:
   * Whether to generate documentation
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 
+First, you need to clone the project and navigate to the top-level directory of the project. The following reference commands should be executed in the **top-level directory of the project**:
+
+```bash
+git clone https://github.com/wszqkzqk/live-photo-conv.git
+cd live-photo-conv
+```
+
 You can configure the build with the following command:
 
 ```bash
