@@ -51,7 +51,7 @@ endif
 
 lib_sources = lib_common_sources + [version_file]
 
-g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
+gir_compiler = find_program('gi-compile-repository', required: get_option('gir'))
 lib_gi_name = 'LivePhotoTools'
 lib_gi_version = lib_api_version  # Use centralized API version
 lib_gi = 'LivePhotoTools-' + lib_gi_version
@@ -59,7 +59,7 @@ lib_gir = lib_gi + '.gir'
 lib_typelib = lib_gi + '.typelib'
 
 # If Valadoc is found, generate gir with doc and disable gir generation here
-if g_ir_compiler.found() and not valadoc.found()
+if gir_compiler.found() and not valadoc.found()
   liblivephototools = shared_library(
     'livephototools', lib_sources,
     vala_gir: lib_gir,
@@ -194,13 +194,13 @@ if valadoc.found()
   )
 endif
 
-if g_ir_compiler.found()
+if gir_compiler.found()
   custom_target(lib_typelib,
     input: liblivephototools,
     output: lib_typelib,
     depends: valadoc.found() ? gir_with_doc : liblivephototools,
     command: [
-      g_ir_compiler,
+      gir_compiler,
       '--shared-library',
       '@PLAINNAME@',
       '--output',
