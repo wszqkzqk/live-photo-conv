@@ -63,6 +63,7 @@ if g_ir_compiler.found() and not valadoc.found()
   liblivephototools = shared_library(
     'livephototools', lib_sources,
     vala_gir: lib_gir,
+    vala_args: ['--vapi-comments'],
     dependencies: basic_deps,
     #include_directories: incdir,
     install: true,
@@ -71,6 +72,7 @@ if g_ir_compiler.found() and not valadoc.found()
 else
   liblivephototools = shared_library(
     'livephototools', lib_sources,
+    vala_args: ['--vapi-comments'],
     dependencies: basic_deps,
     #include_directories: incdir,
     install: true,
