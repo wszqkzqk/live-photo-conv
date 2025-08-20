@@ -168,7 +168,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
 
     inline int64 export_with_main_image () throws Error {
         this.metadata.open_path (main_image_path);
-        if (! this._export_original_metadata) {
+        if (!this._export_original_metadata) {
             // Need to manually clear the metadata if it's not to be exported
             // Because the main image including the metadata is fully copied
             this.metadata.clear ();

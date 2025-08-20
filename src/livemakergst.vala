@@ -41,7 +41,7 @@ public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
      */
     public override int64 export_with_video_only () throws Error {
         this.metadata.open_path (this.video_path);
-        if (! this.export_original_metadata) {
+        if (!this.export_original_metadata) {
             this.metadata.clear ();
         }
 
@@ -85,7 +85,7 @@ public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
         if (is_supported_main_image (main_file)) {
             // If the main image is supported, copy it to the live photo
             this.metadata.open_path (this.main_image_path);
-            if (! this.export_original_metadata) {
+            if (!this.export_original_metadata) {
                 this.metadata.clear ();
             }
 
