@@ -52,19 +52,19 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
      *
      * @param output_format The format of the output images. If not provided, the default extension name will be used.
      * @param dest_dir The destination directory where the images will be saved. If not provided, the default destination directory will be used.
-     * @param jobs The number of jobs to run in parallel. (Ignored in this implementation)
+     * @param threads The number of threads to run in parallel. (Ignored in this implementation)
      *
      * @throws Error If FFmpeg exits with an error.
     */
-     public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 1) throws Error {
+     public override void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 1) throws Error {
         /* Export the video of the live photo and split the video into images. */
         string name_to_printf;
         string dest;
 
         var format = (output_format != null) ? output_format : this.extension_name;
 
-        if (jobs != 0 && jobs != 1) {
-            Reporter.warning_puts ("NotImplementedWarning", "The `jobs` parameter of FFmpeg mode is not implemented.");
+        if (threads != 0 && threads != 1) {
+            Reporter.warning_puts ("NotImplementedWarning", "The `threads` parameter of FFmpeg mode is not implemented.");
         }
 
         if (this.basename.has_prefix ("MVIMG")) {

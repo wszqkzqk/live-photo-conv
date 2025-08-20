@@ -53,7 +53,7 @@ lib_sources = lib_common_sources + [version_file]
 
 g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
 lib_gi_name = 'LivePhotoTools'
-lib_gi_version = '0.3'
+lib_gi_version = lib_api_version  # Use centralized API version
 lib_gi = 'LivePhotoTools-' + lib_gi_version
 lib_gir = lib_gi + '.gir'
 lib_typelib = lib_gi + '.typelib'
@@ -63,7 +63,10 @@ if g_ir_compiler.found() and not valadoc.found()
   liblivephototools = shared_library(
     'livephototools', lib_sources,
     vala_gir: lib_gir,
+    vala_args: ['--vapi-comments'],
     dependencies: basic_deps,
+    version: meson.project_version(),
+    soversion: lib_soversion,
     #include_directories: incdir,
     install: true,
     install_dir: [true, 'include/livephototools', true, true]
@@ -71,7 +74,10 @@ if g_ir_compiler.found() and not valadoc.found()
 else
   liblivephototools = shared_library(
     'livephototools', lib_sources,
+    vala_args: ['--vapi-comments'],
     dependencies: basic_deps,
+    version: meson.project_version(),
+    soversion: lib_soversion,
     #include_directories: incdir,
     install: true,
     install_dir: [true, 'include/livephototools', true]
@@ -85,7 +91,7 @@ pkg.generate(
   description: 'A library for live photo conversion',
   libraries: liblivephototools,
   version: meson.project_version(),
-  subdirs: 'include/livephototools',
+  subdirs: 'livephototools',
   requires: basic_deps,
 )
 
@@ -97,6 +103,16 @@ live_photo_conv_bin = executable(live_photo_conv_name,
   dependencies: basic_deps,
   #include_directories: incdir,
 )
+
+# Create symlinks for different modes
+symlink_names = ['live-photo-make', 'live-photo-extract', 'live-photo-repair']
+foreach symlink_name : symlink_names
+  install_symlink(
+    symlink_name,
+    pointing_to: live_photo_conv_name,
+    install_dir: get_option('bindir')
+  )
+endforeach
 
 copy_img_meta_name = 'copy-img-meta'
 copy_img_meta_bin = executable(copy_img_meta_name,
@@ -193,5 +209,17 @@ if g_ir_compiler.found()
     ],
     install: true,
     install_dir: get_option('libdir') / 'girepository-1.0',
+  )
+endif
+
+# Install dependencies files for VAPI
+if gst.found() and gst_app.found() and gdk_pixbuf.found()
+  install_data('livephototools.deps',
+    install_dir: get_option('datadir') / 'vala' / 'vapi'
+  )
+else
+  install_data('livephototools-no-gst.deps',
+    rename: 'livephototools.deps',
+    install_dir: get_option('datadir') / 'vala' / 'vapi'
   )
 endif

@@ -8,12 +8,14 @@ Live Photo Converter is a cross-platform tool for processing live photos. It can
 
 ## Features
 
+- `live-photo-make`
+  - Create live photos from images and videos
+- `live-photo-extract`
+  - Extract images, videos, and video frames from live photos
+- `live-photo-repair`
+  - Repair corrupted live photos
 - `live-photo-conv`
-  - Create a live photo
-  - Extract static image and video from a live photo
-  - Repair a live photo with broken XMP metadata
-  - Export every frame of a live photo's video as an image
-  - Support exporting metadata
+  - A comprehensive command for creating, extracting, and repairing live photos
 - `copy-img-meta`
   - Copy all metadata from one image to another
   - Options to choose or exclude certain metadata types
@@ -33,7 +35,7 @@ This tool can be used for extracting, repairing, editing, and composing such liv
 
 This project provides build scripts for Arch Linux and Windows (MSYS2) environments.
 
-#### Arch Linux
+### Arch Linux
 
 On Arch Linux, you can install directly from the AUR using an AUR helper like `paru`:
 
@@ -49,7 +51,7 @@ cd live-photo-conv
 makepkg -si
 ```
 
-#### Windows (MSYS2)
+### Windows (MSYS2)
 
 On Windows (MSYS2), you can use the provided [`PKGBUILD`](https://gist.github.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d) to build. For example, execute the following commands in the `bash` shell of the MSYS2 UCRT64 environment:
 
@@ -154,7 +156,125 @@ meson install -C builddir
 
 ## Usage
 
-### `live-photo-conv`
+To simplify common tasks, this project provides three streamlined command-line tools, which are symbolic links to `live-photo-conv` but offer a more concise and focused set of options for specific tasks:
+
+*   `live-photo-make`: For creating live photos from images and videos.
+*   `live-photo-extract`: For extracting images, videos, and video frames from live photos.
+*   `live-photo-repair`: For repairing corrupted live photos.
+
+For complex scenarios that require all features, you can directly use the more comprehensive `live-photo-conv` command.
+
+In addition, to address compatibility issues with live photos on Android devices, this project also provides the `copy-img-meta` tool for copying image metadata to [meet additional requirements from phone manufacturers](#fragmentation-among-android-manufacturers-live-photos-not-recognized).
+
+### `live-photo-make`
+
+Create live photos from images and videos.
+
+#### Command-Line Options
+
+```
+Usage:
+  live-photo-make [OPTION…] - Make Live Photos from image and video files
+
+Options:
+  -h, --help            Show help message
+  --version             Display version number
+  --color=LEVEL         Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -i, --image=PATH      The path to the main static image file
+  -m, --video=PATH      The path to the video file (required)
+  -o, --output=PATH     The output live photo file path
+  --export-metadata     Export metadata (default)
+  --drop-metadata       Do not export metadata
+  --use-ffmpeg          Use FFmpeg to extract instead of GStreamer
+  --use-gst             Use GStreamer to extract instead of FFmpeg (default)
+```
+
+#### Examples
+
+Create a live photo:
+
+```bash
+live-photo-make --image /path/to/image.jpg --video /path/to/video.mp4 --output /path/to/output.jpg
+```
+
+Convert a video to a live photo:
+
+```bash
+live-photo-make --video /path/to/video.mp4 --output /path/to/output.jpg
+```
+
+### `live-photo-extract`
+
+Extract images, videos, and video frames from live photos.
+
+#### Command-Line Options
+
+```
+Usage:
+  live-photo-extract [OPTION…] - Extract images and videos from Live Photos
+
+Options:
+  -h, --help                  Show help message
+  --version                   Display version number
+  --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -p, --live-photo=PATH       The live photo file to extract (required)
+  -d, --dest-dir=PATH         The destination directory to export
+  -i, --image=PATH            The path to export the main image
+  -m, --video=PATH            The path to export the video
+  --export-metadata           Export metadata (default)
+  --drop-metadata             Do not export metadata
+  --frame-to-photos           Export every frame of the video as photos
+  -f, --img-format=FORMAT     The format of the image exported from video
+  -T, --threads=NUM           Number of threads to use for extracting, 0 for auto
+  --use-ffmpeg                Use FFmpeg to extract instead of GStreamer
+  --use-gst                   Use GStreamer to extract instead of FFmpeg (default)
+```
+
+#### Examples
+
+Extract a live photo:
+
+```bash
+live-photo-extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
+```
+
+Extract a live photo and export video frames as images:
+
+```bash
+live-photo-extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+```
+
+### `live-photo-repair`
+
+Repair corrupted live photos.
+
+#### Command-Line Options
+
+```
+Usage:
+  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted XMP metadata
+
+Options:
+  -h, --help                Show help message
+  --version                 Display version number
+  --color=LEVEL             Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -p, --live-photo=PATH     The live photo file to repair (required)
+  -f, --force               Force to update video offset in XMP metadata and repair
+  -s, --video-size=SIZE     Force repair with the specified video size
+  -d, --dest-dir=PATH       The destination directory
+```
+
+#### Examples
+
+Repair a live photo:
+
+```bash
+live-photo-repair --live-photo /path/to/live_photo.jpg
+```
+
+### `live-photo-conv` (Generic Command)
+
+`live-photo-conv` is a comprehensive tool that integrates all functionalities for creating, extracting, and repairing live photos. Use this command when the simplified tools do not meet your needs.
 
 #### Command-Line Options
 
@@ -176,18 +296,20 @@ Options:
   -p, --live-photo=PATH             The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
   -d, --dest-dir=PATH               The destination directory to export
   --export-metadata                 Export metadata (default)
-  --no-export-metadata              Do not export metadata
+  --drop-metadata                   Do not export metadata
   --frame-to-photos                 Export every frame of a live photo's video as a photo
   -f, --img-format=FORMAT           The format of the image exported from video
   --minimal                         Minimal metadata export, ignore unspecified exports
   -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
-  --use-ffmpeg                      Use FFmpeg to extract insdead of GStreamer
-  --use-gst                         Use GStreamer to extract insdead of FFmpeg (default)
+  --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer
+  --use-gst                         Use GStreamer to extract instead of FFmpeg (default)
 ```
 
 Please run `live-photo-conv --help` to see all command line options. (If GStreamer support is not enabled, the `--use-ffmpeg` and `--use-gst` options will not be available)
 
 #### Examples
+
+Operations with `live-photo-conv` are similar to the simplified commands but require specifying the mode (e.g., `--make`, `--extract`, `--repair`).
 
 Create a live photo:
 
@@ -195,16 +317,10 @@ Create a live photo:
 live-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
 ```
 
-Convert a video to a live photo:
-
-```bash
-live-photo-conv --make --video /path/to/video.mp4 --live-photo /path/to/output.jpg
-```
-
 Extract a live photo:
 
 ```bash
-live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
 ```
 
 You can also use URI to specify the path:
@@ -267,12 +383,12 @@ For example, in Python, make sure the `python-gobject` package has been installe
 
 ```python
 import gi
-gi.require_version('LivePhotoTools', '0.3') # Adjust according to the actual version number
+gi.require_version('LivePhotoTools', '0.4') # Adjust according to the actual version number
 from gi.repository import LivePhotoTools
 ```
 
 Usage example:
-  
+
 ```python
 # Load a live photo
 livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
@@ -281,7 +397,7 @@ livephoto.export_main_image()
 # Extract the video from the live photo
 livephoto.export_video()
 # Export frames from the embedded video
-livephoto.splites_images_from_video(None, None, 0)
+livephoto.split_images_from_video(None, None, 0)
 ```
 
 ```python
