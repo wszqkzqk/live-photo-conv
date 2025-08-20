@@ -8,12 +8,14 @@ Live Photo Converter 是一个用于处理动态照片的跨平台的工具。�
 
 ## 功能
 
+- `live-photo-make`
+  - 从图片和视频创建动态照片
+- `live-photo-extract`
+  - 从动态照片中提取图片、视频和视频帧
+- `live-photo-repair`
+  - 修复损坏的动态照片
 - `live-photo-conv`
-  - 创建动态照片
-  - 从动态照片中提取静态图像和视频
-  - 修复因为缺失 XMP 元数据而无法解析的动态照片
-  - 导出视频的每一帧为图片
-  - 支持导出元数据
+  - 功能全面的通用命令，用于创建、提取和修复动态照片
 - `copy-img-meta`
   - 从一张图片复制元数据到另一张图片
   - 可以选择复制或排除 EXIF、XMP、IPTC 元数据
@@ -33,7 +35,7 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 
 本项目提供 Arch Linux 与 Windows (MSYS2) 环境下的构建脚本。
 
-#### Arch Linux
+### Arch Linux
 
 Arch Linux 可以直接从 AUR 安装，例如使用 AUR 助手 `paru`：
 
@@ -49,7 +51,7 @@ cd live-photo-conv
 makepkg -si
 ```
 
-#### Windows (MSYS2)
+### Windows (MSYS2)
 
 Windows (MSYS2) 可以使用提供的 [`PKGBUILD`](https://gist.github.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d) 构建，例如在 MSYS2 UCRT64 环境的 `bash` 下执行以下命令：
 
@@ -154,7 +156,125 @@ meson install -C builddir
 
 ## 使用
 
-### `live-photo-conv`
+为了方便常见操作，此项目提供了三个简化的命令行工具，它们是 `live-photo-conv` 的符号链接，但提供了更简洁、专注于特定任务的命令行选项：
+
+*   `live-photo-make`: 用于从图片和视频创建动态照片。
+*   `live-photo-extract`: 用于从动态照片中提取图片、视频和视频帧。
+*   `live-photo-repair`: 用于修复损坏的动态照片。
+
+对于需要所有功能的复杂场景，可以直接使用 `live-photo-conv` 这一功能更全面的命令。
+
+此外，为了解决 Android 设备上动态照片的兼容性问题，本项目还提供了 `copy-img-meta` 工具，用于复制图片的元数据，[满足手机厂商额外的要求](#android-手机厂商的分裂无法识别动态照片)。
+
+### `live-photo-make`
+
+从图片和视频创建动态照片。
+
+#### 命令行选项
+
+```
+Usage:
+  live-photo-make [OPTION…] - Make Live Photos from image and video files
+
+Options:
+  -h, --help            Show help message
+  --version             Display version number
+  --color=LEVEL         Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -i, --image=PATH      The path to the main static image file
+  -m, --video=PATH      The path to the video file (required)
+  -o, --output=PATH     The output live photo file path
+  --export-metadata     Export metadata (default)
+  --drop-metadata       Do not export metadata
+  --use-ffmpeg          Use FFmpeg to extract instead of GStreamer
+  --use-gst             Use GStreamer to extract instead of FFmpeg (default)
+```
+
+#### 示例
+
+创建动态照片：
+
+```bash
+live-photo-make -i /path/to/image.jpg -m /path/to/video.mp4 -o /path/to/output.jpg
+```
+
+将视频直接转化为动态照片：
+
+```bash
+live-photo-make --video /path/to/video.mp4 --output /path/to/output.jpg
+```
+
+### `live-photo-extract`
+
+从动态照片中提取图片、视频和视频帧。
+
+#### 命令行选项
+
+```
+Usage:
+  live-photo-extract [OPTION…] - Extract images and videos from Live Photos
+
+Options:
+  -h, --help                  Show help message
+  --version                   Display version number
+  --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -p, --live-photo=PATH       The live photo file to extract (required)
+  -d, --dest-dir=PATH         The destination directory to export
+  -i, --image=PATH            The path to export the main image
+  -m, --video=PATH            The path to export the video
+  --export-metadata           Export metadata (default)
+  --drop-metadata             Do not export metadata
+  --frame-to-photos           Export every frame of the video as photos
+  -f, --img-format=FORMAT     The format of the image exported from video
+  -T, --threads=NUM           Number of threads to use for extracting, 0 for auto
+  --use-ffmpeg                Use FFmpeg to extract instead of GStreamer
+  --use-gst                   Use GStreamer to extract instead of FFmpeg (default)
+```
+
+#### 示例
+
+提取动态照片：
+
+```bash
+live-photo-extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
+```
+
+提取动态照片并将视频逐帧导出为图片：
+
+```bash
+live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest --frame-to-photos -f avif
+```
+
+### `live-photo-repair`
+
+修复损坏的动态照片。
+
+#### 命令行选项
+
+```
+Usage:
+  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted XMP metadata
+
+Options:
+  -h, --help                Show help message
+  --version                 Display version number
+  --color=LEVEL             Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -p, --live-photo=PATH     The live photo file to repair (required)
+  -f, --force               Force to update video offset in XMP metadata and repair
+  -s, --video-size=SIZE     Force repair with the specified video size
+  -d, --dest-dir=PATH       The destination directory
+```
+
+#### 示例
+
+修复动态照片：
+
+```bash
+live-photo-repair -p /path/to/live_photo.jpg
+```
+
+### `live-photo-conv` (通用命令)
+
+`live-photo-conv` 是一个功能全面的工具，整合了创建、提取和修复动态照片的所有功能。当简化的命令无法满足需求时，可以使用此命令。
 
 #### 命令行选项
 
@@ -176,18 +296,20 @@ Options:
   -p, --live-photo=PATH             The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
   -d, --dest-dir=PATH               The destination directory to export
   --export-metadata                 Export metadata (default)
-  --no-export-metadata              Do not export metadata
+  --drop-metadata                   Do not export metadata
   --frame-to-photos                 Export every frame of a live photo's video as a photo
   -f, --img-format=FORMAT           The format of the image exported from video
   --minimal                         Minimal metadata export, ignore unspecified exports
   -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
-  --use-ffmpeg                      Use FFmpeg to extract insdead of GStreamer
-  --use-gst                         Use GStreamer to extract insdead of FFmpeg (default)
+  --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer
+  --use-gst                         Use GStreamer to extract instead of FFmpeg (default)
 ```
 
 运行 `live-photo-conv --help` 查看所有命令行选项。（如果没有启用GStreamer支持，`--use-ffmpeg`与`--use-gst`选项将不可用）
 
 #### 示例
+
+使用 `live-photo-conv` 的操作与简化命令类似，但需要明确指定操作模式（例如 `--make`, `--extract`, `--repair`）。
 
 创建动态照片：
 
@@ -195,16 +317,10 @@ Options:
 live-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
 ```
 
-将视频直接转化为动态照片：
-
-```bash
-live-photo-conv --make --video /path/to/video.mp4 --live-photo /path/to/output.jpg
-```
-
 提取动态照片：
 
 ```bash
-live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
 ```
 
 也可以通过URI指定文件：
@@ -267,12 +383,12 @@ copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/des
 
 ```python
 import gi
-gi.require_version('LivePhotoTools', '0.3') # 请根据实际版本号调整
+gi.require_version('LivePhotoTools', '0.4') # 请根据实际版本号调整
 from gi.repository import LivePhotoTools
 ```
 
 使用示例：
-  
+
 ```python
 # 加载动态照片
 livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
