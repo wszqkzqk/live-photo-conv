@@ -53,7 +53,7 @@ lib_sources = lib_common_sources + [version_file]
 
 g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
 lib_gi_name = 'LivePhotoTools'
-lib_gi_version = '0.4'
+lib_gi_version = lib_api_version  # Use centralized API version
 lib_gi = 'LivePhotoTools-' + lib_gi_version
 lib_gir = lib_gi + '.gir'
 lib_typelib = lib_gi + '.typelib'
@@ -65,6 +65,8 @@ if g_ir_compiler.found() and not valadoc.found()
     vala_gir: lib_gir,
     vala_args: ['--vapi-comments'],
     dependencies: basic_deps,
+    version: meson.project_version(),
+    soversion: lib_soversion,
     #include_directories: incdir,
     install: true,
     install_dir: [true, 'include/livephototools', true, true]
@@ -74,6 +76,8 @@ else
     'livephototools', lib_sources,
     vala_args: ['--vapi-comments'],
     dependencies: basic_deps,
+    version: meson.project_version(),
+    soversion: lib_soversion,
     #include_directories: incdir,
     install: true,
     install_dir: [true, 'include/livephototools', true]
