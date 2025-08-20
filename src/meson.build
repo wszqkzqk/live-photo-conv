@@ -207,3 +207,15 @@ if g_ir_compiler.found()
     install_dir: get_option('libdir') / 'girepository-1.0',
   )
 endif
+
+# Install dependencies files for VAPI
+if gst.found() and gst_app.found() and gdk_pixbuf.found()
+  install_data('livephototools.deps',
+    install_dir: get_option('datadir') / 'vala' / 'vapi'
+  )
+else
+  install_data('livephototools-no-gst.deps',
+    rename: 'livephototools.deps',
+    install_dir: get_option('datadir') / 'vala' / 'vapi'
+  )
+endif
