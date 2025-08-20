@@ -87,7 +87,7 @@ pkg.generate(
   description: 'A library for live photo conversion',
   libraries: liblivephototools,
   version: meson.project_version(),
-  subdirs: 'include/livephototools',
+  subdirs: 'livephototools',
   requires: basic_deps,
 )
 
