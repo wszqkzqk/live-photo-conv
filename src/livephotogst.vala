@@ -37,10 +37,10 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
      *
      * @param output_format The format of the output images
      * @param dest_dir The destination directory for output
-     * @param jobs Number of concurrent jobs for processing
+     * @param threads Number of concurrent threads for processing
      * @throws Error If an error occurs during processing
      */
-    public override void splites_images_from_video (string? output_format = null, string? dest_dir = null, int jobs = 0) throws Error {
+    public override void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error {
         // Enpty args to Gst
         unowned string[] args = null;
         Gst.init (ref args);
@@ -85,8 +85,8 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         pipeline.set_state (Gst.State.PLAYING);
 
         // Create a threadpool to process the images
-        if (jobs == 0) {
-            jobs = (int) get_num_processors ();
+        if (threads == 0) {
+            threads = (int) get_num_processors ();
         }
         var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
             try {
@@ -98,7 +98,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
             }
-        }, jobs, false);
+        }, threads, false);
 
         Gst.Sample sample;
         uint index = 1;

@@ -281,7 +281,7 @@ livephoto.export_main_image()
 # 从动态照片中提取视频
 livephoto.export_video()
 # 从内嵌视频中导出帧
-livephoto.splites_images_from_video(None, None, 0)
+livephoto.split_images_from_video(None, None, 0)
 ```
 
 ```python

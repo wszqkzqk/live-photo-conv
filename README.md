@@ -281,7 +281,7 @@ livephoto.export_main_image()
 # Extract the video from the live photo
 livephoto.export_video()
 # Export frames from the embedded video
-livephoto.splites_images_from_video(None, None, 0)
+livephoto.split_images_from_video(None, None, 0)
 ```
 
 ```python
