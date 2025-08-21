@@ -4,22 +4,6 @@ version_file = vcs_tag(
     output: 'version.vala',
 )
 
-basic_deps = [
-  glib,
-  gobject,
-  gio,
-  gmodule,
-  gexiv2,
-]
-
-valadoc = find_program('valadoc', required: get_option('docs'))
-
-# Find GStreamer dependencies
-require_gst = get_option('gst')
-gst = dependency('gstreamer-1.0', required: require_gst)
-gst_app = dependency('gstreamer-app-1.0', required: require_gst)
-gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
-
 lib_common_sources = [
   'errordomains.vala',
   'livemaker.vala',
@@ -33,15 +17,7 @@ lib_common_sources = [
 ]
 
 # Check if all GStreamer dependencies are found
-if gst.found() and gst_app.found() and gdk_pixbuf.found()
-  add_project_arguments('-D', 'ENABLE_GST', language: 'vala')
-
-  basic_deps += [
-    gst,
-    gst_app,
-    gdk_pixbuf
-  ]
-
+if with_gst
   lib_common_sources += [
     'livemakergst.vala',
     'livephotogst.vala',
@@ -51,7 +27,6 @@ endif
 
 lib_sources = lib_common_sources + [version_file]
 
-g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
 lib_gi_name = 'LivePhotoTools'
 lib_gi_version = lib_api_version  # Use centralized API version
 lib_gi = 'LivePhotoTools-' + lib_gi_version
@@ -64,7 +39,7 @@ if g_ir_compiler.found() and not valadoc.found()
     'livephototools', lib_sources,
     vala_gir: lib_gir,
     vala_args: ['--vapi-comments'],
-    dependencies: basic_deps,
+    dependencies: lib_deps,
     version: meson.project_version(),
     soversion: lib_soversion,
     #include_directories: incdir,
@@ -75,7 +50,7 @@ else
   liblivephototools = shared_library(
     'livephototools', lib_sources,
     vala_args: ['--vapi-comments'],
-    dependencies: basic_deps,
+    dependencies: lib_deps,
     version: meson.project_version(),
     soversion: lib_soversion,
     #include_directories: incdir,
@@ -84,7 +59,6 @@ else
   )
 endif
 
-pkg = import('pkgconfig')
 pkg.generate(
   name: 'LivePhotoTools',
   filebase: 'livephototools',
@@ -92,7 +66,7 @@ pkg.generate(
   libraries: liblivephototools,
   version: meson.project_version(),
   subdirs: 'livephototools',
-  requires: basic_deps,
+  requires: lib_deps,
 )
 
 # Build only the main executable once
@@ -101,7 +75,7 @@ main_exe_bin = executable(main_exe_name,
   ['main.vala'],
   install: true,
   link_with: liblivephototools,
-  dependencies: basic_deps,
+  dependencies: lib_deps,
   #include_directories: incdir,
 )
 
@@ -114,23 +88,20 @@ copy_img_meta_bin = executable(copy_img_meta_name,
   ['copyimgmeta.vala'],
   install: true,
   link_with: liblivephototools,
-  dependencies: basic_deps,
+  dependencies: lib_deps,
   #include_directories: incdir,
 )
 
-# Handle cross-platform linking/copying
-python = import('python').find_installation()
-link_script = meson.project_source_root() / 'helper' / 'create-binary-links.py'
-
-# Create links/copies in build directory and install them
+# Create symlinks/copies in build directory and install them
+symlink_script = meson.project_source_root() / 'scripts' / 'create-binary-symlinks.py'
 sub_exe_bins = []
 foreach exe_name : sub_exe_names
   # Create link/copy in build directory and install it
   linked_exe = custom_target('link-' + exe_name,
-    output: exe_name + (target_machine.system() == 'windows' ? '.exe' : ''),
+    output: exe_name + (is_windows ? '.exe' : ''),
     command: [
       python,
-      link_script,
+      symlink_script,
       main_exe_bin.full_path(),
       '@OUTPUT@',
     ],
@@ -139,11 +110,9 @@ foreach exe_name : sub_exe_names
     install: true,
     install_dir: get_option('bindir'),
   )
-  
+
   sub_exe_bins += [linked_exe]
 endforeach
-
-help2man_prog = find_program('help2man', required: get_option('manpages'))
 
 if help2man_prog.found()
   # Generate manpage for main executable
@@ -204,7 +173,7 @@ if valadoc.found()
       lib_in_src += [join_paths(meson.global_source_root(), 'src', src)]
   endforeach
 
-  foreach dep : basic_deps
+  foreach dep : lib_deps
       deps_command += ['--pkg', dep.name()]
   endforeach
 
@@ -253,7 +222,7 @@ if g_ir_compiler.found()
 endif
 
 # Install dependencies files for VAPI
-if gst.found() and gst_app.found() and gdk_pixbuf.found()
+if with_gst
   install_data('livephototools.deps',
     install_dir: get_option('datadir') / 'vala' / 'vapi'
   )

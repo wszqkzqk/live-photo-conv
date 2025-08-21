@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cross-platform script to create links/copies of the main binary with different names.
+Cross-platform script to create symlinks/copies of the main binary with different names.
 On Windows: creates copies
 On Unix-like systems: creates symbolic links
 """
@@ -11,8 +11,8 @@ import platform
 from pathlib import Path
 
 
-def create_binary_link(source_binary, target_name):
-    """Create a link or copy of the source binary with the target name."""
+def create_binary_symlink(source_binary, target_name):
+    """Create a symlink or copy of the source binary with the target name."""
     source_path = Path(source_binary)
     target_path = Path(target_name)
     
@@ -48,7 +48,7 @@ def main():
 
     success = True
     for target_name in target_names:
-        if not create_binary_link(source_binary, target_name):
+        if not create_binary_symlink(source_binary, target_name):
             success = False
     
     if not success:
