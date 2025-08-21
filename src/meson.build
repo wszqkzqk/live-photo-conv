@@ -104,12 +104,13 @@ live_photo_conv_bin = executable(live_photo_conv_name,
   #include_directories: incdir,
 )
 
+subexecutable_names = ['live-photo-make', 'live-photo-extract', 'live-photo-repair']
+exe_suffix = target_machine.system() == 'windows' ? '.exe' : ''
 # Create symlinks for different modes
-symlink_names = ['live-photo-make', 'live-photo-extract', 'live-photo-repair']
-foreach symlink_name : symlink_names
+foreach symlink_name : subexecutable_names
   install_symlink(
-    symlink_name,
-    pointing_to: live_photo_conv_name,
+    symlink_name + exe_suffix,
+    pointing_to: live_photo_conv_name + exe_suffix,
     install_dir: get_option('bindir')
   )
 endforeach
