@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-2.1-or-later
 """
 Cross-platform script to create symlinks/copies of the main binary with different names.
 On Windows: creates copies
 On Unix-like systems: creates symbolic links
+
+Copyright 2024-2025 Zhou Qiankang <wszqkzqk@qq.com>
 """
 
 import sys
