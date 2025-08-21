@@ -107,9 +107,17 @@ foreach exe_name : sub_exe_names
     ],
     depends: main_exe_bin,
     build_by_default: true,
-    install: true,
+    install: is_windows, # Workaround for https://github.com/mesonbuild/meson/issues/12710
     install_dir: get_option('bindir'),
   )
+  # Workaround for https://github.com/mesonbuild/meson/issues/12710
+  if not is_windows
+    install_symlink(
+      exe_name,
+      pointing_to: main_exe_name,
+      install_dir: get_option('bindir')
+    )
+  endif
 
   sub_exe_bins += [linked_exe]
 endforeach
