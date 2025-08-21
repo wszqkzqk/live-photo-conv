@@ -45,6 +45,11 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         set;
         default = true;
     }
+    public bool clear_xmp_metadata {
+        get;
+        set;
+        default = true;
+    }
     
     /**
      * Creates a new LiveMaker instance.
@@ -175,7 +180,9 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
 
         // Clear previous XMP metadata to avoid conflicts
-        this.metadata.clear_xmp ();
+        if (this.clear_xmp_metadata) {
+            this.metadata.clear_xmp ();
+        }
 
         // Create the live photo file from the main image and then append the video
         var live_file = this.export_main_image ();
