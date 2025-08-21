@@ -95,19 +95,20 @@ pkg.generate(
   requires: basic_deps,
 )
 
-executable_names = ['live-photo-conv', 'live-photo-make', 'live-photo-extract', 'live-photo-repair']
-executable_bins = []
-foreach exe_name : executable_names
-  exe_bin = executable(exe_name,
-    ['main.vala'],
-    install: true,
-    link_with: liblivephototools,
-    dependencies: basic_deps,
-    #include_directories: incdir,
-  )
-  executable_bins += [exe_bin]
-endforeach
+# Build only the main executable once
+main_exe_name = 'live-photo-conv'
+main_exe_bin = executable(main_exe_name,
+  ['main.vala'],
+  install: true,
+  link_with: liblivephototools,
+  dependencies: basic_deps,
+  #include_directories: incdir,
+)
 
+# Sub executable names that should be links/copies of the main binary
+sub_exe_names = ['live-photo-make', 'live-photo-extract', 'live-photo-repair']
+
+# Build copy-img-meta separately as it has different sources
 copy_img_meta_name = 'copy-img-meta'
 copy_img_meta_bin = executable(copy_img_meta_name,
   ['copyimgmeta.vala'],
@@ -116,27 +117,82 @@ copy_img_meta_bin = executable(copy_img_meta_name,
   dependencies: basic_deps,
   #include_directories: incdir,
 )
-executable_names += [copy_img_meta_name]
-executable_bins += [copy_img_meta_bin]
+
+# Handle cross-platform linking/copying
+python = import('python').find_installation()
+link_script = meson.project_source_root() / 'helper' / 'create-binary-links.py'
+
+# Create links/copies in build directory and install them
+sub_exe_bins = []
+foreach exe_name : sub_exe_names
+  # Create link/copy in build directory and install it
+  linked_exe = custom_target('link-' + exe_name,
+    output: exe_name + (target_machine.system() == 'windows' ? '.exe' : ''),
+    command: [
+      python,
+      link_script,
+      main_exe_bin.full_path(),
+      '@OUTPUT@',
+    ],
+    depends: main_exe_bin,
+    build_by_default: true,
+    install: true,
+    install_dir: get_option('bindir'),
+  )
+  
+  sub_exe_bins += [linked_exe]
+endforeach
 
 help2man_prog = find_program('help2man', required: get_option('manpages'))
 
 if help2man_prog.found()
-  foreach exe_bin : executable_bins
-    custom_target('manpage-' + exe_bin.name(),
-      output : exe_bin.name() + '.1',
+  # Generate manpage for main executable
+  custom_target('manpage-' + main_exe_name,
+    output : main_exe_name + '.1',
+    command : [
+      help2man_prog,
+      '-N',
+      '-o',
+      '@OUTPUT@',
+      main_exe_bin,
+      '--no-discard-stderr',
+    ],
+    install : true,
+    install_dir : get_option('mandir') / 'man1',
+  )
+
+  # Generate manpages for linked executables
+  foreach index : range(sub_exe_names.length())
+    custom_target('manpage-' + sub_exe_names[index],
+      output : sub_exe_names[index] + '.1',
       command : [
         help2man_prog,
         '-N',
         '-o',
         '@OUTPUT@',
-        exe_bin,
+        sub_exe_bins[index].full_path(),
         '--no-discard-stderr',
       ],
-    install : true,
-    install_dir : get_option('mandir') / 'man1',
+      install : true,
+      install_dir : get_option('mandir') / 'man1',
+      depends : sub_exe_bins[index],
     )
   endforeach
+  
+  # Generate manpage for copy-img-meta
+  custom_target('manpage-' + copy_img_meta_name,
+    output : copy_img_meta_name + '.1',
+    command : [
+      help2man_prog,
+      '-N',
+      '-o',
+      '@OUTPUT@',
+      copy_img_meta_bin,
+      '--no-discard-stderr',
+    ],
+    install : true,
+    install_dir : get_option('mandir') / 'man1',
+  )
 endif
 
 # Meson doesn't have buit-in support to use valadoc to generate gir
