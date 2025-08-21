@@ -95,24 +95,17 @@ pkg.generate(
   requires: basic_deps,
 )
 
-live_photo_conv_name = 'live-photo-conv'
-live_photo_conv_bin = executable(live_photo_conv_name,
-  ['main.vala'],
-  install: true,
-  link_with: liblivephototools,
-  dependencies: basic_deps,
-  #include_directories: incdir,
-)
-
-subexecutable_names = ['live-photo-make', 'live-photo-extract', 'live-photo-repair']
-exe_suffix = target_machine.system() == 'windows' ? '.exe' : ''
-# Create symlinks for different modes
-foreach symlink_name : subexecutable_names
-  install_symlink(
-    symlink_name + exe_suffix,
-    pointing_to: live_photo_conv_name + exe_suffix,
-    install_dir: get_option('bindir')
+executable_names = ['live-photo-conv', 'live-photo-make', 'live-photo-extract', 'live-photo-repair']
+executable_bins = []
+foreach exe_name : executable_names
+  exe_bin = executable(exe_name,
+    ['main.vala'],
+    install: true,
+    link_with: liblivephototools,
+    dependencies: basic_deps,
+    #include_directories: incdir,
   )
+  executable_bins += [exe_bin]
 endforeach
 
 copy_img_meta_name = 'copy-img-meta'
@@ -123,37 +116,27 @@ copy_img_meta_bin = executable(copy_img_meta_name,
   dependencies: basic_deps,
   #include_directories: incdir,
 )
+executable_names += [copy_img_meta_name]
+executable_bins += [copy_img_meta_bin]
 
 help2man_prog = find_program('help2man', required: get_option('manpages'))
 
 if help2man_prog.found()
-  custom_target('manpage-' + live_photo_conv_name,
-    output : live_photo_conv_name + '.1',
-    command : [
-      help2man_prog,
-      '-N',
-      '-o',
-      '@OUTPUT@',
-      live_photo_conv_bin,
-      '--no-discard-stderr',
-    ],
+  foreach exe_bin : executable_bins
+    custom_target('manpage-' + exe_bin.name(),
+      output : exe_bin.name() + '.1',
+      command : [
+        help2man_prog,
+        '-N',
+        '-o',
+        '@OUTPUT@',
+        exe_bin,
+        '--no-discard-stderr',
+      ],
     install : true,
     install_dir : get_option('mandir') / 'man1',
-  )
-
-  custom_target('manpage-' + copy_img_meta_name,
-    output : copy_img_meta_name + '.1',
-    command : [
-      help2man_prog,
-      '-N',
-      '-o',
-      '@OUTPUT@',
-      copy_img_meta_bin,
-      '--no-discard-stderr',
-    ],
-    install : true,
-    install_dir : get_option('mandir') / 'man1',
-  )
+    )
+  endforeach
 endif
 
 # Meson doesn't have buit-in support to use valadoc to generate gir
