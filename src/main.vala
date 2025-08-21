@@ -37,6 +37,7 @@ class LivePhotoConv.Main {
     static bool export_metadata = true;
     static bool frame_to_photo = false;
     static bool minimal_export = false;
+    static bool clear_xmp_metadata = true;
     static int threads = 0;
 #if ENABLE_GST
     static bool use_ffmpeg = false;
@@ -51,6 +52,8 @@ class LivePhotoConv.Main {
         { "output", 'o', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The output live photo file path", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
+        { "clear-xmp", '\0', OptionFlags.NONE, OptionArg.NONE, ref clear_xmp_metadata, "Clear previous XMP metadata to avoid conflicts (default)", null },
+        { "keep-xmp", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref clear_xmp_metadata, "Keep previous XMP metadata", null },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
         { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract instead of FFmpeg (default)", null },
@@ -103,6 +106,8 @@ class LivePhotoConv.Main {
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
+        { "clear-xmp", '\0', OptionFlags.NONE, OptionArg.NONE, ref clear_xmp_metadata, "Clear previous XMP metadata to avoid conflicts (default)", null },
+        { "keep-xmp", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref clear_xmp_metadata, "Keep previous XMP metadata", null },
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a live photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
@@ -253,15 +258,18 @@ class LivePhotoConv.Main {
         if (use_ffmpeg) {
             live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path)  {
                 export_original_metadata = export_metadata,
+                clear_xmp_metadata = clear_xmp_metadata,
             };
         } else {
             live_maker = new LiveMakerGst (video_path, main_image_path, live_photo_path)  {
                 export_original_metadata = export_metadata,
+                clear_xmp_metadata = clear_xmp_metadata,
             };
         }
 #else
         LiveMaker live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path)  {
             export_original_metadata = export_metadata,
+            clear_xmp_metadata = clear_xmp_metadata,
         };
 #endif
         live_maker.export ();
