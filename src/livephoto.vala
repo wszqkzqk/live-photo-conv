@@ -57,6 +57,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         set;
         default = FileCreateFlags.REPLACE_DESTINATION;
     }
+    public bool oppo_compatible {
+        get;
+        set;
+        default = false;
+    }
 
     /**
      * Creates a new instance of the LivePhoto class.
@@ -388,6 +393,15 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Mime", "video/mp4");
         this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Semantic", "MotionPhoto");
         this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
+
+        // OPPO needs specific tags
+        if (this.oppo_compatible) {
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.oplus.com/photos/1.0/camera/", "OpCamera");
+            this.xmp_map.insert ("Xmp.OpCamera.MotionPhotoPrimaryPresentationTimestampUs", presentation_timestamp_us_to_write);
+            this.xmp_map.insert ("Xmp.OpCamera.MotionPhotoOwner", "oplus");
+            this.xmp_map.insert ("Xmp.OpCamera.OLivePhotoVersion", "2");
+            this.xmp_map.insert ("Xmp.OpCamera.VideoLength", offset_string);
+        }
 
         // Restore the XMP metadata for the live photo
         Error? metadata_error = null;
