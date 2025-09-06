@@ -20,7 +20,6 @@
 [Compact (opaque = true)]
 class LivePhotoConv.CopyImgMeta {
 
-    static bool show_help = false;
     static bool show_version = false;
     static int color_level = 1;
     static bool exclude_exif = false;
@@ -28,7 +27,6 @@ class LivePhotoConv.CopyImgMeta {
     static bool exclude_iptc = false;
 
     const OptionEntry[] options = {
-        { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "exclude-exif", '\0', OptionFlags.NONE, OptionArg.NONE, ref exclude_exif, "Do not copy EXIF data", null },
@@ -41,10 +39,7 @@ class LivePhotoConv.CopyImgMeta {
     };
 
     static int main (string[] original_args) {
-        // Compatibility for Windows and Unix
-        if (Intl.setlocale (LocaleCategory.ALL, ".UTF-8") == null) {
-            Intl.setlocale ();
-        }
+        Intl.setlocale ();
 
 #if WINDOWS
         var args = Win32.get_command_line ();
@@ -52,17 +47,12 @@ class LivePhotoConv.CopyImgMeta {
         var args = strdupv (original_args);
 #endif
         var opt_context = new OptionContext ("<exif-source-img> <dest-img> - Copy the metadata from one image to another");
-        // DO NOT use the default help option provided by g_print
-        // g_print will force to convert character set to windows's code page
-        // which is imcompatible windows's bash, zsh, etc.
-        opt_context.set_help_enabled (false);
-
         opt_context.add_main_entries (options, null);
         try {
             opt_context.parse_strv (ref args);
         } catch (OptionError e) {
             Reporter.error_puts ("OptionError", e.message);
-            stderr.printf ("\n%s", opt_context.get_help (true, null));
+            printerr ("\n%s", opt_context.get_help (true, null));
             return 1;
         }
 
@@ -82,11 +72,6 @@ class LivePhotoConv.CopyImgMeta {
             break;
         }
 
-        if (show_help) {
-            stderr.puts (opt_context.get_help (true, null));
-            return 0;
-        }
-
         if (show_version) {
             Reporter.info_puts ("EXIF Copy Tool", VERSION);
             return 0;
@@ -96,7 +81,7 @@ class LivePhotoConv.CopyImgMeta {
         if (args.length != 3) {
             Reporter.error_puts ("ArgumentError",
                 (args.length < 3) ? "Two image files are required" : "Too many arguments");
-            stderr.printf ("\n%s", opt_context.get_help (true, null));
+            printerr ("\n%s", opt_context.get_help (true, null));
             return 1;
         }
 

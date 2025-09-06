@@ -20,7 +20,6 @@
 [Compact (opaque = true)]
 class LivePhotoConv.Main {
 
-    static bool show_help = false;
     static bool show_version = false;
 
     static bool require_live_photo = true;
@@ -45,7 +44,6 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-make mode
     const OptionEntry[] MAKE_OPTIONS = {
-        { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
@@ -62,7 +60,6 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-extract mode
     const OptionEntry[] EXTRACT_OPTIONS = {
-        { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to extract (required)", "PATH" },
@@ -83,7 +80,6 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-repair mode
     const OptionEntry[] REPAIR_OPTIONS = {
-        { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to repair (required)", "PATH" },
@@ -94,7 +90,6 @@ class LivePhotoConv.Main {
 
     // Full options for generic mode
     const OptionEntry[] FULL_OPTIONS = {
-        { "help", 'h', OptionFlags.NONE, OptionArg.NONE, ref show_help, "Show help message", null },
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "make", 'g', OptionFlags.REVERSE, OptionArg.NONE, ref require_live_photo, "Make a live photo", null },
@@ -120,10 +115,7 @@ class LivePhotoConv.Main {
     };
 
     static int main (string[] original_args) {
-        // Compatibility for Windows and Unix
-        if (Intl.setlocale (LocaleCategory.ALL, ".UTF-8") == null) {
-            Intl.setlocale ();
-        }
+        Intl.setlocale ();
 
 #if WINDOWS
         var args = Win32.get_command_line ();
@@ -157,17 +149,12 @@ class LivePhotoConv.Main {
         }
         
         var opt_context = new OptionContext (help_description);
-        // DO NOT use the default help option provided by g_print
-        // g_print will force to convert character set to windows's code page
-        // which is imcompatible windows's bash, zsh, etc.
-        opt_context.set_help_enabled (false);
-
         opt_context.add_main_entries (options, null);
         try {
             opt_context.parse_strv (ref args);
         } catch (OptionError e) {
             Reporter.error_puts ("OptionError", e.message);
-            stderr.printf ("\n%s", opt_context.get_help (true, null));
+            printerr ("\n%s", opt_context.get_help (true, null));
             return 1;
         }
 
@@ -187,11 +174,6 @@ class LivePhotoConv.Main {
             break;
         }
 
-        if (show_help) {
-            stderr.puts (opt_context.get_help (true, null));
-            return 0;
-        }
-
         if (show_version) {
             Reporter.info_puts ("Live Photo Converter", VERSION);
             return 0;
@@ -201,7 +183,7 @@ class LivePhotoConv.Main {
              // 'extract' and 'repair' modes require a live photo path
             if (live_photo_path == null) {
                 Reporter.error_puts ("OptionError", "`--live-photo' is required for this mode");
-                stderr.printf ("\n%s", opt_context.get_help (true, null));
+                printerr ("\n%s", opt_context.get_help (true, null));
                 return 1;
             }
 
@@ -228,7 +210,7 @@ class LivePhotoConv.Main {
         // require_live_photo is false: making a new live photo, requires video path
         if (video_path == null) {
             Reporter.error_puts ("OptionError", "`--video' is required for this mode");
-            stderr.printf ("\n%s", opt_context.get_help (true, null));
+            printerr ("\n%s", opt_context.get_help (true, null));
             return 1;
         }
 
