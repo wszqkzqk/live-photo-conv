@@ -109,7 +109,7 @@ public class LivePhotoConv.Reporter {
     */
     public static void report_failed_command (string command, int status) {
         if (color_setting.to_bool ()) {
-            stderr.printf ("Command `%s%s%s' failed with status: %s%d%s\n",
+            printerr ("Command `%s%s%s' failed with status: %s%d%s\n",
                 Reporter.EscapeCode.ANSI_BOLD + EscapeCode.ANSI_YELLOW,
                 command,
                 Reporter.EscapeCode.ANSI_RESET,
@@ -118,7 +118,7 @@ public class LivePhotoConv.Reporter {
                 Reporter.EscapeCode.ANSI_RESET);
             return;
         }
-        stderr.printf ("Command `%s' failed with status: %d\n",
+        printerr ("Command `%s' failed with status: %d\n",
             command,
             status);
     }
@@ -133,7 +133,7 @@ public class LivePhotoConv.Reporter {
     */
     public static void report (string color_code, string domain_name, string msg, va_list args) {
         if (color_setting.to_bool ()) {
-            stderr.puts (Reporter.EscapeCode.ANSI_BOLD.concat (
+            printerr ("%s", Reporter.EscapeCode.ANSI_BOLD.concat (
                     color_code,
                     domain_name,
                     Reporter.EscapeCode.ANSI_RESET +
@@ -144,7 +144,7 @@ public class LivePhotoConv.Reporter {
                     "\n"));
             return;
         }
-        stderr.puts (domain_name.concat (": ", msg.vprintf (args), "\n"));
+        printerr ("%s: %s\n", domain_name, msg.vprintf (args));
     }
 
     /*
@@ -156,7 +156,7 @@ public class LivePhotoConv.Reporter {
      */
     public static void report_puts (string color_code, string domain_name, string msg) {
         if (color_setting.to_bool ()) {
-            stderr.puts (Reporter.EscapeCode.ANSI_BOLD.concat (
+            printerr ("%s", Reporter.EscapeCode.ANSI_BOLD.concat (
                     color_code,
                     domain_name,
                     Reporter.EscapeCode.ANSI_RESET +
@@ -167,7 +167,7 @@ public class LivePhotoConv.Reporter {
                     "\n"));
             return;
         }
-        stderr.puts (domain_name.concat (": ", msg, "\n"));
+        printerr ("%s: %s\n", domain_name, msg);
     }
 
     /**
@@ -246,11 +246,11 @@ public class LivePhotoConv.Reporter {
     */
     public static void clear_putserr (string msg, bool show_progress_bar = true) {
         if (show_progress_bar) {
-            stderr.printf ("\r%s\r%s",
+            printerr ("\r%s\r%s",
                 string.nfill (get_console_width (), ' '),
                 msg);
         } else {
-            stderr.puts (msg);
+            printerr ("%s", msg);
         }
     }
 
@@ -354,7 +354,7 @@ public class LivePhotoConv.Reporter {
             } else {
                 builder.append_printf (": %6.2f%%", percentage);
             }
-            stderr.puts (builder.str);
+            printerr ("%s", builder.str);
         }
     }
 }
