@@ -263,11 +263,45 @@ public class LivePhotoConv.Reporter {
     public class ProgressBar {
 
         string title;
-        double percentage = 0.0;
-        int total_steps;
-        int current_step = 0;
-        char fill_char;
-        char empty_char;
+        char fill_char = '#';
+        char empty_char = '-';
+        Mutex mutex;
+        int _total_steps = 0;
+        int _current_step = 0;
+
+        /**
+         * The total number of steps for the progress bar.
+         */
+        public int total_steps {
+            get {
+                mutex.lock ();
+                var result = _total_steps;
+                mutex.unlock ();
+                return result;
+            }
+            set {
+                mutex.lock ();
+                _total_steps = value;
+                mutex.unlock ();
+            }
+        }
+
+        /**
+         * The current step number of the progress bar.
+         */
+        public int current_step {
+            get {
+                mutex.lock ();
+                var result = _current_step;
+                mutex.unlock ();
+                return result;
+            }
+            set {
+                mutex.lock ();
+                _current_step = value;
+                mutex.unlock ();
+            }
+        }
 
         /**
          * Constructs a ProgressBar object.
@@ -282,9 +316,10 @@ public class LivePhotoConv.Reporter {
                             char fill_char = '#',
                             char empty_char = '-') {
             this.title = title;
-            this.total_steps = total_steps;
+            this._total_steps = total_steps;
             this.fill_char = fill_char;
             this.empty_char = empty_char;
+            this.mutex = Mutex ();
         }
 
         /**
@@ -295,11 +330,13 @@ public class LivePhotoConv.Reporter {
          * @return The current step number.
          */
         public int update (uint success_count, uint failure_count) {
-            current_step += 1;
-            current_step = (current_step > total_steps) ? total_steps : current_step;
-            percentage = (double) current_step / total_steps * 100.0;
+            mutex.lock ();
+            _current_step += 1;
+            _current_step = (_current_step > _total_steps) ? _total_steps : _current_step;
             print_progress (success_count, failure_count);
-            return current_step;
+            var current = _current_step;
+            mutex.unlock ();
+            return current;
         }
 
         /**
@@ -309,6 +346,16 @@ public class LivePhotoConv.Reporter {
          * @param failure_count The number of failures.
          */
         public void print_progress (uint success_count, uint failure_count) {
+            mutex.lock ();
+            var current = _current_step;
+            var total = _total_steps;
+            mutex.unlock ();
+
+            if (total == 0) {
+                return;
+            }
+            var percentage = (double) current / total * 100.0;
+
             // The actual length of the prefix is the length of UNCOLORED prefix
             // ANSI escapecode should not be counted
             var prefix = "\rSuccess: %u Failure: %u ".printf (success_count, failure_count);
