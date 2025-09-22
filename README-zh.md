@@ -176,8 +176,10 @@ meson install -C builddir
 Usage:
   live-photo-make [OPTION…] - Make Live Photos from image and video files
 
-Options:
-  -h, --help            Show help message
+Help Options:
+  -h, --help            Show help options
+
+Application Options:
   --version             Display version number
   --color=LEVEL         Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -i, --image=PATH      The path to the main static image file
@@ -213,8 +215,10 @@ live-photo-make --video /path/to/video.mp4 --output /path/to/output.jpg
 Usage:
   live-photo-extract [OPTION…] - Extract images and videos from Live Photos
 
-Options:
-  -h, --help                  Show help message
+Help Options:
+  -h, --help                  Show help options
+
+Application Options:
   --version                   Display version number
   --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -p, --live-photo=PATH       The live photo file to extract (required)
@@ -254,8 +258,10 @@ live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest --frame-to-photos
 Usage:
   live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted XMP metadata
 
-Options:
-  -h, --help                Show help message
+Help Options:
+  -h, --help                Show help options
+
+Application Options:
   --version                 Display version number
   --color=LEVEL             Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -p, --live-photo=PATH     The live photo file to repair (required)
@@ -281,8 +287,10 @@ live-photo-repair -p /path/to/live_photo.jpg
 Usage:
   live-photo-conv [OPTION…] - Extract, Repair or Make Live Photos
 
-Options:
-  -h, --help                        Show help message
+Help Options:
+  -h, --help                        Show help options
+
+Application Options:
   -v, --version                     Display version number
   --color=LEVEL                     Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -g, --make                        Make a live photo
@@ -340,10 +348,12 @@ live-photo-conv --repair --live-photo /path/to/live_photo.jpg
 
 ```
 Usage:
-  copy-img-meta [OPTION…] <exif-source-img> <dest-img> - Copy all metadata from one image to another
+  copy-img-meta [OPTION…] <exif-source-img> <dest-img> - Copy the metadata from one image to another
 
-Options:
-  -h, --help         Show help message
+Help Options:
+  -h, --help         Show help options
+
+Application Options:
   -v, --version      Display version number
   --color=LEVEL      Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   --exclude-exif     Do not copy EXIF data
