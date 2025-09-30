@@ -416,7 +416,13 @@ livemaker = LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_2024
 livemaker.export()
 ```
 
-## Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
+## License
+
+This project is licensed under the LGPL-2.1-or-later license. For more details, see the `COPYING` file.
+
+## FAQ
+
+### Exporting Images from Embedded Videos: Using FFmpeg or GStreamer?
 
 If GStreamer support is enabled during the build, GStreamer will be used by default to export images from embedded videos. Otherwise, the program will attempt to create an FFmpeg subprocess via command to export images. Even with GStreamer support enabled, you can use the `--use-ffmpeg` option to use FFmpeg.
 
@@ -424,12 +430,6 @@ The speed of exporting images using GStreamer versus FFmpeg is not always consis
 
 * When the selected image encoding is slow, GStreamer exports images faster.
 * When the selected image encoding is fast, FFmpeg exports images faster.
-
-## License
-
-This project is licensed under the LGPL-2.1-or-later license. For more details, see the `COPYING` file.
-
-## FAQ
 
 ### Path Encoding on Windows: Unable to Read/Write Metadata for Paths Containing Non-ASCII Characters
 
