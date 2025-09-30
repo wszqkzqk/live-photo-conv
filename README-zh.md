@@ -416,7 +416,13 @@ livemaker=LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_202411
 livemaker.export()
 ```
 
-## 由嵌入视频导出图片：用 FFmpeg 还是用 GStreamer？
+## 许可证
+
+该项目使用 LGPL-2.1-or-later 许可证。详细信息请参阅 [`COPYING`](COPYING) 文件。
+
+## FAQ
+
+### 由嵌入视频导出图片：用 FFmpeg 还是用 GStreamer？
 
 如果在构建时启用了GStreamer支持，那么默认将使用GStreamer来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建FFmpeg子进程来导出图片。在启用了GStreamer支持的情况下，也可以通过`--use-ffmpeg`选项来使用FFmpeg。
 
@@ -424,12 +430,6 @@ livemaker.export()
 
 * 所选的图片编码较慢时，GStreamer导出图片更快
 * 所选的图片编码较快时，FFmpeg导出图片更快
-
-## 许可证
-
-该项目使用 LGPL-2.1-or-later 许可证。详细信息请参阅 [`COPYING`](COPYING) 文件。
-
-## FAQ
 
 ### Windows 下的路径编码：无法向包含非 ASCII 字符的路径读取或写入元数据
 
