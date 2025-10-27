@@ -101,6 +101,12 @@ For example, to install dependencies on Arch Linux:
 sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
+To install dependencies on Debian/Ubuntu:
+
+```bash
+sudo apt install build-essential meson valac libgexiv2-dev libgstreamer1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection help2man valadoc
+```
+
 To install dependencies on Windows by MSYS2 (UCRT64 environment):
 
 ```bash
