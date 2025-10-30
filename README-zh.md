@@ -101,6 +101,12 @@ makepkg-mingw -si
 sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
+在Debian/Ubuntu上安装依赖：
+
+```bash
+sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection libgirepository1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-vaapi
+```
+
 在Windows的MSYS2（UCRT64）环境上安装依赖：
 
 ```bash
