@@ -1,0 +1,142 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "*" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-archlinux:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+    - name: Install Base Dependencies
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm git base-devel sudo
+
+    - name: Create Builder User
+      run: |
+        useradd -m builder
+        echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
+        chmod 0440 /etc/sudoers.d/builder
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Fix Directory Permissions
+      run: |
+        chown -R builder:builder .
+        git config --global --add safe.directory "$PWD"
+
+    - name: Build Package
+      run: |
+        # Capture current directory for the builder shell
+        export WORKSPACE_DIR="$PWD"
+
+        su builder -c "
+          cd \"\$WORKSPACE_DIR\"
+          git clone https://aur.archlinux.org/live-photo-conv.git
+          cd live-photo-conv
+          
+          # Modify PKGBUILD to use current local source
+          sed -i 's|source=.*|source=(\"git+file://\${WORKSPACE_DIR=}\")|' PKGBUILD
+          sed -i 's|sha256sums=.*|sha256sums=(\"SKIP\")|' PKGBUILD
+          
+          # Add pkgver function
+          cat >> PKGBUILD <<EOF
+
+        pkgver() {
+          cd \"live-photo-conv\"
+          git describe --abbrev=12 --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+        }
+        EOF
+          
+          # Install dependencies and build
+          makepkg --noconfirm -s
+        "
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: archlinux-package
+        path: ./live-photo-conv/*.pkg.tar.zst
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: UCRT64
+        update: true
+        install: >-
+          base-devel
+          git
+    
+    - name: Build Package
+      shell: msys2 {0}
+      run: |
+        cd "$GITHUB_WORKSPACE"
+        curl -o PKGBUILD 'https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/PKGBUILD'
+        
+        # Modify PKGBUILD to use local source
+        sed -i 's|source=.*|source=("git+file://$(pwd)")|' PKGBUILD
+        sed -i 's|sha256sums=.*|sha256sums=("SKIP")|' PKGBUILD
+
+        # Add pkgver function
+        cat >> PKGBUILD <<EOF
+
+        pkgver() {
+          cd "live-photo-conv"
+          git describe --abbrev=12 --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+        }
+        EOF
+
+        makepkg-mingw --noconfirm -s
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-package
+        path: ./*.pkg.tar.zst
+
+  release:
+    name: Release
+    needs: [build-archlinux, build-windows]
+    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-package'
+          merge-multiple: true
+          path: dist
+
+      - name: Publish Release (Tag)
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+
+      - name: Publish Dev Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev
+          name: Development Build
+          prerelease: true
+          files: dist/*
+          make_latest: false
