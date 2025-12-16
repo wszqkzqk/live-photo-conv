@@ -38,16 +38,18 @@ jobs:
 
     - name: Build Package
       run: |
-        # Capture current directory for the builder shell
-        export WORKSPACE_DIR="$PWD"
+        # Capture current directory and commit hash
+        WORKSPACE_DIR="$PWD"
+        COMMIT_HASH="$(git rev-parse HEAD)"
 
+        # Expand variables in the command string passed to su
         su builder -c "
-          cd \"\$WORKSPACE_DIR\"
+          cd \"$WORKSPACE_DIR\"
           git clone https://aur.archlinux.org/live-photo-conv.git
           cd live-photo-conv
           
-          # Modify PKGBUILD to use current local source
-          sed -i 's|source=.*|source=(\"git+file://\${WORKSPACE_DIR=}\")|' PKGBUILD
+          # Modify PKGBUILD to use current local source with specific commit
+          sed -i \"s|source=.*|source=(\\\"git+file://$WORKSPACE_DIR#commit=$COMMIT_HASH\\\")|\" PKGBUILD
           sed -i 's|sha256sums=.*|sha256sums=(\"SKIP\")|' PKGBUILD
           
           # Add pkgver function
@@ -88,10 +90,11 @@ jobs:
       shell: msys2 {0}
       run: |
         cd "$GITHUB_WORKSPACE"
+        COMMIT_HASH=$(git rev-parse HEAD)
         curl -o PKGBUILD 'https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/PKGBUILD'
         
-        # Modify PKGBUILD to use local source
-        sed -i 's|source=.*|source=("git+file://$(pwd)")|' PKGBUILD
+        # Modify PKGBUILD to use local source with commit
+        sed -i "s|source=.*|source=(\"git+file://$(pwd)#commit=$COMMIT_HASH\")|" PKGBUILD
         sed -i 's|sha256sums=.*|sha256sums=("SKIP")|' PKGBUILD
 
         # Add pkgver function
