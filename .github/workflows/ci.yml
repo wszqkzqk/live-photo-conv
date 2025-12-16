@@ -125,6 +125,9 @@ jobs:
           merge-multiple: true
           path: dist
 
+      - name: Remove Debug Packages
+        run: rm -f dist/*-debug-*.pkg.tar.zst
+
       - name: Publish Release (Tag)
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
