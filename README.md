@@ -31,6 +31,32 @@ Essentially, an Android live photo appends a video file directly to the end of a
 
 This tool can be used for extracting, repairing, editing, and composing such live photos.
 
+## Install Pre-built Binaries
+
+You can download pre-built binaries from the [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) page, supporting Arch Linux and Windows (MSYS2) platforms.
+
+**Please make sure to install them as required, and do not run the binaries directly after extraction, as this will lead to issues such as missing dependencies.** If you encounter compatibility issues, please refer to the subsequent [Build Scripts](#build-scripts) or [Manual Build](#manual-build) sections for building them yourself.
+
+### Arch Linux
+
+For Arch Linux users, download the file named like `live-photo-conv-<version>-x86_64.pkg.tar.zst`, and install it using `pacman`:
+
+```bash
+sudo pacman -U live-photo-conv-<version>-x86_64.pkg.tar.zst
+```
+
+### Windows (MSYS2)
+
+For Windows users, we provide a package compatible with the **MSYS2** environment. Ensure you have [MSYS2](https://www.msys2.org/) installed and updated.
+
+1.  Download the Windows package file named like `mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst`.
+2.  Open your MSYS2 shell (UCRT64).
+3.  Install the package using `pacman`:
+
+```bash
+pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst
+```
+
 ## Build Scripts
 
 This project provides build scripts for Arch Linux and Windows (MSYS2) environments.
