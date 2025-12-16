@@ -134,6 +134,15 @@ jobs:
         with:
           files: dist/*
 
+      - name: Delete Old Dev Release
+        if: github.ref == 'refs/heads/main'
+        uses: dev-drprasad/delete-tag-and-release@v1.1
+        with:
+          tag_name: dev
+          delete_release: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish Dev Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
