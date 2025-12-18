@@ -57,7 +57,7 @@ jobs:
 
         pkgver() {
           cd \"live-photo-conv\"
-          git describe --abbrev=12 --tags --exclude=dev | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+          git describe --abbrev=12 --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
         }
         EOF
           
@@ -102,7 +102,7 @@ jobs:
 
         pkgver() {
           cd "live-photo-conv"
-          git describe --abbrev=12 --tags --exclude=dev | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+          git describe --abbrev=12 --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
         }
         EOF
 
@@ -117,7 +117,7 @@ jobs:
   release:
     name: Release
     needs: [build-archlinux, build-windows]
-    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -131,27 +131,7 @@ jobs:
       - name: Remove Debug Packages
         run: rm -f dist/*-debug-*.pkg.tar.zst
 
-      - name: Publish Release (Tag)
-        if: github.ref_type == 'tag'
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-
-      - name: Delete Old Dev Release
-        if: github.ref == 'refs/heads/main'
-        uses: dev-drprasad/delete-tag-and-release@v1.1
-        with:
-          tag_name: dev
-          delete_release: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish Dev Release
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: dev
-          name: Development Build
-          prerelease: true
-          files: dist/*
-          make_latest: false
