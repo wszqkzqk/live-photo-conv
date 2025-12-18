@@ -50,7 +50,7 @@ sudo pacman -U live-photo-conv-<版本号>-x86_64.pkg.tar.zst
 对于 Windows 用户，我们提供了适用于 **MSYS2** 环境的安装包。请确保您已安装并更新了 [MSYS2](https://www.msys2.org/)。
 
 1.  从发布页面下载形如 `mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst` 的 Windows 安装包。
-2.  打开您的 MSYS2 终端（例如 UCRT64）。
+2.  打开 MSYS2 终端（UCRT64 环境）。
 3.  使用 `pacman` 安装该包：
 
 ```bash
