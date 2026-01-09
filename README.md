@@ -384,7 +384,7 @@ live-photo-conv --repair --live-photo /path/to/live_photo.jpg
 
 ```
 Usage:
-  copy-img-meta [OPTION…] <exif-source-img> <dest-img> - Copy the metadata from one image to another
+  copy-img-meta [OPTION…] <source-img> <dest-img> - Copy the metadata from one image to another
 
 Help Options:
   -h, --help         Show help options

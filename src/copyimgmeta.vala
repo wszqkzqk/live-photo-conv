@@ -46,7 +46,7 @@ class LivePhotoConv.CopyImgMeta {
 #else
         var args = strdupv (original_args);
 #endif
-        var opt_context = new OptionContext ("<exif-source-img> <dest-img> - Copy the metadata from one image to another");
+        var opt_context = new OptionContext ("<source-img> <dest-img> - Copy the metadata from one image to another");
         opt_context.add_main_entries (options, null);
         try {
             opt_context.parse_strv (ref args);
@@ -73,7 +73,7 @@ class LivePhotoConv.CopyImgMeta {
         }
 
         if (show_version) {
-            Reporter.info_puts ("EXIF Copy Tool", VERSION);
+            Reporter.info_puts ("Image Metadata Copying Tool", VERSION);
             return 0;
         }
 
@@ -103,7 +103,7 @@ class LivePhotoConv.CopyImgMeta {
             }
 
             metadata.save_file (dest_path);
-            Reporter.info ("MetadataCopied", "EXIF data copied from `%s' to `%s'", source_path, dest_path);
+            Reporter.info ("MetadataCopied", "Metadata copied from `%s' to `%s'", source_path, dest_path);
         } catch (Error e) {
             Reporter.error_puts ("MetadataError", e.message);
             return 1;
