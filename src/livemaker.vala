@@ -170,6 +170,15 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             this.metadata.try_set_tag_string ("Xmp.OpCamera.MotionPhotoOwner", "oplus");
             this.metadata.try_set_tag_string ("Xmp.OpCamera.OLivePhotoVersion", "2");
             this.metadata.try_set_tag_string ("Xmp.OpCamera.VideoLength", video_size.to_string ());
+            // oplus_11534368 is the constant used by OPPO Find X8s+, reported to work. Use it here for compatibility.
+            string? user_comment = null;
+            try {
+                user_comment = this.metadata.try_get_tag_string ("Exif.Photo.UserComment");
+            } catch {}
+            if (user_comment == null || (!user_comment.has_prefix ("oplus_"))) {
+                Reporter.info_puts ("OPPO Compatibility", "Setting EXIF.Photo.UserComment for OPPO compatibility.");
+                this.metadata.try_set_tag_string ("Exif.Photo.UserComment", "oplus_11534368");
+            }
         }
 
         try {
