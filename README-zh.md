@@ -292,7 +292,7 @@ live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest --frame-to-photos
 
 ```
 Usage:
-  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted XMP metadata
+  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted metadata
 
 Help Options:
   -h, --help                Show help options
@@ -331,7 +331,7 @@ Application Options:
   --color=LEVEL                     Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -g, --make                        Make a live photo
   -e, --extract                     Extract a live photo (default)
-  -r, --repair                      Repair a live photo from missing XMP metadata
+  -r, --repair                      Repair a live photo from missing or corrupted metadata
   --force-repair                    Force repair a live photo (force update video offset in XMP metadata)
   --repair-with-video-size=SIZE     Force repair a live photo with the specified video size
   -i, --image=PATH                  The path to the main static image file

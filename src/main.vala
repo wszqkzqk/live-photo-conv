@@ -94,7 +94,7 @@ class LivePhotoConv.Main {
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "make", 'g', OptionFlags.REVERSE, OptionArg.NONE, ref require_live_photo, "Make a live photo", null },
         { "extract", 'e', OptionFlags.NONE, OptionArg.NONE, ref require_live_photo, "Extract a live photo (default)", null },
-        { "repair", 'r', OptionFlags.NONE, OptionArg.NONE, ref repair_live_photo, "Repair a live photo from missing XMP metadata", null },
+        { "repair", 'r', OptionFlags.NONE, OptionArg.NONE, ref repair_live_photo, "Repair a live photo from missing or corrupted metadata", null },
         { "force-repair", '\0', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force repair a live photo (force update video offset in XMP metadata)", null },
         { "repair-with-video-size", '\0', OptionFlags.NONE, OptionArg.INT, ref repair_with_video_size, "Force repair a live photo with the specified video size", "SIZE" },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
@@ -141,7 +141,7 @@ class LivePhotoConv.Main {
             // Repair mode - simplified CLI for repairing live photos
             repair_live_photo = true;
             options = REPAIR_OPTIONS;
-            help_description = "- Repair Live Photos with missing or corrupted XMP metadata";
+            help_description = "- Repair Live Photos with missing or corrupted metadata";
         } else {
             // Generic mode - full CLI options
             options = FULL_OPTIONS;
