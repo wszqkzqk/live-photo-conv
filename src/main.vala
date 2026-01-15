@@ -37,6 +37,7 @@ class LivePhotoConv.Main {
     static bool export_metadata = true;
     static bool frame_to_photo = false;
     static bool minimal_export = false;
+    static bool oppo_compatible = false;
     static int threads = 0;
 #if ENABLE_GST
     static bool use_ffmpeg = false;
@@ -51,6 +52,7 @@ class LivePhotoConv.Main {
         { "output", 'o', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The output live photo file path", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
+        { "oppo-compatible", '\0', OptionFlags.NONE, OptionArg.NONE, ref oppo_compatible, "Required for OPPO compatibility", null },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
         { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract instead of FFmpeg (default)", null },
@@ -85,6 +87,7 @@ class LivePhotoConv.Main {
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to repair (required)", "PATH" },
         { "force", 'f', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force to update video offset in XMP metadata and repair", null },
         { "video-size", 's', OptionFlags.NONE, OptionArg.INT, ref repair_with_video_size, "Force repair with the specified video size", "SIZE" },
+        { "oppo-compatible", '\0', OptionFlags.NONE, OptionArg.NONE, ref oppo_compatible, "Required for OPPO compatibility", null },
         null
     };
 
@@ -107,6 +110,7 @@ class LivePhotoConv.Main {
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
+        { "oppo-compatible", '\0', OptionFlags.NONE, OptionArg.NONE, ref oppo_compatible, "Required for OPPO compatibility", null },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
         { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract instead of FFmpeg (default)", null },
@@ -231,19 +235,16 @@ class LivePhotoConv.Main {
         LivePhoto live_photo;
 #if ENABLE_GST
         if (use_ffmpeg) {
-            live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir) {
-                export_original_metadata = export_metadata,
-            };
+            live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir);
         } else {
-            live_photo = new LivePhotoGst (live_photo_path, dest_dir) {
-                export_original_metadata = export_metadata,
-            };
+            live_photo = new LivePhotoGst (live_photo_path, dest_dir);
         }
 #else
-        live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir) {
-            export_original_metadata = export_metadata,
-        };
+        live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir);
 #endif
+        live_photo.export_original_metadata = export_metadata;
+        live_photo.oppo_compatible = oppo_compatible;
+
         return live_photo;
     }
 
@@ -251,19 +252,16 @@ class LivePhotoConv.Main {
 #if ENABLE_GST
         LiveMaker live_maker;
         if (use_ffmpeg) {
-            live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path)  {
-                export_original_metadata = export_metadata,
-            };
+            live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path);
         } else {
-            live_maker = new LiveMakerGst (video_path, main_image_path, live_photo_path)  {
-                export_original_metadata = export_metadata,
-            };
+            live_maker = new LiveMakerGst (video_path, main_image_path, live_photo_path);
         }
 #else
-        LiveMaker live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path)  {
-            export_original_metadata = export_metadata,
-        };
+        LiveMaker live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path);
 #endif
+        live_maker.export_original_metadata = export_metadata;
+        live_maker.oppo_compatible = oppo_compatible;
+
         live_maker.export ();
     }
 

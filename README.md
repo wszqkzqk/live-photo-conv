@@ -223,6 +223,7 @@ Application Options:
   -o, --output=PATH     The output live photo file path
   --export-metadata     Export metadata (default)
   --drop-metadata       Do not export metadata
+  --oppo-compatible     Required for OPPO compatibility
   --use-ffmpeg          Use FFmpeg to extract instead of GStreamer
   --use-gst             Use GStreamer to extract instead of FFmpeg (default)
 ```
@@ -303,6 +304,7 @@ Application Options:
   -p, --live-photo=PATH     The live photo file to repair (required)
   -f, --force               Force to update video offset in XMP metadata and repair
   -s, --video-size=SIZE     Force repair with the specified video size
+  --oppo-compatible         Required for OPPO compatibility
 ```
 
 #### Examples
@@ -344,6 +346,7 @@ Application Options:
   -f, --img-format=FORMAT           The format of the image exported from video
   --minimal                         Minimal metadata export, ignore unspecified exports
   -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
+  --oppo-compatible                 Required for OPPO compatibility
   --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer
   --use-gst                         Use GStreamer to extract instead of FFmpeg (default)
 ```
@@ -492,3 +495,7 @@ live-photo-conv --make --image /path/to/dest.jpg --video /path/to/video.mp4 --li
 ```
 
 This way, you can obtain a live photo that is recognized and playable on the respective brand's phone.
+
+### The Role of the `--oppo-compatible` Option
+
+OPPO uses XMP metadata tags that differ from both the old and new standards of Google. Therefore, if the generated photo needs to be played on OPPO devices, this option must be used. Additionally, users may still need to refer to the [previous section](#fragmentation-among-android-manufacturers-live-photos-not-recognized) and use the `copy-img-meta` tool to copy EXIF and other metadata to the generated live photo.
