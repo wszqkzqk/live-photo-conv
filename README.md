@@ -292,7 +292,7 @@ Repair corrupted live photos.
 
 ```
 Usage:
-  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted XMP metadata
+  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted metadata
 
 Help Options:
   -h, --help                Show help options
@@ -331,7 +331,7 @@ Application Options:
   --color=LEVEL                     Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -g, --make                        Make a live photo
   -e, --extract                     Extract a live photo (default)
-  -r, --repair                      Repair a live photo from missing XMP metadata
+  -r, --repair                      Repair a live photo from missing or corrupted metadata
   --force-repair                    Force repair a live photo (force update video offset in XMP metadata)
   --repair-with-video-size=SIZE     Force repair a live photo with the specified video size
   -i, --image=PATH                  The path to the main static image file
@@ -384,7 +384,7 @@ live-photo-conv --repair --live-photo /path/to/live_photo.jpg
 
 ```
 Usage:
-  copy-img-meta [OPTION…] <exif-source-img> <dest-img> - Copy the metadata from one image to another
+  copy-img-meta [OPTION…] <source-img> <dest-img> - Copy the metadata from one image to another
 
 Help Options:
   -h, --help         Show help options
