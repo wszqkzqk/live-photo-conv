@@ -31,6 +31,7 @@ class LivePhotoConv.Main {
     static int color_level = 1;
     static string? main_image_path = null;
     static string? video_path = null;
+    static string? long_exposure_path = null;
     static string? live_photo_path = null;
     static string? dest_dir = null;
     static string? img_format = null;
@@ -66,10 +67,11 @@ class LivePhotoConv.Main {
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to export the main image", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to export the video", "PATH" },
+        { "long-exposure", 'l', OptionFlags.NONE, OptionArg.FILENAME, ref long_exposure_path, "Convert the embedded video to a long exposure photo", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of the video as photos", null },
-        { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
+        { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video, defaults to automatic detection", "FORMAT" },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto", "NUM" },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
@@ -104,7 +106,8 @@ class LivePhotoConv.Main {
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a live photo's video as a photo", null },
-        { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video", "FORMAT" },
+        { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video, defaults to automatic detection", "FORMAT" },
+        { "long-exposure", 'l', OptionFlags.NONE, OptionArg.FILENAME, ref long_exposure_path, "Convert the embedded video to a long exposure photo", "PATH" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
 #if ENABLE_GST
@@ -280,6 +283,9 @@ class LivePhotoConv.Main {
         }
         if ((!minimal_export) || video_path != null) {
             live_photo.export_video (video_path);
+        }
+        if (long_exposure_path != null) {
+            live_photo.generate_long_exposure (long_exposure_path);
         }
         if (frame_to_photo) {
             live_photo.split_images_from_video (img_format, dest_dir, threads);
