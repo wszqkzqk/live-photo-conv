@@ -8,18 +8,19 @@
 
 * [English Version](README.md)
 
-Live Photo Converter 是一个用于处理动态照片的跨平台的工具。它可以将静态图像和视频合成为动态照片，直接将视频转化为动态照片，修复受损的动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片。
+Live Photo Converter 是一个用于处理动态照片的跨平台的工具。它可以将静态图像和视频合成为动态照片，直接将视频转化为动态照片，修复受损的动态照片，或者从动态照片中提取静态图像和视频，还可以将视频的每一帧导出为图片，并支持将动态照片转换为长曝光照片。
 
 ## 功能
 
 - `live-photo-make`
-  - 从图片和视频创建动态照片
+  - 从图片和视频**创建**动态照片
 - `live-photo-extract`
-  - 从动态照片中提取图片、视频和视频帧
+  - 从动态照片中提取图片、视频和**视频帧**
+  - 将动态照片转换为**长曝光照片**
 - `live-photo-repair`
-  - 修复损坏的动态照片
+  - **修复**损坏的动态照片
 - `live-photo-conv`
-  - 功能全面的通用命令，用于创建、提取和修复动态照片
+  - 功能全面的通用命令，用于创建、提取、转换和修复动态照片
 - `copy-img-meta`
   - 从一张图片复制元数据到另一张图片
   - 可以选择复制或排除 EXIF、XMP、IPTC 元数据
@@ -252,22 +253,23 @@ Usage:
   live-photo-extract [OPTION…] - Extract images and videos from Live Photos
 
 Help Options:
-  -h, --help                  Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  --version                   Display version number
-  --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -p, --live-photo=PATH       The live photo file to extract (required)
-  -d, --dest-dir=PATH         The destination directory to export
-  -i, --image=PATH            The path to export the main image
-  -m, --video=PATH            The path to export the video
-  --export-metadata           Export metadata (default)
-  --drop-metadata             Do not export metadata
-  --frame-to-photos           Export every frame of the video as photos
-  -f, --img-format=FORMAT     The format of the image exported from video
-  -T, --threads=NUM           Number of threads to use for extracting, 0 for auto
-  --use-ffmpeg                Use FFmpeg to extract instead of GStreamer
-  --use-gst                   Use GStreamer to extract instead of FFmpeg (default)
+  --version                    Display version number
+  --color=LEVEL                Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -p, --live-photo=PATH        The live photo file to extract (required)
+  -d, --dest-dir=PATH          The destination directory to export
+  -i, --image=PATH             The path to export the main image
+  -m, --video=PATH             The path to export the video
+  -l, --long-exposure=PATH     Convert the embedded video to a long exposure photo
+  --export-metadata            Export metadata (default)
+  --drop-metadata              Do not export metadata
+  --frame-to-photos            Export every frame of the video as photos
+  -f, --img-format=FORMAT      The format of the image exported from video, defaults to automatic detection
+  -T, --threads=NUM            Number of threads to use for extracting, 0 for auto
+  --use-ffmpeg                 Use FFmpeg to extract instead of GStreamer
+  --use-gst                    Use GStreamer to extract instead of FFmpeg (default)
 ```
 
 #### 示例
@@ -341,7 +343,8 @@ Application Options:
   --export-metadata                 Export metadata (default)
   --drop-metadata                   Do not export metadata
   --frame-to-photos                 Export every frame of a live photo's video as a photo
-  -f, --img-format=FORMAT           The format of the image exported from video
+  -f, --img-format=FORMAT           The format of the image exported from video, defaults to automatic detection
+  -l, --long-exposure=PATH          Convert the embedded video to a long exposure photo
   --minimal                         Minimal metadata export, ignore unspecified exports
   -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
   --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer

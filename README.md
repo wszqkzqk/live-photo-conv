@@ -8,18 +8,19 @@
 
 * [中文版本](README-zh.md)
 
-Live Photo Converter is a cross-platform tool for processing live photos. It can combine a static image and a video into a live photo, convert a video directly into a live photo, repair live photos that fail to parse due to broken metadata, extract the static image and video from a live photo, or export every frame of the video as an image.
+Live Photo Converter is a cross-platform tool for processing live photos. It can combine a static image and a video into a live photo, convert a video directly into a live photo, repair live photos that fail to parse due to broken metadata, extract the static image and video from a live photo, or export every frame of the video as an image, and supports converting live photos to long exposure photos.
 
 ## Features
 
 - `live-photo-make`
-  - Create live photos from images and videos
+  - **Create** live photos from images and videos
 - `live-photo-extract`
-  - Extract images, videos, and video frames from live photos
+  - Extract images, videos, and **video frames** from live photos
+  - Convert live photos to **long exposure photos**
 - `live-photo-repair`
-  - Repair corrupted live photos
+  - **Repair** corrupted live photos
 - `live-photo-conv`
-  - A comprehensive command for creating, extracting, and repairing live photos
+  - A comprehensive command for creating, extracting, converting, and repairing live photos
 - `copy-img-meta`
   - Copy all metadata from one image to another
   - Options to choose or exclude certain metadata types
@@ -252,22 +253,23 @@ Usage:
   live-photo-extract [OPTION…] - Extract images and videos from Live Photos
 
 Help Options:
-  -h, --help                  Show help options
+  -h, --help                   Show help options
 
 Application Options:
-  --version                   Display version number
-  --color=LEVEL               Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -p, --live-photo=PATH       The live photo file to extract (required)
-  -d, --dest-dir=PATH         The destination directory to export
-  -i, --image=PATH            The path to export the main image
-  -m, --video=PATH            The path to export the video
-  --export-metadata           Export metadata (default)
-  --drop-metadata             Do not export metadata
-  --frame-to-photos           Export every frame of the video as photos
-  -f, --img-format=FORMAT     The format of the image exported from video
-  -T, --threads=NUM           Number of threads to use for extracting, 0 for auto
-  --use-ffmpeg                Use FFmpeg to extract instead of GStreamer
-  --use-gst                   Use GStreamer to extract instead of FFmpeg (default)
+  --version                    Display version number
+  --color=LEVEL                Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
+  -p, --live-photo=PATH        The live photo file to extract (required)
+  -d, --dest-dir=PATH          The destination directory to export
+  -i, --image=PATH             The path to export the main image
+  -m, --video=PATH             The path to export the video
+  -l, --long-exposure=PATH     Convert the embedded video to a long exposure photo
+  --export-metadata            Export metadata (default)
+  --drop-metadata              Do not export metadata
+  --frame-to-photos            Export every frame of the video as photos
+  -f, --img-format=FORMAT      The format of the image exported from video, defaults to automatic detection
+  -T, --threads=NUM            Number of threads to use for extracting, 0 for auto
+  --use-ffmpeg                 Use FFmpeg to extract instead of GStreamer
+  --use-gst                    Use GStreamer to extract instead of FFmpeg (default)
 ```
 
 #### Examples
@@ -341,7 +343,8 @@ Application Options:
   --export-metadata                 Export metadata (default)
   --drop-metadata                   Do not export metadata
   --frame-to-photos                 Export every frame of a live photo's video as a photo
-  -f, --img-format=FORMAT           The format of the image exported from video
+  -f, --img-format=FORMAT           The format of the image exported from video, defaults to automatic detection
+  -l, --long-exposure=PATH          Convert the embedded video to a long exposure photo
   --minimal                         Minimal metadata export, ignore unspecified exports
   -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
   --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer

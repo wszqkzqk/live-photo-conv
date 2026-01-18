@@ -437,6 +437,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         }
     }
 
+    public abstract void generate_long_exposure (string dest_path) throws Error;
+
     public abstract void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error;
 }
-

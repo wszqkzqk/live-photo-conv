@@ -23,7 +23,7 @@
 public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
     const string[] FFMPEG_COMMANDS = {
         "ffmpeg",
-        "-loglevel", "fatal",
+        "-loglevel", "error",
         "-hwaccel", "auto",
         "-i", "pipe:0",
         "-vf", "select=eq(n\\,0)",
