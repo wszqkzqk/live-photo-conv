@@ -83,7 +83,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             // Spcify the `libwebp` encoder to avoid the `libwebp_anim` encoder in `ffmpeg`
             commands = {
                 "ffmpeg", "-progress", "-", // Split progress to stdout
-                "-loglevel", "fatal",
+                "-loglevel", "error",
                 "-hwaccel", "auto",
                 "-i", "pipe:0",
                 "-f", "image2",
@@ -93,7 +93,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         } else {
             commands = {
                 "ffmpeg", "-progress", "-",
-                "-loglevel", "fatal",
+                "-loglevel", "error",
                 "-hwaccel", "auto",
                 "-i", "pipe:0",
                 "-f", "image2",
@@ -177,7 +177,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         if (dest_path.down ().has_suffix (".webp")) {
             commands = {
                 "ffmpeg", "-progress", "-",
-                "-loglevel", "fatal",
+                "-loglevel", "error",
                 "-hwaccel", "auto",
                 "-i", "pipe:0",
                 "-vf", "tmix=frames=" + frame_count.to_string (),
@@ -189,7 +189,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         } else {
             commands = {
                 "ffmpeg", "-progress", "-",
-                "-loglevel", "fatal",
+                "-loglevel", "error",
                 "-hwaccel", "auto",
                 "-i", "pipe:0",
                 "-vf", "tmix=frames=" + frame_count.to_string (),
@@ -242,7 +242,7 @@ public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
     uint64 get_frame_count () throws Error {
         string[] commands = {
             "ffprobe", 
-            "-v", "fatal", 
+            "-v", "error", 
             "-select_streams", "v:0", 
             "-count_packets", 
             "-show_entries", "stream=nb_read_packets", 
