@@ -86,8 +86,8 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 Reporter.warning ("XMPWarning", "Cannot get the value of the XMP tag %s: %s", tag, e.message);
             }
         }
-        // Clear some XMP metadata to export the images which are not live photos
-        this.clear_live_xmp_tags ();
+        // Clear XMP metadata to export the images which are not live photos
+        this.metadata.clear_xmp ();
 
         this.filename = filename;
         this.basename = Path.get_basename (filename);
@@ -406,35 +406,13 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         this.metadata.save_file (this.filename);
 
-        // Clear some XMP metadata to export the images which are not live photos
-        this.clear_live_xmp_tags ();
+        // Clear XMP metadata to export the images which are not live photos
+        this.metadata.clear_xmp ();
 
         // Refresh the video_offset field
         this.video_offset = file_size - reverse_offset;
 
         Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
-    }
-
-    inline void clear_live_xmp_tags () {
-        try {
-            // Clear GCamera (old standard) tags
-            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideo");
-            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoVersion");
-            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoOffset");
-            this.metadata.try_clear_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
-
-            // Clear Camera (new standard) tags
-            this.metadata.try_clear_tag ("Xmp.GCamera.MotionPhoto");
-            this.metadata.try_clear_tag ("Xmp.GCamera.MotionPhotoVersion");
-            this.metadata.try_clear_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
-
-            // Clearing structured Container:Directory tags might require specific path handling
-            // or clearing the parent Xmp.Container.Directory tag if supported.
-            // For simplicity, we are clearing the main identifiable tags.
-            this.metadata.try_clear_tag ("Xmp.Container.Directory");
-        } catch (Error e) {
-            Reporter.warning ("XMPWarning", "Cannot clear the XMP metadata: %s", e.message);
-        }
     }
 
     public abstract void generate_long_exposure (string dest_path) throws Error;
