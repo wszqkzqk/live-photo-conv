@@ -453,6 +453,8 @@ livephoto.export_main_image()
 livephoto.export_video()
 # Export frames from the embedded video
 livephoto.split_images_from_video(None, None, 0)
+# Convert the live photo to a long exposure photo
+livephoto.generate_long_exposure("long_exposure.jpg")
 ```
 
 ```python

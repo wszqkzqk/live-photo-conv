@@ -453,6 +453,8 @@ livephoto.export_main_image()
 livephoto.export_video()
 # 从内嵌视频中导出帧
 livephoto.split_images_from_video(None, None, 0)
+# 将动态照片转换为长曝光照片
+livephoto.generate_long_exposure("long_exposure.jpg")
 ```
 
 ```python
