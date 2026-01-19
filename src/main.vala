@@ -45,7 +45,7 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-make mode
     const OptionEntry[] MAKE_OPTIONS = {
-        { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to the video file (required)", "PATH" },
@@ -61,7 +61,7 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-extract mode
     const OptionEntry[] EXTRACT_OPTIONS = {
-        { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to extract (required)", "PATH" },
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
@@ -82,7 +82,7 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-repair mode
     const OptionEntry[] REPAIR_OPTIONS = {
-        { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to repair (required)", "PATH" },
         { "force", 'f', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force to update video offset in XMP metadata and repair", null },

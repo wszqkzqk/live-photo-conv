@@ -217,7 +217,7 @@ Help Options:
   -h, --help            Show help options
 
 Application Options:
-  --version             Display version number
+  -v, --version         Display version number
   --color=LEVEL         Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -i, --image=PATH      The path to the main static image file
   -m, --video=PATH      The path to the video file (required)
@@ -256,7 +256,7 @@ Help Options:
   -h, --help                   Show help options
 
 Application Options:
-  --version                    Display version number
+  -v, --version                Display version number
   --color=LEVEL                Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -p, --live-photo=PATH        The live photo file to extract (required)
   -d, --dest-dir=PATH          The destination directory to export
@@ -300,7 +300,7 @@ Help Options:
   -h, --help                Show help options
 
 Application Options:
-  --version                 Display version number
+  -v, --version             Display version number
   --color=LEVEL             Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -p, --live-photo=PATH     The live photo file to repair (required)
   -f, --force               Force to update video offset in XMP metadata and repair
