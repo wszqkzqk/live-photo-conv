@@ -27,5 +27,6 @@ namespace LivePhotoConv {
         FFMPEG_EXIED_WITH_ERROR, // FFmpeg failed to split the video into images.
         METADATA_EXPORT_ERROR, // Failed to export the metadata.
         FILE_PUSH_ERROR, // Failed to push data
+        GST_ERROR, // GStreamer related error.
     }
 }
