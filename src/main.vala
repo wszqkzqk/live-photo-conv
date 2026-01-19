@@ -45,7 +45,7 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-make mode
     const OptionEntry[] MAKE_OPTIONS = {
-        { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to the video file (required)", "PATH" },
@@ -61,7 +61,7 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-extract mode
     const OptionEntry[] EXTRACT_OPTIONS = {
-        { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to extract (required)", "PATH" },
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
@@ -72,6 +72,7 @@ class LivePhotoConv.Main {
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of the video as photos", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video, defaults to automatic detection", "FORMAT" },
+        { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal export, ignore unspecified exports", null },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto", "NUM" },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
@@ -82,7 +83,7 @@ class LivePhotoConv.Main {
 
     // Options for live-photo-repair mode
     const OptionEntry[] REPAIR_OPTIONS = {
-        { "version", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to repair (required)", "PATH" },
         { "force", 'f', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force to update video offset in XMP metadata and repair", null },
@@ -108,7 +109,7 @@ class LivePhotoConv.Main {
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a live photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video, defaults to automatic detection", "FORMAT" },
         { "long-exposure", 'l', OptionFlags.NONE, OptionArg.FILENAME, ref long_exposure_path, "Convert the embedded video to a long exposure photo", "PATH" },
-        { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal metadata export, ignore unspecified exports", null },
+        { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal export, ignore unspecified exports", null },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
 #if ENABLE_GST
         { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },

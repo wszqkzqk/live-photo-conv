@@ -217,7 +217,7 @@ Help Options:
   -h, --help            Show help options
 
 Application Options:
-  --version             Display version number
+  -v, --version         Display version number
   --color=LEVEL         Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -i, --image=PATH      The path to the main static image file
   -m, --video=PATH      The path to the video file (required)
@@ -256,7 +256,7 @@ Help Options:
   -h, --help                   Show help options
 
 Application Options:
-  --version                    Display version number
+  -v, --version                Display version number
   --color=LEVEL                Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -p, --live-photo=PATH        The live photo file to extract (required)
   -d, --dest-dir=PATH          The destination directory to export
@@ -267,6 +267,7 @@ Application Options:
   --drop-metadata              Do not export metadata
   --frame-to-photos            Export every frame of the video as photos
   -f, --img-format=FORMAT      The format of the image exported from video, defaults to automatic detection
+  --minimal                    Minimal export, ignore unspecified exports
   -T, --threads=NUM            Number of threads to use for extracting, 0 for auto
   --use-ffmpeg                 Use FFmpeg to extract instead of GStreamer
   --use-gst                    Use GStreamer to extract instead of FFmpeg (default)
@@ -286,6 +287,12 @@ live-photo-extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
 live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest --frame-to-photos -f avif
 ```
 
+仅从动态照片生成长曝光照片而不提取其他内容：
+
+```bash
+live-photo-extract --live-photo /path/to/live_photo.jpg --long-exposure /path/to/long_exposure.jpg --minimal
+```
+
 ### `live-photo-repair`
 
 修复损坏的动态照片。
@@ -300,7 +307,7 @@ Help Options:
   -h, --help                Show help options
 
 Application Options:
-  --version                 Display version number
+  -v, --version             Display version number
   --color=LEVEL             Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
   -p, --live-photo=PATH     The live photo file to repair (required)
   -f, --force               Force to update video offset in XMP metadata and repair
@@ -345,7 +352,7 @@ Application Options:
   --frame-to-photos                 Export every frame of a live photo's video as a photo
   -f, --img-format=FORMAT           The format of the image exported from video, defaults to automatic detection
   -l, --long-exposure=PATH          Convert the embedded video to a long exposure photo
-  --minimal                         Minimal metadata export, ignore unspecified exports
+  --minimal                         Minimal export, ignore unspecified exports
   -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
   --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer
   --use-gst                         Use GStreamer to extract instead of FFmpeg (default)
@@ -446,6 +453,8 @@ livephoto.export_main_image()
 livephoto.export_video()
 # 从内嵌视频中导出帧
 livephoto.split_images_from_video(None, None, 0)
+# 将动态照片转换为长曝光照片
+livephoto.generate_long_exposure("long_exposure.jpg")
 ```
 
 ```python
