@@ -153,6 +153,7 @@ class LivePhotoConv.Main {
         }
         
         var opt_context = new OptionContext (help_description);
+        opt_context.set_summary ("WebSite: " + WEBSITE + "\nReport Bugs: " + ISSUES_URL);
         opt_context.add_main_entries (options, null);
         try {
             opt_context.parse_strv (ref args);
@@ -180,6 +181,8 @@ class LivePhotoConv.Main {
 
         if (show_version) {
             Reporter.info_puts ("Live Photo Converter", VERSION);
+            Reporter.info_puts ("WebSite", WEBSITE);
+            Reporter.info_puts ("Report Bugs", ISSUES_URL);
             return 0;
         }
 

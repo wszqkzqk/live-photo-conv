@@ -62,6 +62,7 @@ pkg.generate(
   name: 'LivePhotoTools',
   filebase: 'livephototools',
   description: 'A library for live photo conversion',
+  url: 'https://github.com/wszqkzqk/live-photo-conv',
   libraries: liblivephototools,
   version: meson.project_version(),
   subdirs: 'livephototools',
