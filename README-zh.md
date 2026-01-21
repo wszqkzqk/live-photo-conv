@@ -213,6 +213,9 @@ meson install -C builddir
 Usage:
   live-photo-make [OPTION…] - Make Live Photos from image and video files
 
+WebSite: https://github.com/wszqkzqk/live-photo-conv
+Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
+
 Help Options:
   -h, --help            Show help options
 
@@ -251,6 +254,9 @@ live-photo-make --video /path/to/video.mp4 --output /path/to/output.jpg
 ```
 Usage:
   live-photo-extract [OPTION…] - Extract images and videos from Live Photos
+
+WebSite: https://github.com/wszqkzqk/live-photo-conv
+Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
 
 Help Options:
   -h, --help                   Show help options
@@ -303,6 +309,9 @@ live-photo-extract --live-photo /path/to/live_photo.jpg --long-exposure /path/to
 Usage:
   live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted metadata
 
+WebSite: https://github.com/wszqkzqk/live-photo-conv
+Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
+
 Help Options:
   -h, --help                Show help options
 
@@ -331,6 +340,9 @@ live-photo-repair -p /path/to/live_photo.jpg
 ```
 Usage:
   live-photo-conv [OPTION…] - Extract, Repair or Make Live Photos
+
+WebSite: https://github.com/wszqkzqk/live-photo-conv
+Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
 
 Help Options:
   -h, --help                        Show help options
@@ -395,6 +407,9 @@ live-photo-conv --repair --live-photo /path/to/live_photo.jpg
 ```
 Usage:
   copy-img-meta [OPTION…] <source-img> <dest-img> - Copy the metadata from one image to another
+
+WebSite: https://github.com/wszqkzqk/live-photo-conv
+Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
 
 Help Options:
   -h, --help         Show help options

@@ -47,6 +47,7 @@ class LivePhotoConv.CopyImgMeta {
         var args = strdupv (original_args);
 #endif
         var opt_context = new OptionContext ("<source-img> <dest-img> - Copy the metadata from one image to another");
+        opt_context.set_summary ("WebSite: " + WEBSITE + "\nReport Bugs: " + ISSUES_URL);
         opt_context.add_main_entries (options, null);
         try {
             opt_context.parse_strv (ref args);
@@ -74,6 +75,8 @@ class LivePhotoConv.CopyImgMeta {
 
         if (show_version) {
             Reporter.info_puts ("Image Metadata Copying Tool", VERSION);
+            Reporter.info_puts ("WebSite", WEBSITE);
+            Reporter.info_puts ("Report Bugs", ISSUES_URL);
             return 0;
         }
 

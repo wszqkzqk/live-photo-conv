@@ -19,4 +19,6 @@
 
 namespace LivePhotoConv {
     public const string VERSION = "@VCS_TAG@";
+    public const string WEBSITE = "https://github.com/wszqkzqk/live-photo-conv";
+    public const string ISSUES_URL = "https://github.com/wszqkzqk/live-photo-conv/issues";
 }
