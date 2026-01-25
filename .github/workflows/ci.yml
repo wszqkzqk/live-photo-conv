@@ -91,7 +91,7 @@ jobs:
       run: |
         cd "$GITHUB_WORKSPACE"
         COMMIT_HASH=$(git rev-parse HEAD)
-        curl -o PKGBUILD 'https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/PKGBUILD'
+        curl -o PKGBUILD 'https://raw.githubusercontent.com/msys2/MINGW-packages/refs/heads/master/mingw-w64-live-photo-conv/PKGBUILD'
         
         # Modify PKGBUILD to use local source with commit
         sed -i "s|source=.*|source=(\"git+file://$(pwd)#commit=$COMMIT_HASH\")|" PKGBUILD
