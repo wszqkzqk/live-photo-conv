@@ -22,8 +22,8 @@ Live Photo Converter is a cross-platform tool for processing live photos. It can
 - `live-photo-conv`
   - A comprehensive command for creating, extracting, converting, and repairing live photos
 - `copy-img-meta`
-  - Copy all metadata from one image to another
-  - Options to choose or exclude certain metadata types
+  - Copy metadata from one image to another
+  - Choose whether to include or exclude EXIF, XMP, and IPTC metadata
 - `liblivephototools`
   - A library that provides functions for creating and extracting live photos, as well as exporting frames from videos
   - The library can be used in **any** language that supports **GObject Introspection**
@@ -36,35 +36,15 @@ Essentially, an Android live photo appends a video file directly to the end of a
 
 This tool can be used for extracting, repairing, editing, and composing such live photos.
 
-## Install Pre-built Binaries
-
-You can download pre-built binaries from the [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) page, supporting Arch Linux and Windows (MSYS2) platforms.
-
-**Please make sure to install them as required, and do not run the binaries directly after extraction, as this will lead to issues such as missing dependencies.** If you encounter compatibility issues, please refer to the subsequent [Build Scripts](#build-scripts) or [Manual Build](#manual-build) sections for building them yourself.
-
-### Arch Linux
-
-For Arch Linux users, download the file named like `live-photo-conv-<version>-x86_64.pkg.tar.zst`, and install it using `pacman`:
-
-```bash
-sudo pacman -U live-photo-conv-<version>-x86_64.pkg.tar.zst
-```
+## Easy Installation
 
 ### Windows (MSYS2)
 
-For Windows users, we provide a package compatible with the **MSYS2** environment. Ensure you have [MSYS2](https://www.msys2.org/) installed and updated.
-
-1.  Download the Windows package file named like `mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst`.
-2.  Open your MSYS2 shell (UCRT64).
-3.  Install the package using `pacman`:
+For Windows users, [the package](https://packages.msys2.org/base/mingw-w64-live-photo-conv) is already available in the **[MSYS2 official repository](https://www.msys2.org/)**. Make sure you have MSYS2 installed and updated, then you can install it directly with `pacman` (UCRT64 as an example):
 
 ```bash
-pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst
+pacman -S mingw-w64-ucrt-x86_64-live-photo-conv
 ```
-
-## Build Scripts
-
-This project provides build scripts for Arch Linux and Windows (MSYS2) environments.
 
 ### Arch Linux
 
@@ -82,15 +62,30 @@ cd live-photo-conv
 makepkg -si
 ```
 
-### Windows (MSYS2)
+## Install from the Releases Page
 
-On Windows (MSYS2), you can use the provided [`PKGBUILD`](https://gist.github.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d) to build. For example, execute the following commands in the `bash` shell of the MSYS2 UCRT64 environment:
+You can also download pre-built binaries from the [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) page. **Historical versions are included**, and Arch Linux and Windows (MSYS2) are supported.
+
+**Please install as required and do not run the binaries directly after extraction, otherwise you may encounter missing dependencies and other issues.** If you run into compatibility problems, please use other installation methods. For most users, the **easy installation methods above are recommended**.
+
+### Arch Linux
+
+For Arch Linux users, download the file named like `live-photo-conv-<version>-x86_64.pkg.tar.zst`, and install it using `pacman`:
 
 ```bash
-mkdir live-photo-conv
-cd live-photo-conv
-wget https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/PKGBUILD
-makepkg-mingw -si
+sudo pacman -U live-photo-conv-<version>-x86_64.pkg.tar.zst
+```
+
+### Windows (MSYS2)
+
+For Windows users, the Releases page provides pre-built packages for the MSYS2 UCRT64 environment. Installation steps:
+
+1. Download the Windows package file named like `mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst`.
+2. Open your MSYS2 shell (UCRT64).
+3. Install the package using `pacman`:
+
+```bash
+pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst
 ```
 
 ## Manual Build

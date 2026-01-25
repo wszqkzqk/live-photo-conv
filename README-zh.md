@@ -36,35 +36,15 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 
 本工具可以用于这种动态照片的提取、修复、编辑与合成等操作。
 
-## 安装预构建二进制
-
-可以从 [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 页面下载预构建的二进制文件，支持 Arch Linux 与 Windows (MSYS2) 平台。
-
-**请注意按照要求安装，不要解压后直接运行二进制文件，否则会导致找不到依赖库等问题。**如果遇到兼容性问题，请参考后续的[#构建脚本](#构建脚本)或[#手动构建](#手动构建)部分自行构建。
-
-### Arch Linux
-
-对于 Arch Linux 用户，请下载形如 `live-photo-conv-<版本号>-x86_64.pkg.tar.zst` 的文件，并使用 `pacman` 进行安装：
-
-```bash
-sudo pacman -U live-photo-conv-<版本号>-x86_64.pkg.tar.zst
-```
+## 便捷安装
 
 ### Windows (MSYS2)
 
-对于 Windows 用户，我们提供了适用于 **MSYS2** 环境的安装包。请确保您已安装并更新了 [MSYS2](https://www.msys2.org/)。
-
-1.  从发布页面下载形如 `mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst` 的 Windows 安装包。
-2.  打开 MSYS2 终端（UCRT64 环境）。
-3.  使用 `pacman` 安装该包：
+对于 Windows 用户，现在 **[MSYS2](https://www.msys2.org/) 官方仓库**中已经包含了[该软件包](https://packages.msys2.org/base/mingw-w64-live-photo-conv)，确保已经安装并更新了 MSYS2 后，可以直接使用 `pacman` 进行安装（以 UCRT64 环境为例）：
 
 ```bash
-pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst
+pacman -S mingw-w64-ucrt-x86_64-live-photo-conv
 ```
-
-## 构建脚本
-
-本项目提供 Arch Linux 与 Windows (MSYS2) 环境下的构建脚本。
 
 ### Arch Linux
 
@@ -82,15 +62,30 @@ cd live-photo-conv
 makepkg -si
 ```
 
-### Windows (MSYS2)
+## 从[Releases](https://github.com/wszqkzqk/live-photo-conv/releases)页面安装
 
-Windows (MSYS2) 可以使用提供的 [`PKGBUILD`](https://gist.github.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d) 构建，例如在 MSYS2 UCRT64 环境的 `bash` 下执行以下命令：
+此外，还可以从 [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 页面下载预构建二进制文件，**包含历史版本**，同样支持 Arch Linux 与 Windows (MSYS2) 平台。
+
+**请注意按照要求安装，不要解压后直接运行二进制文件，否则会导致找不到依赖库等问题。**如果遇到兼容性问题，请使用其他安装方法。对于普通用户，**推荐使用前述的便捷安装方法**。
+
+### Arch Linux
+
+对于 Arch Linux 用户，请下载形如 `live-photo-conv-<版本号>-x86_64.pkg.tar.zst` 的文件，并使用 `pacman` 进行安装：
 
 ```bash
-mkdir live-photo-conv
-cd live-photo-conv
-wget https://gist.githubusercontent.com/wszqkzqk/052a48feb5b84a469ee43231df91dc9d/raw/PKGBUILD
-makepkg-mingw -si
+sudo pacman -U live-photo-conv-<版本号>-x86_64.pkg.tar.zst
+```
+
+### Windows (MSYS2)
+
+对于 Windows 用户，Releases 页面提供了适用于 MSYS2 UCRT64 环境的预构建包。安装步骤如下：
+
+1.  从发布页面下载形如 `mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst` 的 Windows 安装包。
+2.  打开 MSYS2 终端（UCRT64 环境）。
+3.  使用 `pacman` 安装该包：
+
+```bash
+pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst
 ```
 
 ## 手动构建
