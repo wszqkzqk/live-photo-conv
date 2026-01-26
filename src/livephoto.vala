@@ -40,7 +40,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     protected GExiv2.Metadata metadata;
     protected string dest_dir;
     protected int64 video_offset;
-    protected Tree<string?, string?> xmp_map;
+    protected Tree<string?, string?> livemeta_map;
 
     public bool make_backup {
         get;
@@ -56,6 +56,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         get;
         set;
         default = FileCreateFlags.REPLACE_DESTINATION;
+    }
+    public bool oppo_compatible {
+        get;
+        set;
+        default = false;
     }
 
     /**
@@ -78,10 +83,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.metadata.open_path (filename);
 
         // Copy the XMP metadata to the map
-        this.xmp_map = new Tree<string?, string?> ((a, b) => {return strcmp (a, b);});
+        this.livemeta_map = new Tree<string?, string?> ((a, b) => {return strcmp (a, b);});
         foreach (unowned var tag in this.metadata.get_xmp_tags ()) {
             try {
-                this.xmp_map.insert (tag, this.metadata.try_get_tag_string (tag));
+                this.livemeta_map.insert (tag, this.metadata.try_get_tag_string (tag));
             } catch (Error e) {
                 Reporter.warning ("XMPWarning", "Cannot get the value of the XMP tag %s: %s", tag, e.message);
             }
@@ -128,10 +133,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     */
     inline int64 get_video_offset () throws Error {
         // Get the offset of the video data from the XMP metadata
-        var tag_value = this.xmp_map.lookup ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
+        var tag_value = this.livemeta_map.lookup ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
         if (tag_value == null) {
             // Fallback to the old standard
-            tag_value = this.xmp_map.lookup ("Xmp.GCamera.MicroVideoOffset");
+            tag_value = this.livemeta_map.lookup ("Xmp.GCamera.MicroVideoOffset");
         }
         if (tag_value != null) {
             int64 reverse_offset = int64.parse (tag_value);
@@ -343,9 +348,9 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         var offset_string = reverse_offset.to_string ();
 
         string presentation_timestamp_us_to_write = "0";
-        // this.xmp_map contains tags loaded in the constructor
-        var original_motion_photo_ts = this.xmp_map.lookup("Xmp.Camera.MotionPhotoPresentationTimestampUs");
-        var original_gcamera_ts = this.xmp_map.lookup("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+        // this.livemeta_map contains tags loaded in the constructor
+        var original_motion_photo_ts = this.livemeta_map.lookup("Xmp.Camera.MotionPhotoPresentationTimestampUs");
+        var original_gcamera_ts = this.livemeta_map.lookup("Xmp.GCamera.MicroVideoPresentationTimestampUs");
 
         if (original_motion_photo_ts != null && original_motion_photo_ts != "") {
             presentation_timestamp_us_to_write = original_motion_photo_ts;
@@ -354,15 +359,15 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         }
 
         // Set GCamera (old standard) tags
-        this.xmp_map.insert ("Xmp.GCamera.MicroVideo", "1");
-        this.xmp_map.insert ("Xmp.GCamera.MicroVideoVersion", "1");
-        this.xmp_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
-        this.xmp_map.insert ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        this.livemeta_map.insert ("Xmp.GCamera.MicroVideo", "1");
+        this.livemeta_map.insert ("Xmp.GCamera.MicroVideoVersion", "1");
+        this.livemeta_map.insert ("Xmp.GCamera.MicroVideoOffset", offset_string);
+        this.livemeta_map.insert ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
 
-        // Add/Update new MotionPhoto standard tags in xmp_map
-        this.xmp_map.insert ("Xmp.GCamera.MotionPhoto", "1");
-        this.xmp_map.insert ("Xmp.GCamera.MotionPhotoVersion", "1");
-        this.xmp_map.insert ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        // Add/Update new MotionPhoto standard tags in livemeta_map
+        this.livemeta_map.insert ("Xmp.GCamera.MotionPhoto", "1");
+        this.livemeta_map.insert ("Xmp.GCamera.MotionPhotoVersion", "1");
+        this.livemeta_map.insert ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
         // Set Container and Item tags for MotionPhoto
         this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
@@ -376,22 +381,40 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         } else if (this.extension_name.down () == "avif") {
             image_mime_type = "image/avif";
         }
-        this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Mime", image_mime_type);
-        this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Semantic", "Primary");
+        this.livemeta_map.insert ("Xmp.Container.Directory[1]/Item:Mime", image_mime_type);
+        this.livemeta_map.insert ("Xmp.Container.Directory[1]/Item:Semantic", "Primary");
         // Item:Padding: For JPEG, optional (can be 0 or omitted). For HEIC/AVIF, must be 8.
         // This example assumes JPEG or doesn't set padding. A more robust solution would check image_mime_type.
         // if (image_mime_type == "image/heic" || image_mime_type == "image/avif") {
-        //    this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Padding", "8");
+        //    this.livemeta_map.insert ("Xmp.Container.Directory[1]/Item:Padding", "8");
         // }
 
         // Item 2: Video (assuming MP4)
-        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Mime", "video/mp4");
-        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Semantic", "MotionPhoto");
-        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
+        this.livemeta_map.insert ("Xmp.Container.Directory[2]/Item:Mime", "video/mp4");
+        this.livemeta_map.insert ("Xmp.Container.Directory[2]/Item:Semantic", "MotionPhoto");
+        this.livemeta_map.insert ("Xmp.Container.Directory[2]/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
+
+        // OPPO needs specific tags
+        if (this.oppo_compatible) {
+            Reporter.info_puts ("OppoCompatibility", "Setting extra metadata for OPPO compatibility.");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.oplus.com/photos/1.0/camera/", "OpCamera");
+            this.livemeta_map.insert ("Xmp.OpCamera.MotionPhotoPrimaryPresentationTimestampUs", presentation_timestamp_us_to_write);
+            this.livemeta_map.insert ("Xmp.OpCamera.MotionPhotoOwner", "oplus");
+            this.livemeta_map.insert ("Xmp.OpCamera.OLivePhotoVersion", "2");
+            this.livemeta_map.insert ("Xmp.OpCamera.VideoLength", offset_string);
+            // oplus_11534368 is the constant used by OPPO Find X8s+, reported to work. Use it here for compatibility.
+            string? user_comment = null;
+            try {
+                user_comment = this.metadata.try_get_tag_string ("Exif.Photo.UserComment");
+            } catch {}
+            if (user_comment == null || (!user_comment.has_prefix ("oplus_"))) {
+                livemeta_map.insert ("Exif.Photo.UserComment", "oplus_11534368");
+            }
+        }
 
         // Restore the XMP metadata for the live photo
         Error? metadata_error = null;
-        this.xmp_map.foreach ((key, value) => {
+        this.livemeta_map.foreach ((key, value) => {
             try {
                 this.metadata.try_set_tag_string (key, value);
                 return false;
