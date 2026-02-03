@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   build-archlinux:
+    name: Build Arch Linux Package
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
@@ -72,6 +73,7 @@ jobs:
         path: ./live-photo-conv/*.pkg.tar.zst
 
   build-windows:
+    name: Build Windows (MSYS2 UCRT64) Package
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
