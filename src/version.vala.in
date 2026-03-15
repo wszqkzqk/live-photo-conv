@@ -1,4 +1,4 @@
-/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024-2026 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,24 @@
 
 namespace LivePhotoConv {
     public const string VERSION = "@VCS_TAG@";
+    public const string COPYRIGHT = "Copyright (C) 2024-2026 Zhou Qiankang <wszqkzqk@qq.com>";
+    public const string SPDX_LICENSE_ID = "LGPL-2.1-or-later";
     public const string WEBSITE = "https://github.com/wszqkzqk/live-photo-conv";
     public const string ISSUES_URL = "https://github.com/wszqkzqk/live-photo-conv/issues";
+    private const string LICENSE_TEXT = """
+Copyright (C) 2024-2026 Zhou Qiankang <wszqkzqk@qq.com>
+SPDX-License-Identifier: LGPL-2.1-or-later
+
+This library is free software; you can redistribute it and/or modify it under the terms
+of the GNU Lesser General Public License as published by the Free Software Foundation;
+either version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU Lesser General Public License for more details.
+""";
+
+    public string get_license () {
+        return LICENSE_TEXT;
+    }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024-2026 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 class LivePhotoConv.Main {
 
     static bool show_version = false;
+    static bool show_license = false;
 
     static bool require_live_photo = true;
     static bool repair_live_photo = false;
@@ -46,6 +47,7 @@ class LivePhotoConv.Main {
     // Options for live-photo-make mode
     const OptionEntry[] MAKE_OPTIONS = {
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "license", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_license, "Display full license text", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "image", 'i', OptionFlags.NONE, OptionArg.FILENAME, ref main_image_path, "The path to the main static image file", "PATH" },
         { "video", 'm', OptionFlags.NONE, OptionArg.FILENAME, ref video_path, "The path to the video file (required)", "PATH" },
@@ -62,6 +64,7 @@ class LivePhotoConv.Main {
     // Options for live-photo-extract mode
     const OptionEntry[] EXTRACT_OPTIONS = {
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "license", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_license, "Display full license text", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to extract (required)", "PATH" },
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
@@ -84,6 +87,7 @@ class LivePhotoConv.Main {
     // Options for live-photo-repair mode
     const OptionEntry[] REPAIR_OPTIONS = {
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "license", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_license, "Display full license text", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to repair (required)", "PATH" },
         { "force", 'f', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force to update video offset in XMP metadata and repair", null },
@@ -94,6 +98,7 @@ class LivePhotoConv.Main {
     // Full options for generic mode
     const OptionEntry[] FULL_OPTIONS = {
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "license", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_license, "Display full license text", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "make", 'g', OptionFlags.REVERSE, OptionArg.NONE, ref require_live_photo, "Make a live photo", null },
         { "extract", 'e', OptionFlags.NONE, OptionArg.NONE, ref require_live_photo, "Extract a live photo (default)", null },
@@ -181,8 +186,15 @@ class LivePhotoConv.Main {
 
         if (show_version) {
             Reporter.info_puts ("Live Photo Converter", VERSION);
+            Reporter.info_puts ("Copyright", COPYRIGHT);
             Reporter.info_puts ("WebSite", WEBSITE);
             Reporter.info_puts ("Report Bugs", ISSUES_URL);
+            Reporter.info_puts ("License", SPDX_LICENSE_ID);
+            return 0;
+        }
+
+        if (show_license) {
+            Reporter.info_puts ("License", get_license ());
             return 0;
         }
 

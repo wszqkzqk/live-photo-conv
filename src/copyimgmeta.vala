@@ -1,4 +1,4 @@
-/* Copyright 2024 Zhou Qiankang <wszqkzqk@qq.com>
+/* Copyright 2024-2026 Zhou Qiankang <wszqkzqk@qq.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 class LivePhotoConv.CopyImgMeta {
 
     static bool show_version = false;
+    static bool show_license = false;
     static int color_level = 1;
     static bool exclude_exif = false;
     static bool exclude_xmp = false;
@@ -28,6 +29,7 @@ class LivePhotoConv.CopyImgMeta {
 
     const OptionEntry[] options = {
         { "version", 'v', OptionFlags.NONE, OptionArg.NONE, ref show_version, "Display version number", null },
+        { "license", '\0', OptionFlags.NONE, OptionArg.NONE, ref show_license, "Display full license text", null },
         { "color", '\0', OptionFlags.NONE, OptionArg.INT, ref color_level, "Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1", "LEVEL" },
         { "exclude-exif", '\0', OptionFlags.NONE, OptionArg.NONE, ref exclude_exif, "Do not copy EXIF data", null },
         { "with-exif", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref exclude_exif, "Copy EXIF data (default)", null },
@@ -75,8 +77,15 @@ class LivePhotoConv.CopyImgMeta {
 
         if (show_version) {
             Reporter.info_puts ("Image Metadata Copying Tool", VERSION);
+            Reporter.info_puts ("Copyright", COPYRIGHT);
             Reporter.info_puts ("WebSite", WEBSITE);
             Reporter.info_puts ("Report Bugs", ISSUES_URL);
+            Reporter.info_puts ("License", SPDX_LICENSE_ID);
+            return 0;
+        }
+
+        if (show_license) {
+            Reporter.info_puts ("License", get_license ());
             return 0;
         }
 
