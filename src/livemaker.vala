@@ -152,7 +152,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
         // Item:Padding is optional for JPEG, so we omit it or can set to "0"
-        // this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
+        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
         // Item 2: Video (assuming MP4)
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
