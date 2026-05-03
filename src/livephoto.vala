@@ -425,22 +425,18 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     public async void repair_live_metadata_async (bool force = false, uint manual_video_size = 0) throws Error {
         SourceFunc callback = repair_live_metadata_async.callback;
         Error? repair_error = null;
-        var thread = new Thread<bool> ("live-photo-repair", () => {
-            bool ret = false;
+        var thread = new Thread<void> ("live-photo-repair", () => {
             try {
                 this.repair_live_metadata (force, manual_video_size);
-                ret = true;
             } catch (Error e) {
                 repair_error = e;
             }
             Idle.add ((owned) callback);
-            return ret;
         });
         yield;
-
-        if (!thread.join ()) {
+        thread.join ();
+        if (repair_error != null)
             throw (owned) repair_error;
-        }
     }
 
     /**
@@ -464,8 +460,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                                             string? img_format, int threads) throws Error {
         SourceFunc callback = extract_items_async.callback;
         Error? extract_error = null;
-        var thread = new Thread<bool> ("live-photo-extract", () => {
-            bool ret = false;
+        var thread = new Thread<void> ("live-photo-extract", () => {
             try {
                 if (do_image)
                     this.export_main_image ();
@@ -475,18 +470,15 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                     this.generate_long_exposure (long_exposure_dest);
                 if (do_frames)
                     this.split_images_from_video (img_format, null, threads);
-                ret = true;
             } catch (Error e) {
                 extract_error = e;
             }
             Idle.add ((owned) callback);
-            return ret;
         });
         yield;
-
-        if (!thread.join ()) {
+        thread.join ();
+        if (extract_error != null)
             throw extract_error;
-        }
     }
 
     public abstract void generate_long_exposure (string dest_path) throws Error;

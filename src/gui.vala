@@ -703,7 +703,7 @@ public class LivePhotoConv.Application : Adw.Application {
 
         report_progress (button, "Extracting", 0, total);
 
-        new Thread<int> ("extract-batch", () => {
+        new Thread<void> ("extract-batch", () => {
             foreach (unowned var file in files) {
                 if (error_msg != null) break;
                 var path = file.get_path ();
@@ -733,7 +733,6 @@ public class LivePhotoConv.Application : Adw.Application {
                 });
             }
             Idle.add ((owned) callback);
-            return 0;
         });
         yield;
         if (error_msg != null)
@@ -750,7 +749,7 @@ public class LivePhotoConv.Application : Adw.Application {
 
         report_progress (button, "Repairing", 0, total);
 
-        new Thread<int> ("repair-batch", () => {
+        new Thread<void> ("repair-batch", () => {
             foreach (unowned var file in files) {
                 if (error_msg != null) break;
                 var path = file.get_path ();
@@ -771,7 +770,6 @@ public class LivePhotoConv.Application : Adw.Application {
                 });
             }
             Idle.add ((owned) callback);
-            return 0;
         });
         yield;
         if (error_msg != null)

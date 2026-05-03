@@ -174,22 +174,18 @@ public abstract class LivePhotoConv.LiveMaker : Object {
     public async void export_async () throws Error {
         SourceFunc callback = export_async.callback;
         Error? export_error = null;
-        var thread = new Thread<bool> ("live-maker-export", () => {
-            bool ret = false;
+        var thread = new Thread<void> ("live-maker-export", () => {
             try {
                 this.export ();
-                ret = true;
             } catch (Error e) {
                 export_error = e;
             }
             Idle.add ((owned) callback);
-            return ret;
         });
         yield;
-
-        if (!thread.join ()) {
+        thread.join ();
+        if (export_error != null)
             throw (owned) export_error;
-        }
     }
 
     inline int64 export_with_main_image () throws Error {
