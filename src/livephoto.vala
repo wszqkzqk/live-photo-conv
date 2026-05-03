@@ -415,6 +415,67 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
     }
 
+    /**
+     * Async version of {@link repair_live_metadata}.
+     */
+    public async void repair_live_metadata_async (bool force = false, uint manual_video_size = 0) throws Error {
+        SourceFunc callback = repair_live_metadata_async.callback;
+        Error? repair_error = null;
+        var thread = new Thread<bool> ("live-photo-repair", () => {
+            bool ret = false;
+            try {
+                this.repair_live_metadata (force, manual_video_size);
+                ret = true;
+            } catch (Error e) {
+                repair_error = e;
+            }
+            Idle.add ((owned) callback);
+            return ret;
+        });
+        yield;
+
+        if (!thread.join ()) {
+            throw (owned) repair_error;
+        }
+    }
+
+    /**
+     * Async composite extraction: runs multiple extract operations in sequence.
+     *
+     * Pass null for dest params to use auto-generated file names based on
+     * the dest_dir provided in the constructor.
+     */
+    public async void extract_items_async (bool do_image, bool do_video,
+                                            bool do_long_exposure, bool do_frames,
+                                            string? long_exposure_dest,
+                                            string? img_format, int threads) throws Error {
+        SourceFunc callback = extract_items_async.callback;
+        Error? extract_error = null;
+        var thread = new Thread<bool> ("live-photo-extract", () => {
+            bool ret = false;
+            try {
+                if (do_image)
+                    this.export_main_image ();
+                if (do_video)
+                    this.export_video ();
+                if (do_long_exposure && long_exposure_dest != null)
+                    this.generate_long_exposure (long_exposure_dest);
+                if (do_frames)
+                    this.split_images_from_video (img_format, null, threads);
+                ret = true;
+            } catch (Error e) {
+                extract_error = e;
+            }
+            Idle.add ((owned) callback);
+            return ret;
+        });
+        yield;
+
+        if (!thread.join ()) {
+            throw extract_error;
+        }
+    }
+
     public abstract void generate_long_exposure (string dest_path) throws Error;
 
     public abstract void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error;

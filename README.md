@@ -12,6 +12,8 @@ Live Photo Converter is a cross-platform tool for processing live photos. It can
 
 ## Features
 
+- `live-photo-conv-gtk`
+  - **Graphical interface** for making, extracting and repairing live photos (GTK4 / LibAdwaita)
 - `live-photo-make`
   - **Create** live photos from images and videos
 - `live-photo-extract`
@@ -96,6 +98,8 @@ pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst
   * Meson
   * Vala
   * GExiv2
+  * GTK4 (optional, for the GUI)
+  * LibAdwaita (optional, for the GUI)
   * GStreamer (optional, used for exporting images from attached videos, otherwise FFmpeg commands are used)
     * `gstreamer`
     * `gst-plugins-base-libs`
@@ -106,6 +110,8 @@ pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst
     * GObject
     * GIO
   * GExiv2
+  * GTK4 (required by the GUI)
+  * LibAdwaita (required by the GUI)
   * GStreamer (required when built with GStreamer support)
     * `gstreamer`
     * `gst-plugins-base-libs`
@@ -124,19 +130,19 @@ pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst
 For example, to install dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
+sudo pacman -S --needed glib2 libgexiv2 meson vala gtk4 libadwaita gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
 To install dependencies on Debian/Ubuntu:
 
 ```bash
-sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection libgirepository1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-vaapi
+sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgtk-4-dev libadwaita-1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection libgirepository1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-vaapi
 ```
 
 To install dependencies on Windows by MSYS2 (UCRT64 environment):
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-cc  mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-cc  mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-libadwaita mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
 ```
 
 ### Compilation
@@ -150,6 +156,9 @@ Meson build options:
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 * `gir`
   * Whether to generate GObject Introspection information
+  * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
+* `gui`
+  * Whether to build the GTK4/LibAdwaita GUI
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 * `docs`
   * Whether to generate documentation
@@ -188,253 +197,111 @@ meson install -C builddir
 
 ## Usage
 
+### `live-photo-conv-gtk` (GUI)
+
+The graphical interface provides an intuitive way to make, extract and repair live photos without using the command line. Launch it from your application launcher or terminal:
+
+```bash
+live-photo-conv-gtk
+```
+
+Three tabs cover all operations:
+
+* **Make** — combine a video (and optional image) into a live photo. Drag files or click to browse, then click the button to choose where to save.
+* **Extract** — select a live photo, tick what to export (main image, video, long exposure, frames), choose an output directory.
+* **Repair** — fix corrupted XMP metadata in a live photo. Advanced options for manual video size are available if needed.
+
+### CLI Tools
+
 To simplify common tasks, this project provides three streamlined command-line tools, which are symbolic links to `live-photo-conv` but offer a more concise and focused set of options for specific tasks:
 
-*   `live-photo-make`: For creating live photos from images and videos.
-*   `live-photo-extract`: For extracting images, videos, and video frames from live photos.
-*   `live-photo-repair`: For repairing corrupted live photos.
+* `live-photo-make`: Create live photos from images and videos.
+* `live-photo-extract`: Extract images, videos, and video frames from live photos.
+* `live-photo-repair`: Repair corrupted live photos.
+* `live-photo-conv`: A comprehensive command for all features.
+* `copy-img-meta`: Copy metadata between images.
 
-For complex scenarios that require all features, you can directly use the more comprehensive `live-photo-conv` command.
+Run any command with `--help` to see all available options.
 
-In addition, to address compatibility issues with live photos on Android devices, this project also provides the `copy-img-meta` tool for copying image metadata to [meet additional requirements from phone manufacturers](#fragmentation-among-android-manufacturers-live-photos-not-recognized).
-
-### `live-photo-make`
-
-Create live photos from images and videos.
-
-#### Command-Line Options
-
-```
-Usage:
-  live-photo-make [OPTION…] - Make Live Photos from image and video files
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help            Show help options
-
-Application Options:
-  -v, --version         Display version number
-  --color=LEVEL         Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -i, --image=PATH      The path to the main static image file
-  -m, --video=PATH      The path to the video file (required)
-  -o, --output=PATH     The output live photo file path
-  --export-metadata     Export metadata (default)
-  --drop-metadata       Do not export metadata
-  --use-ffmpeg          Use FFmpeg to extract instead of GStreamer
-  --use-gst             Use GStreamer to extract instead of FFmpeg (default)
-```
-
-#### Examples
+#### `live-photo-make`
 
 Create a live photo:
 
 ```bash
-live-photo-make --image /path/to/image.jpg --video /path/to/video.mp4 --output /path/to/output.jpg
+live-photo-make -i /path/to/image.jpg -m /path/to/video.mp4 -o /path/to/output.jpg
 ```
 
-Convert a video to a live photo:
+Convert a video directly to a live photo:
 
 ```bash
-live-photo-make --video /path/to/video.mp4 --output /path/to/output.jpg
+live-photo-make -m /path/to/video.mp4 -o /path/to/output.jpg
 ```
 
-### `live-photo-extract`
+Key options: `-i` (image), `-m` (video, required), `-o` (output), `--drop-metadata`, `--use-ffmpeg` / `--use-gst`.
 
-Extract images, videos, and video frames from live photos.
-
-#### Command-Line Options
-
-```
-Usage:
-  live-photo-extract [OPTION…] - Extract images and videos from Live Photos
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help                   Show help options
-
-Application Options:
-  -v, --version                Display version number
-  --color=LEVEL                Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -p, --live-photo=PATH        The live photo file to extract (required)
-  -d, --dest-dir=PATH          The destination directory to export
-  -i, --image=PATH             The path to export the main image
-  -m, --video=PATH             The path to export the video
-  -l, --long-exposure=PATH     Convert the embedded video to a long exposure photo
-  --export-metadata            Export metadata (default)
-  --drop-metadata              Do not export metadata
-  --frame-to-photos            Export every frame of the video as photos
-  -f, --img-format=FORMAT      The format of the image exported from video, defaults to automatic detection
-  --minimal                    Minimal export, ignore unspecified exports
-  -T, --threads=NUM            Number of threads to use for extracting, 0 for auto
-  --use-ffmpeg                 Use FFmpeg to extract instead of GStreamer
-  --use-gst                    Use GStreamer to extract instead of FFmpeg (default)
-```
-
-#### Examples
+#### `live-photo-extract`
 
 Extract a live photo:
 
 ```bash
-live-photo-extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
+live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest
 ```
 
-Extract a live photo and export video frames as images:
+Extract and export video frames:
 
 ```bash
-live-photo-extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest --frame-to-photos --img-format avif
+live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest --frame-to-photos -f avif
 ```
 
-Only convert the live photo to a long exposure photo without extracting other contents:
+Only generate a long exposure photo:
 
 ```bash
-live-photo-extract --live-photo /path/to/live_photo.jpg --long-exposure /path/to/long_exposure.jpg --minimal
+live-photo-extract -p /path/to/live_photo.jpg -l /path/to/long_exposure.jpg --minimal
 ```
 
-### `live-photo-repair`
+Key options: `-p` (live photo, required), `-d` (output directory), `-i` (image), `-m` (video), `-l` (long exposure), `--frame-to-photos`, `-f` (image format), `-T` (threads), `--minimal`, `--drop-metadata`.
 
-Repair corrupted live photos.
-
-#### Command-Line Options
-
-```
-Usage:
-  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted metadata
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help                Show help options
-
-Application Options:
-  -v, --version             Display version number
-  --color=LEVEL             Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -p, --live-photo=PATH     The live photo file to repair (required)
-  -f, --force               Force to update video offset in XMP metadata and repair
-  -s, --video-size=SIZE     Force repair with the specified video size
-```
-
-#### Examples
+#### `live-photo-repair`
 
 Repair a live photo:
 
 ```bash
-live-photo-repair --live-photo /path/to/live_photo.jpg
+live-photo-repair -p /path/to/live_photo.jpg
 ```
 
-### `live-photo-conv` (Generic Command)
-
-`live-photo-conv` is a comprehensive tool that integrates all functionalities for creating, extracting, and repairing live photos. Use this command when the simplified tools do not meet your needs.
-
-#### Command-Line Options
-
-```
-Usage:
-  live-photo-conv [OPTION…] - Extract, Repair or Make Live Photos
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help                        Show help options
-
-Application Options:
-  -v, --version                     Display version number
-  --color=LEVEL                     Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -g, --make                        Make a live photo
-  -e, --extract                     Extract a live photo (default)
-  -r, --repair                      Repair a live photo from missing or corrupted metadata
-  --force-repair                    Force repair a live photo (force update video offset in XMP metadata)
-  --repair-with-video-size=SIZE     Force repair a live photo with the specified video size
-  -i, --image=PATH                  The path to the main static image file
-  -m, --video=PATH                  The path to the video file
-  -p, --live-photo=PATH             The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
-  -d, --dest-dir=PATH               The destination directory to export
-  --export-metadata                 Export metadata (default)
-  --drop-metadata                   Do not export metadata
-  --frame-to-photos                 Export every frame of a live photo's video as a photo
-  -f, --img-format=FORMAT           The format of the image exported from video, defaults to automatic detection
-  -l, --long-exposure=PATH          Convert the embedded video to a long exposure photo
-  --minimal                         Minimal export, ignore unspecified exports
-  -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
-  --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer
-  --use-gst                         Use GStreamer to extract instead of FFmpeg (default)
-```
-
-Please run `live-photo-conv --help` to see all command line options. (If GStreamer support is not enabled, the `--use-ffmpeg` and `--use-gst` options will not be available)
-
-#### Examples
-
-Operations with `live-photo-conv` are similar to the simplified commands but require specifying the mode (e.g., `--make`, `--extract`, `--repair`).
-
-Create a live photo:
+Force repair:
 
 ```bash
-live-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
+live-photo-repair -p /path/to/live_photo.jpg -f
 ```
 
-Extract a live photo:
+Key options: `-p` (live photo, required), `-f` (force), `-s` (manual video size).
+
+#### `live-photo-conv` (Generic Command)
+
+Operations are similar to the simplified commands but require specifying the mode with `--make`, `--extract`, or `--repair`:
 
 ```bash
-live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
+live-photo-conv --make -i /path/to/image.jpg -m /path/to/video.mp4 -p /path/to/output.jpg
+live-photo-conv --extract -p /path/to/live_photo.jpg -d /path/to/dest
+live-photo-conv --repair -p /path/to/live_photo.jpg
 ```
 
-You can also use URI to specify the path:
+#### `copy-img-meta`
+
+Copy all metadata:
 
 ```bash
-live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
+copy-img-meta /path/to/source.jpg /path/to/dest.webp
 ```
 
-Repair a live photo:
+Exclude certain metadata:
 
 ```bash
-live-photo-conv --repair --live-photo /path/to/live_photo.jpg
+copy-img-meta --exclude-xmp --exclude-iptc /path/to/source.jpg /path/to/dest.webp
 ```
 
-### `copy-img-meta`
-
-#### Command-Line Options
-
-```
-Usage:
-  copy-img-meta [OPTION…] <source-img> <dest-img> - Copy the metadata from one image to another
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help         Show help options
-
-Application Options:
-  -v, --version      Display version number
-  --color=LEVEL      Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  --exclude-exif     Do not copy EXIF data
-  --with-exif        Copy EXIF data (default)
-  --exclude-xmp      Do not copy XMP data
-  --with-xmp         Copy XMP data (default)
-  --exclude-iptc     Do not copy IPTC data
-  --with-iptc        Copy IPTC data (default)
-```
-
-Please run `copy-img-meta --help` to see the command-line options.
-
-#### Examples
-
-Copy metadata from one image to another:
-
-```bash
-copy-img-meta /path/to/exif-source.jpg /path/to/dest.webp
-```
-
-Choose not to copy certain metadata:
-
-```bash
-copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/dest.webp
-```
+Key options: `--exclude-exif` / `--with-exif`, `--exclude-xmp` / `--with-xmp`, `--exclude-iptc` / `--with-iptc`.
 
 ### `liblivephototools`
 
@@ -484,7 +351,7 @@ This project is licensed under the LGPL-2.1-or-later license. For more details, 
 
 If GStreamer support is enabled during the build, GStreamer will be used by default to export images from embedded videos. Otherwise, the program will attempt to create an FFmpeg subprocess via command to export images. Even with GStreamer support enabled, you can use the `--use-ffmpeg` option to use FFmpeg.
 
-The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by me encodes in parallel, and the number of threads can be controlled by adjusting the `-T`/`--threads` option. However, I has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion （due to the [limitation of `gdk-pixbuf2`](https://docs.gtk.org/gdk-pixbuf/property.Pixbuf.colorspace.html)）, which may introduce performance overhead. Therefore, in summary:
+The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by me encodes in parallel, and the number of threads can be controlled by adjusting the `-T`/`--threads` option. However, I has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion (due to the [limitation of `gdk-pixbuf2`](https://docs.gtk.org/gdk-pixbuf/property.Pixbuf.colorspace.html)), which may introduce performance overhead. Therefore, in summary:
 
 * When the selected image encoding is slow, GStreamer exports images faster.
 * When the selected image encoding is fast, FFmpeg exports images faster.

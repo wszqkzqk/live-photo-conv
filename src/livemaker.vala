@@ -166,6 +166,32 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         Reporter.info_puts ("Exported live photo", this.dest);
     }
 
+    /**
+     * Async version of {@link export}.
+     *
+     * Runs the synchronous export in a background thread.
+     */
+    public async void export_async () throws Error {
+        SourceFunc callback = export_async.callback;
+        Error? export_error = null;
+        var thread = new Thread<bool> ("live-maker-export", () => {
+            bool ret = false;
+            try {
+                this.export ();
+                ret = true;
+            } catch (Error e) {
+                export_error = e;
+            }
+            Idle.add ((owned) callback);
+            return ret;
+        });
+        yield;
+
+        if (!thread.join ()) {
+            throw (owned) export_error;
+        }
+    }
+
     inline int64 export_with_main_image () throws Error {
         this.metadata.open_path (main_image_path);
         if (!this._export_original_metadata) {

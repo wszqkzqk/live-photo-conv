@@ -9,6 +9,7 @@ lib_soversion = '0'      # SONAME version / ABI version
 
 # Windows-specific flags
 is_windows = target_machine.system() == 'windows'
+is_linux = target_machine.system() == 'linux'
 if is_windows
   add_project_arguments('-D', 'WINDOWS', language: 'vala')
 endif
@@ -30,6 +31,12 @@ gst = dependency('gstreamer-1.0', required: require_gst)
 gst_app = dependency('gstreamer-app-1.0', required: require_gst)
 gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 
+# Optional GTK4/LibAdwaita GUI dependencies
+require_gui = get_option('gui')
+gtk4_dep = dependency('gtk4', required: require_gui)
+libadwaita_dep = dependency('libadwaita-1', required: require_gui)
+with_gui = gtk4_dep.found() and libadwaita_dep.found()
+
 with_gst = gst.found() and gst_app.found() and gdk_pixbuf.found()
 if with_gst
   add_project_arguments('-D', 'ENABLE_GST', language: 'vala')
@@ -42,6 +49,7 @@ endif
 
 # Other tool dependencies
 pkg = import('pkgconfig')
+gnome = import('gnome')
 python = import('python').find_installation()
 
 # Optional tools
@@ -52,3 +60,10 @@ valadoc = find_program('valadoc', required: get_option('docs'))
 #incdir = include_directories('include')
 
 subdir('src')
+
+if with_gui and is_linux
+  gnome.post_install (
+    gtk_update_icon_cache: true,
+    update_desktop_database: true,
+  )
+endif
