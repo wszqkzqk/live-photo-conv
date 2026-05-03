@@ -252,6 +252,39 @@ public class LivePhotoConv.Application : Adw.Application {
         flags = ApplicationFlags.DEFAULT_FLAGS;
     }
 
+    public override void startup () {
+        base.startup ();
+
+        var style_manager = Adw.StyleManager.get_default ();
+        string init_scheme;
+        switch (style_manager.color_scheme) {
+            case Adw.ColorScheme.FORCE_LIGHT:
+                init_scheme = "force-light";
+                break;
+            case Adw.ColorScheme.FORCE_DARK:
+                init_scheme = "force-dark";
+                break;
+            default:
+                init_scheme = "default";
+                break;
+        }
+
+        var scheme_action = new SimpleAction.stateful ("color-scheme", VariantType.STRING,
+            new Variant.string (init_scheme));
+        scheme_action.notify["state"].connect (() => {
+            var scheme = scheme_action.state.get_string ();
+            style_manager.color_scheme =
+                scheme == "force-light" ? Adw.ColorScheme.FORCE_LIGHT :
+                scheme == "force-dark"  ? Adw.ColorScheme.FORCE_DARK :
+                                          Adw.ColorScheme.DEFAULT;
+        });
+        add_action (scheme_action);
+
+        var about_action = new SimpleAction ("about", null);
+        about_action.activate.connect (show_about);
+        add_action (about_action);
+    }
+
     /**
      * Sets up the main window, header bar with {@link Adw.ViewSwitcher},
      * and the three-page {@link Adw.ViewStack}.
@@ -276,6 +309,24 @@ public class LivePhotoConv.Application : Adw.Application {
         view_switcher.stack = stack;
         stack.visible_child_name = "extract";
         header.title_widget = view_switcher;
+
+        var appearance_menu = new Menu ();
+        var section = new Menu ();
+        section.append ("Follow System", "app.color-scheme::default");
+        section.append ("Light", "app.color-scheme::force-light");
+        section.append ("Dark", "app.color-scheme::force-dark");
+        appearance_menu.append_section (null, section);
+
+        var menu = new Menu ();
+        menu.append_submenu ("Appearance", appearance_menu);
+        menu.append ("About", "app.about");
+
+        var menu_button = new Gtk.MenuButton () {
+            icon_name = "open-menu-symbolic",
+            menu_model = menu,
+            primary = true,
+        };
+        header.pack_end (menu_button);
 
         var toolbar_view = new Adw.ToolbarView ();
         toolbar_view.add_top_bar (header);
@@ -318,6 +369,21 @@ public class LivePhotoConv.Application : Adw.Application {
             timeout = 3,
         };
         toast_overlay.add_toast (toast);
+    }
+
+    private void show_about () {
+        var about = new Adw.AboutDialog () {
+            application_name = "Live Photo Converter",
+            application_icon = "live-photo-conv",
+            developer_name = "Zhou Qiankang (wszqkzqk)",
+            version = VERSION,
+            website = WEBSITE,
+            issue_url = ISSUES_URL,
+            developers = { "Zhou Qiankang (wszqkzqk) <wszqkzqk@qq.com>" },
+            copyright = "Copyright © 2024-2026 Zhou Qiankang",
+            license_type = Gtk.License.LGPL_2_1,
+        };
+        about.present (active_window);
     }
 
     // ── Page builder helpers ──
