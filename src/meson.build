@@ -118,6 +118,7 @@ if with_gui
     install: true,
     link_with: liblivephototools,
     dependencies: gui_deps,
+    win_subsystem: 'windows',
   )
 
   if is_linux
