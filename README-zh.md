@@ -64,32 +64,6 @@ cd live-photo-conv
 makepkg -si
 ```
 
-## 从[Releases](https://github.com/wszqkzqk/live-photo-conv/releases)页面安装
-
-此外，还可以从 [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 页面下载预构建二进制文件，**包含历史版本**，同样支持 Arch Linux 与 Windows (MSYS2) 平台。
-
-**请注意按照要求安装，不要解压后直接运行二进制文件，否则会导致找不到依赖库等问题。**如果遇到兼容性问题，请使用其他安装方法。对于普通用户，**推荐使用前述的便捷安装方法**。
-
-### Arch Linux
-
-对于 Arch Linux 用户，请下载形如 `live-photo-conv-<版本号>-x86_64.pkg.tar.zst` 的文件，并使用 `pacman` 进行安装：
-
-```bash
-sudo pacman -U live-photo-conv-<版本号>-x86_64.pkg.tar.zst
-```
-
-### Windows (MSYS2)
-
-对于 Windows 用户，Releases 页面提供了适用于 MSYS2 UCRT64 环境的预构建包。安装步骤如下：
-
-1.  从发布页面下载形如 `mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst` 的 Windows 安装包。
-2.  打开 MSYS2 终端（UCRT64 环境）。
-3.  使用 `pacman` 安装该包：
-
-```bash
-pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst
-```
-
 ## 手动构建
 
 ### 依赖
@@ -207,9 +181,17 @@ live-photo-conv-gtk
 
 三个标签页覆盖所有操作：
 
-* **Make** — 将视频（及可选图片）合成为动态照片。可拖放文件或点击浏览，然后点击按钮选择保存位置。
-* **Extract** — 选择动态照片，勾选要导出的内容（主图片、视频、长曝光、逐帧），选择输出目录。
-* **Repair** — 修复动态照片中损坏的 XMP 元数据。如有需要，可展开高级选项手动指定视频大小。
+* **Make** — 将视频及主图片合成为动态照片。可拖放文件或点击浏览，然后点击按钮选择保存位置。
+
+  <p align="center"><img src="screenshots/make-ui.webp" alt="合成动态照片" width="300" /></p>
+
+* **Extract** — 选择动态照片，勾选要导出的内容（主图片、视频、长曝光、逐帧），选择输出目录。支持**批量处理**多个动态照片。
+
+  <p align="center"><img src="screenshots/extract-ui.webp" alt="提取模式" width="300" /></p>
+
+* **Repair** — 修复动态照片中损坏的 XMP 元数据。如有需要，可展开高级选项手动指定视频大小。支持**批量处理**多个动态照片。
+
+  <p align="center"><img src="screenshots/repair-ui.webp" alt="修复模式" width="300" /></p>
 
 ### CLI 工具
 

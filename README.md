@@ -64,32 +64,6 @@ cd live-photo-conv
 makepkg -si
 ```
 
-## Install from the Releases Page
-
-You can also download pre-built binaries from the [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) page. **Historical versions are included**, and Arch Linux and Windows (MSYS2) are supported.
-
-**Please install as required and do not run the binaries directly after extraction, otherwise you may encounter missing dependencies and other issues.** If you run into compatibility problems, please use other installation methods. For most users, the **easy installation methods above are recommended**.
-
-### Arch Linux
-
-For Arch Linux users, download the file named like `live-photo-conv-<version>-x86_64.pkg.tar.zst`, and install it using `pacman`:
-
-```bash
-sudo pacman -U live-photo-conv-<version>-x86_64.pkg.tar.zst
-```
-
-### Windows (MSYS2)
-
-For Windows users, the Releases page provides pre-built packages for the MSYS2 UCRT64 environment. Installation steps:
-
-1. Download the Windows package file named like `mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst`.
-2. Open your MSYS2 shell (UCRT64).
-3. Install the package using `pacman`:
-
-```bash
-pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<version>-any.pkg.tar.zst
-```
-
 ## Manual Build
 
 ### Dependencies
@@ -208,8 +182,16 @@ live-photo-conv-gtk
 Three tabs cover all operations:
 
 * **Make** — combine a video (and optional image) into a live photo. Drag files or click to browse, then click the button to choose where to save.
-* **Extract** — select a live photo, tick what to export (main image, video, long exposure, frames), choose an output directory.
-* **Repair** — fix corrupted XMP metadata in a live photo. Advanced options for manual video size are available if needed.
+
+  <p align="center"><img src="screenshots/make-ui.webp" alt="Make tab" width="300" /></p>
+
+* **Extract** — select a live photo, tick what to export (main image, video, long exposure, frames), choose an output directory. Supports **batch processing** of multiple live photos.
+
+  <p align="center"><img src="screenshots/extract-ui.webp" alt="Extract tab" width="300" /></p>
+
+* **Repair** — fix corrupted XMP metadata in a live photo. Advanced options for manual video size are available if needed. Supports **batch processing** of multiple live photos.
+
+  <p align="center"><img src="screenshots/repair-ui.webp" alt="Repair tab" width="300" /></p>
 
 ### CLI Tools
 
