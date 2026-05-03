@@ -74,3 +74,27 @@ jobs:
       with:
         name: windows-package
         path: distros/msys2/*.pkg.tar.zst
+
+  release:
+    name: Release
+    if: github.ref_type == 'tag'
+    needs: [build-archlinux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: '*-package'
+        merge-multiple: true
+        path: dist
+
+    - name: Remove Debug Packages
+      run: rm -f dist/*-debug-*.pkg.tar.zst
+
+    - name: Publish Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: ${{ github.ref_name }}
+        files: dist/*
+        generate_release_notes: true
