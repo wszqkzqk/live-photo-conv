@@ -274,6 +274,7 @@ public class LivePhotoConv.Application : Adw.Application {
         stack.add_titled_with_icon (wrap_in_scroll (build_repair_page ()), "repair", "Repair", "applications-utilities-symbolic");
 
         view_switcher.stack = stack;
+        stack.visible_child_name = "extract";
         header.title_widget = view_switcher;
 
         var toolbar_view = new Adw.ToolbarView ();
@@ -703,7 +704,7 @@ public class LivePhotoConv.Application : Adw.Application {
         report_progress (button, "Extracting", 0, total);
 
         new Thread<int> ("extract-batch", () => {
-            foreach (var file in files) {
+            foreach (unowned var file in files) {
                 if (error_msg != null) break;
                 var path = file.get_path ();
                 try {
@@ -750,7 +751,7 @@ public class LivePhotoConv.Application : Adw.Application {
         report_progress (button, "Repairing", 0, total);
 
         new Thread<int> ("repair-batch", () => {
-            foreach (var file in files) {
+            foreach (unowned var file in files) {
                 if (error_msg != null) break;
                 var path = file.get_path ();
                 try {
