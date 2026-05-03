@@ -6,3 +6,5 @@ option('manpages', type: 'feature', value: 'auto',
     description: 'Build manpages')
 option('docs', type: 'feature', value: 'auto',
     description: 'Build documentation')
+option('gui', type: 'feature', value: 'auto',
+    description: 'Build GTK4/LibAdwaita GUI')

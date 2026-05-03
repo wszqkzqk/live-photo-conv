@@ -12,6 +12,8 @@ Live Photo Converter 是一个用于处理动态照片的跨平台的工具。�
 
 ## 功能
 
+- `live-photo-conv-gtk`
+  - **图形界面**（GTK4 / LibAdwaita）程序，全面支持制作、提取和修复动态照片
 - `live-photo-make`
   - 从图片和视频**创建**动态照片
 - `live-photo-extract`
@@ -62,32 +64,6 @@ cd live-photo-conv
 makepkg -si
 ```
 
-## 从[Releases](https://github.com/wszqkzqk/live-photo-conv/releases)页面安装
-
-此外，还可以从 [Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 页面下载预构建二进制文件，**包含历史版本**，同样支持 Arch Linux 与 Windows (MSYS2) 平台。
-
-**请注意按照要求安装，不要解压后直接运行二进制文件，否则会导致找不到依赖库等问题。**如果遇到兼容性问题，请使用其他安装方法。对于普通用户，**推荐使用前述的便捷安装方法**。
-
-### Arch Linux
-
-对于 Arch Linux 用户，请下载形如 `live-photo-conv-<版本号>-x86_64.pkg.tar.zst` 的文件，并使用 `pacman` 进行安装：
-
-```bash
-sudo pacman -U live-photo-conv-<版本号>-x86_64.pkg.tar.zst
-```
-
-### Windows (MSYS2)
-
-对于 Windows 用户，Releases 页面提供了适用于 MSYS2 UCRT64 环境的预构建包。安装步骤如下：
-
-1.  从发布页面下载形如 `mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst` 的 Windows 安装包。
-2.  打开 MSYS2 终端（UCRT64 环境）。
-3.  使用 `pacman` 安装该包：
-
-```bash
-pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst
-```
-
 ## 手动构建
 
 ### 依赖
@@ -96,6 +72,8 @@ pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst
   * Meson
   * Vala
   * GExiv2
+  * GTK4（可选，用于 GUI）
+  * LibAdwaita（可选，用于 GUI）
   * GStreamer (可选，用于从附加视频导出图片，如果没有则使用FFmpeg命令来实现)
     * `gstreamer`
     * `gst-plugins-base-libs`
@@ -106,6 +84,8 @@ pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst
     * GObject
     * GIO
   * GExiv2
+  * GTK4（GUI 需要）
+  * LibAdwaita（GUI 需要）
   * GStreamer （在针对GStreamer构建时需要）
     * `gstreamer`
     * `gst-plugins-base-libs`
@@ -124,19 +104,19 @@ pacman -U mingw-w64-ucrt-x86_64-live-photo-conv-<版本号>-any.pkg.tar.zst
 例如，在Arch Linux上安装依赖：
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
+sudo pacman -S --needed glib2 libgexiv2 meson vala gtk4 libadwaita gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
 在Debian/Ubuntu上安装依赖：
 
 ```bash
-sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection libgirepository1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-vaapi
+sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgtk-4-dev libadwaita-1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection libgirepository1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-vaapi
 ```
 
 在Windows的MSYS2（UCRT64）环境上安装依赖：
 
 ```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-cc mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
+pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-cc mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-libadwaita mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
 ```
 
 ### 编译
@@ -150,6 +130,9 @@ Meson 构建选项：
   * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
 * `gir`
   * 是否生成 GObject Introspection 信息
+  * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
+* `gui`
+  * 是否构建 GTK4/LibAdwaita 图形界面
   * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
 * `docs`
   * 是否在 GObject Introspection 信息中生成文档
@@ -188,47 +171,39 @@ meson install -C builddir
 
 ## 使用
 
-为了方便常见操作，此项目提供了三个简化的命令行工具，它们是 `live-photo-conv` 的符号链接，但提供了更简洁、专注于特定任务的命令行选项：
+### `live-photo-conv-gtk`（图形界面）
 
-*   `live-photo-make`: 用于从图片和视频创建动态照片。
-*   `live-photo-extract`: 用于从动态照片中提取图片、视频和视频帧。
-*   `live-photo-repair`: 用于修复损坏的动态照片。
+图形界面提供了直观的方式来制作、提取和修复动态照片，无需使用命令行。从应用启动器或终端启动：
 
-对于需要所有功能的复杂场景，可以直接使用 `live-photo-conv` 这一功能更全面的命令。
-
-此外，为了解决 Android 设备上动态照片的兼容性问题，本项目还提供了 `copy-img-meta` 工具，用于复制图片的元数据，[满足手机厂商额外的要求](#android-手机厂商的分裂无法识别动态照片)。
-
-### `live-photo-make`
-
-从图片和视频创建动态照片。
-
-#### 命令行选项
-
-```
-Usage:
-  live-photo-make [OPTION…] - Make Live Photos from image and video files
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help            Show help options
-
-Application Options:
-  -v, --version         Display version number
-  --color=LEVEL         Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -i, --image=PATH      The path to the main static image file
-  -m, --video=PATH      The path to the video file (required)
-  -o, --output=PATH     The output live photo file path
-  --export-metadata     Export metadata (default)
-  --drop-metadata       Do not export metadata
-  --use-ffmpeg          Use FFmpeg to extract instead of GStreamer
-  --use-gst             Use GStreamer to extract instead of FFmpeg (default)
+```bash
+live-photo-conv-gtk
 ```
 
-#### 示例
+三个标签页覆盖所有操作：
 
-创建动态照片：
+* **Make** — 将视频及主图片合成为动态照片。可拖放文件或点击浏览，然后点击按钮选择保存位置。
+
+  <p align="center"><img src="screenshots/make-ui.webp" alt="合成动态照片" width="300" /></p>
+
+* **Extract** — 选择动态照片，勾选要导出的内容（主图片、视频、长曝光、逐帧），选择输出目录。支持**批量处理**多个动态照片。
+
+  <p align="center"><img src="screenshots/extract-ui.webp" alt="提取模式" width="300" /></p>
+
+* **Repair** — 修复动态照片中损坏的 XMP 元数据。如有需要，可展开高级选项手动指定视频大小。支持**批量处理**多个动态照片。
+
+  <p align="center"><img src="screenshots/repair-ui.webp" alt="修复模式" width="300" /></p>
+
+### CLI 工具
+
+为了方便常见操作，此项目提供了几个命令行工具。运行任意命令加 `--help` 可查看所有可用选项：
+
+* `live-photo-make`：创建动态照片。
+* `live-photo-extract`：提取图片、视频和视频帧。
+* `live-photo-repair`：修复损坏的动态照片。
+* `live-photo-conv`：功能全面的通用命令。
+* `copy-img-meta`：复制图片元数据。
+
+#### `live-photo-make`
 
 ```bash
 live-photo-make -i /path/to/image.jpg -m /path/to/video.mp4 -o /path/to/output.jpg
@@ -237,204 +212,68 @@ live-photo-make -i /path/to/image.jpg -m /path/to/video.mp4 -o /path/to/output.j
 将视频直接转化为动态照片：
 
 ```bash
-live-photo-make --video /path/to/video.mp4 --output /path/to/output.jpg
+live-photo-make -m /path/to/video.mp4 -o /path/to/output.jpg
 ```
 
-### `live-photo-extract`
+主要选项：`-i`（图片）、`-m`（视频，必需）、`-o`（输出）、`--drop-metadata`、`--use-ffmpeg` / `--use-gst`。
 
-从动态照片中提取图片、视频和视频帧。
-
-#### 命令行选项
-
-```
-Usage:
-  live-photo-extract [OPTION…] - Extract images and videos from Live Photos
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help                   Show help options
-
-Application Options:
-  -v, --version                Display version number
-  --color=LEVEL                Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -p, --live-photo=PATH        The live photo file to extract (required)
-  -d, --dest-dir=PATH          The destination directory to export
-  -i, --image=PATH             The path to export the main image
-  -m, --video=PATH             The path to export the video
-  -l, --long-exposure=PATH     Convert the embedded video to a long exposure photo
-  --export-metadata            Export metadata (default)
-  --drop-metadata              Do not export metadata
-  --frame-to-photos            Export every frame of the video as photos
-  -f, --img-format=FORMAT      The format of the image exported from video, defaults to automatic detection
-  --minimal                    Minimal export, ignore unspecified exports
-  -T, --threads=NUM            Number of threads to use for extracting, 0 for auto
-  --use-ffmpeg                 Use FFmpeg to extract instead of GStreamer
-  --use-gst                    Use GStreamer to extract instead of FFmpeg (default)
-```
-
-#### 示例
-
-提取动态照片：
+#### `live-photo-extract`
 
 ```bash
-live-photo-extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
+live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest
 ```
 
-提取动态照片并将视频逐帧导出为图片：
+提取并逐帧导出：
 
 ```bash
 live-photo-extract -p /path/to/live_photo.jpg -d /path/to/dest --frame-to-photos -f avif
 ```
 
-仅从动态照片生成长曝光照片而不提取其他内容：
+仅生成长曝光照片：
 
 ```bash
-live-photo-extract --live-photo /path/to/live_photo.jpg --long-exposure /path/to/long_exposure.jpg --minimal
+live-photo-extract -p /path/to/live_photo.jpg -l /path/to/long_exposure.jpg --minimal
 ```
 
-### `live-photo-repair`
+主要选项：`-p`（动态照片，必需）、`-d`（输出目录）、`-i`（图片）、`-m`（视频）、`-l`（长曝光）、`--frame-to-photos`、`-f`（图片格式）、`-T`（线程数）、`--minimal`、`--drop-metadata`。
 
-修复损坏的动态照片。
-
-#### 命令行选项
-
-```
-Usage:
-  live-photo-repair [OPTION…] - Repair Live Photos with missing or corrupted metadata
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help                Show help options
-
-Application Options:
-  -v, --version             Display version number
-  --color=LEVEL             Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -p, --live-photo=PATH     The live photo file to repair (required)
-  -f, --force               Force to update video offset in XMP metadata and repair
-  -s, --video-size=SIZE     Force repair with the specified video size
-```
-
-#### 示例
-
-修复动态照片：
+#### `live-photo-repair`
 
 ```bash
 live-photo-repair -p /path/to/live_photo.jpg
 ```
 
-### `live-photo-conv` (通用命令)
-
-`live-photo-conv` 是一个功能全面的工具，整合了创建、提取和修复动态照片的所有功能。当简化的命令无法满足需求时，可以使用此命令。
-
-#### 命令行选项
-
-```
-Usage:
-  live-photo-conv [OPTION…] - Extract, Repair or Make Live Photos
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help                        Show help options
-
-Application Options:
-  -v, --version                     Display version number
-  --color=LEVEL                     Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  -g, --make                        Make a live photo
-  -e, --extract                     Extract a live photo (default)
-  -r, --repair                      Repair a live photo from missing or corrupted metadata
-  --force-repair                    Force repair a live photo (force update video offset in XMP metadata)
-  --repair-with-video-size=SIZE     Force repair a live photo with the specified video size
-  -i, --image=PATH                  The path to the main static image file
-  -m, --video=PATH                  The path to the video file
-  -p, --live-photo=PATH             The destination path for the live image file. If not provided in 'make' mode, a default destination path will be generated based on the main static image file
-  -d, --dest-dir=PATH               The destination directory to export
-  --export-metadata                 Export metadata (default)
-  --drop-metadata                   Do not export metadata
-  --frame-to-photos                 Export every frame of a live photo's video as a photo
-  -f, --img-format=FORMAT           The format of the image exported from video, defaults to automatic detection
-  -l, --long-exposure=PATH          Convert the embedded video to a long exposure photo
-  --minimal                         Minimal export, ignore unspecified exports
-  -T, --threads=NUM                 Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)
-  --use-ffmpeg                      Use FFmpeg to extract instead of GStreamer
-  --use-gst                         Use GStreamer to extract instead of FFmpeg (default)
-```
-
-运行 `live-photo-conv --help` 查看所有命令行选项。（如果没有启用GStreamer支持，`--use-ffmpeg`与`--use-gst`选项将不可用）
-
-#### 示例
-
-使用 `live-photo-conv` 的操作与简化命令类似，但需要明确指定操作模式（例如 `--make`, `--extract`, `--repair`）。
-
-创建动态照片：
+强制修复：
 
 ```bash
-live-photo-conv --make --image /path/to/image.jpg --video /path/to/video.mp4 --live-photo /path/to/output.jpg
+live-photo-repair -p /path/to/live_photo.jpg -f
 ```
 
-提取动态照片：
+主要选项：`-p`（动态照片，必需）、`-f`（强制）、`-s`（手动指定视频大小）。
+
+#### `live-photo-conv`（通用命令）
+
+与简化命令类似，但需用 `--make`、`--extract`、`--repair` 指定模式：
 
 ```bash
-live-photo-conv --extract --live-photo /path/to/live_photo.jpg --dest-dir /path/to/dest
+live-photo-conv --make -i /path/to/image.jpg -m /path/to/video.mp4 -p /path/to/output.jpg
+live-photo-conv --extract -p /path/to/live_photo.jpg -d /path/to/dest
+live-photo-conv --repair -p /path/to/live_photo.jpg
 ```
 
-也可以通过URI指定文件：
+#### `copy-img-meta`
 
 ```bash
-live-photo-conv --make --image file:///path/to/image.jpg --video file:///path/to/video.mp4 --live-photo file:///path/to/output.jpg
-```
-
-修复动态照片：
-
-```bash
-live-photo-conv --repair --live-photo /path/to/live_photo.jpg
-```
-
-### `copy-img-meta`
-
-#### 命令行选项
-
-```
-Usage:
-  copy-img-meta [OPTION…] <source-img> <dest-img> - Copy the metadata from one image to another
-
-WebSite: https://github.com/wszqkzqk/live-photo-conv
-Report Bugs: https://github.com/wszqkzqk/live-photo-conv/issues
-
-Help Options:
-  -h, --help         Show help options
-
-Application Options:
-  -v, --version      Display version number
-  --color=LEVEL      Color level of log, 0 for no color, 1 for auto, 2 for always, defaults to 1
-  --exclude-exif     Do not copy EXIF data
-  --with-exif        Copy EXIF data (default)
-  --exclude-xmp      Do not copy XMP data
-  --with-xmp         Copy XMP data (default)
-  --exclude-iptc     Do not copy IPTC data
-  --with-iptc        Copy IPTC data (default)
-```
-
-请运行 `copy-img-meta --help` 查看所有命令行选项。
-
-#### 示例
-
-从一张图片复制所有元数据到另一张图片：
-
-```bash
-copy-img-meta /path/to/exif-source.jpg /path/to/dest.webp
+copy-img-meta /path/to/source.jpg /path/to/dest.webp
 ```
 
 选择不复制某些元数据：
 
 ```bash
-copy-img-meta --exclude-xmp --exclude-iptc /path/to/exif-source.jpg /path/to/dest.webp
+copy-img-meta --exclude-xmp --exclude-iptc /path/to/source.jpg /path/to/dest.webp
 ```
+
+主要选项：`--exclude-exif` / `--with-exif`、`--exclude-xmp` / `--with-xmp`、`--exclude-iptc` / `--with-iptc`。
 
 ### `liblivephototools`
 
@@ -495,7 +334,7 @@ livemaker.export()
 
 ### Android 手机厂商的分裂：无法识别动态照片
 
-由于 Android 手机厂商的分裂，不同厂商还可以需要动态照片中有自己的“私货”元数据才能识别动态照片。可能直接使用本工具生成的动态照片在某些手机上无法识别。
+由于 Android 手机厂商的分裂，不同厂商还可以需要动态照片中有自己的"私货"元数据才能识别动态照片。可能直接使用本工具生成的动态照片在某些手机上无法识别。
 
 解决方案：
 

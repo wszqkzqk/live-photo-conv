@@ -415,6 +415,72 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
     }
 
+    /**
+     * Async version of {@link repair_live_metadata}.
+     *
+     * @param force If true, forces the use of the fallback method to get the video offset.
+     * @param manual_video_size If greater than 0, uses this value as the video size instead of calculating it.
+     * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
+     */
+    public async void repair_live_metadata_async (bool force = false, uint manual_video_size = 0) throws Error {
+        SourceFunc callback = repair_live_metadata_async.callback;
+        Error? repair_error = null;
+        var thread = new Thread<void> ("live-photo-repair", () => {
+            try {
+                this.repair_live_metadata (force, manual_video_size);
+            } catch (Error e) {
+                repair_error = e;
+            }
+            Idle.add ((owned) callback);
+        });
+        yield;
+        thread.join ();
+        if (repair_error != null)
+            throw (owned) repair_error;
+    }
+
+    /**
+     * Async composite extraction: runs multiple extract operations in sequence.
+     *
+     * Pass null for dest params to use auto-generated file names based on
+     * the dest_dir provided in the constructor.
+     *
+     * @param do_image Whether to export the main image.
+     * @param do_video Whether to export the video.
+     * @param do_long_exposure Whether to generate a long exposure image.
+     * @param do_frames Whether to split images from the video.
+     * @param long_exposure_dest The destination path for the long exposure image, or null to use an auto-generated path.
+     * @param img_format The output image format for the split frames, or null.
+     * @param threads The number of threads to use for frame extraction.
+     * @throws Error if there is an error during the extraction process.
+     */
+    public async void extract_items_async (bool do_image, bool do_video,
+                                            bool do_long_exposure, bool do_frames,
+                                            string? long_exposure_dest,
+                                            string? img_format, int threads) throws Error {
+        SourceFunc callback = extract_items_async.callback;
+        Error? extract_error = null;
+        var thread = new Thread<void> ("live-photo-extract", () => {
+            try {
+                if (do_image)
+                    this.export_main_image ();
+                if (do_video)
+                    this.export_video ();
+                if (do_long_exposure && long_exposure_dest != null)
+                    this.generate_long_exposure (long_exposure_dest);
+                if (do_frames)
+                    this.split_images_from_video (img_format, null, threads);
+            } catch (Error e) {
+                extract_error = e;
+            }
+            Idle.add ((owned) callback);
+        });
+        yield;
+        thread.join ();
+        if (extract_error != null)
+            throw extract_error;
+    }
+
     public abstract void generate_long_exposure (string dest_path) throws Error;
 
     public abstract void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error;

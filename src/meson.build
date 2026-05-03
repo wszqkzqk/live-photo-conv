@@ -92,6 +92,47 @@ copy_img_meta_bin = executable(copy_img_meta_name,
   #include_directories: incdir,
 )
 
+# Build GTK4/LibAdwaita GUI
+gui_name = 'live-photo-conv-gtk'
+gui_sources = ['gui.vala']
+if with_gui
+  gui_deps = lib_deps + [gtk4_dep, libadwaita_dep]
+
+  if is_windows
+    # Embed application icon as a Windows resource
+    win_rc = configure_file(
+      input: files('../assets/live-photo-conv-gtk.rc'),
+      output: 'live-photo-conv-gtk.rc',
+      copy: true,
+    )
+    configure_file(
+      input: files('../assets/icon.ico'),
+      output: 'icon.ico',
+      copy: true,
+    )
+    gui_sources += import('windows').compile_resources(win_rc)
+  endif
+
+  executable(gui_name,
+    gui_sources,
+    install: true,
+    link_with: liblivephototools,
+    dependencies: gui_deps,
+    win_subsystem: 'windows',
+  )
+
+  if is_linux
+    # Install desktop file and hicolor icon (freedesktop / Linux)
+    install_data('../assets/com.github.wszqkzqk.live-photo-conv.desktop',
+      install_dir: get_option('datadir') / 'applications',
+    )
+    install_data('../assets/icon.png',
+      install_dir: get_option('datadir') / 'icons' / 'hicolor' / '256x256' / 'apps',
+      rename: 'live-photo-conv.png',
+    )
+  endif
+endif
+
 # Create symlinks/copies in build directory and install them
 symlink_script = meson.project_source_root() / 'scripts' / 'create-binary-symlinks.py'
 sub_exe_bins = []
