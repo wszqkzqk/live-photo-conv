@@ -417,6 +417,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
     /**
      * Async version of {@link repair_live_metadata}.
+     *
+     * @param force If true, forces the use of the fallback method to get the video offset.
+     * @param manual_video_size If greater than 0, uses this value as the video size instead of calculating it.
+     * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
      */
     public async void repair_live_metadata_async (bool force = false, uint manual_video_size = 0) throws Error {
         SourceFunc callback = repair_live_metadata_async.callback;
@@ -444,6 +448,15 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * Pass null for dest params to use auto-generated file names based on
      * the dest_dir provided in the constructor.
+     *
+     * @param do_image Whether to export the main image.
+     * @param do_video Whether to export the video.
+     * @param do_long_exposure Whether to generate a long exposure image.
+     * @param do_frames Whether to split images from the video.
+     * @param long_exposure_dest The destination path for the long exposure image, or null to use an auto-generated path.
+     * @param img_format The output image format for the split frames, or null.
+     * @param threads The number of threads to use for frame extraction.
+     * @throws Error if there is an error during the extraction process.
      */
     public async void extract_items_async (bool do_image, bool do_video,
                                             bool do_long_exposure, bool do_frames,
