@@ -509,8 +509,8 @@ public class LivePhotoConv.Application : Adw.Application {
 
         exports_group.add (make_check_row ("Export Main Image", out extract_main_image_check, true));
         exports_group.add (make_check_row ("Export Video", out extract_video_check, true));
-        exports_group.add (make_check_row ("Export Long Exposure Photo", out extract_long_exposure_check, false));
         exports_group.add (make_check_row ("Export Frames as Photos", out extract_frames_check, false));
+        exports_group.add (make_check_row ("Export Long Exposure Photo", out extract_long_exposure_check, false));
         exports_group.add (make_entry_row ("Image Format", out extract_img_format_entry, "auto"));
         box.append (exports_group);
 
@@ -553,9 +553,10 @@ public class LivePhotoConv.Application : Adw.Application {
                 string? img_format = extract_img_format_entry.text.strip ();
                 if (img_format == "") img_format = null;
 
-                start_work (extract_button, "Processing…");
+                start_work (extract_button, "Extracting…");
                 extract_batch_async.begin (files, dest_dir,
                     do_image, do_video, do_long, do_frames, img_format,
+                    extract_button,
                     (obj, res2) => {
                         try {
                             extract_batch_async.end (res2);
@@ -669,8 +670,8 @@ public class LivePhotoConv.Application : Adw.Application {
         bool force = repair_force_check.active;
         uint video_size = (uint) repair_video_size_spin.value;
 
-        start_work (repair_button, "Processing…");
-        repair_batch_async.begin (files, force, video_size, (obj, res) => {
+        start_work (repair_button, "Repairing…");
+        repair_batch_async.begin (files, force, video_size, repair_button, (obj, res) => {
             try {
                 repair_batch_async.end (res);
                 end_work (repair_button, "Repair", repair_live_photo_area.files.length > 0);
@@ -684,12 +685,23 @@ public class LivePhotoConv.Application : Adw.Application {
 
     // ── Batch async wrappers ──
 
+    private static void report_progress (Gtk.Button button, string verb,
+                                          int current, int total) {
+        button.label = @"$(verb) $(current)/$(total)…";
+    }
+
     private async void extract_batch_async (GenericArray<File> files, string dest_dir,
                                              bool do_image, bool do_video,
                                              bool do_long, bool do_frames,
-                                             string? img_format) throws Error {
+                                             string? img_format,
+                                             Gtk.Button button) throws Error {
         SourceFunc callback = extract_batch_async.callback;
         string? error_msg = null;
+        int total = (int) files.length;
+        int processed = 0;
+
+        report_progress (button, "Extracting", 0, total);
+
         new Thread<int> ("extract-batch", () => {
             foreach (var file in files) {
                 if (error_msg != null) break;
@@ -713,6 +725,11 @@ public class LivePhotoConv.Application : Adw.Application {
                 } catch (Error e) {
                     error_msg = @"$(path): $(e.message)";
                 }
+                processed += 1;
+                Idle.add (() => {
+                    report_progress (button, "Extracting", processed, total);
+                    return false;
+                });
             }
             Idle.add ((owned) callback);
             return 0;
@@ -723,9 +740,15 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     private async void repair_batch_async (GenericArray<File> files, bool force,
-                                            uint video_size) throws Error {
+                                            uint video_size,
+                                            Gtk.Button button) throws Error {
         SourceFunc callback = repair_batch_async.callback;
         string? error_msg = null;
+        int total = (int) files.length;
+        int processed = 0;
+
+        report_progress (button, "Repairing", 0, total);
+
         new Thread<int> ("repair-batch", () => {
             foreach (var file in files) {
                 if (error_msg != null) break;
@@ -740,6 +763,11 @@ public class LivePhotoConv.Application : Adw.Application {
                 } catch (Error e) {
                     error_msg = @"$(path): $(e.message)";
                 }
+                processed += 1;
+                Idle.add (() => {
+                    report_progress (button, "Repairing", processed, total);
+                    return false;
+                });
             }
             Idle.add ((owned) callback);
             return 0;
