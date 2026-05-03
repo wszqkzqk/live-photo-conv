@@ -27,38 +27,66 @@
 /**
  * A drop area widget that accepts file drops and allows browsing.
  *
- * Shows a placeholder icon and hint text. When a file is selected
- * (via drag-drop or browse), displays the file name.
-*/
+ * Supports single or multiple files via {@link max_files}.
+ * When max_files is 0 (default) any number of files can be selected.
+ * When set to 1, only a single file is accepted — use
+ * {@link file} to get it.
+ */
 private class LivePhotoConv.FileDropArea : Adw.Bin {
 
-    public signal void file_changed (File? file);
+    public signal void changed ();
 
+    private string _orig_icon;
     private Gtk.Image icon_image;
     private Gtk.Label hint_label;
     private Gtk.Label file_label;
     private Gtk.Stack label_stack;
-    private File? _file;
+    private GenericArray<File> _files = new GenericArray<File> ();
 
-    public File? file {
-        get { return _file; }
+    /** Maximum number of files accepted. 0 means unlimited. */
+    public uint max_files { get; set; default = 0; }
+
+    /** All selected files. Assigning triggers UI update and {@link changed}. */
+    public GenericArray<File> files {
+        get { return _files; }
         set {
-            _file = value;
-            if (value != null) {
-                file_label.label = value.get_basename ();
+            _files = value;
+            if (value.length == 0) {
+                label_stack.visible_child = hint_label;
+                icon_image.icon_name = _orig_icon;
+                icon_image.opacity = 0.5;
+            } else if (value.length == 1) {
+                file_label.label = value[0].get_basename ();
+                label_stack.visible_child = file_label;
+                icon_image.icon_name = "emblem-documents-symbolic";
+                icon_image.opacity = 1.0;
+            } else {
+                file_label.label = @"$(value.length) files selected";
                 label_stack.visible_child = file_label;
                 icon_image.icon_name = "emblem-documents-symbolic";
                 icon_image.opacity = 1.0;
             }
-            file_changed (value);
+            changed ();
         }
+    }
+
+    /** Convenience: first selected file or null. */
+    public File? file {
+        get { return _files.length > 0 ? _files[0] : null; }
     }
 
     public string hint { get; construct; }
     public string icon_name { get; construct; default = "document-open-symbolic"; }
+    /** MIME types to restrict file selection. Empty = no filter. */
+    public string[] mime_types { get; construct; default = new string[0]; }
 
-    public FileDropArea (string hint, string? icon_name = null) {
-        Object (hint: hint, icon_name: icon_name ?? "document-open-symbolic");
+    public FileDropArea (string hint, string? icon_name = null, string[]? mime_types = null) {
+        Object (hint: hint, icon_name: icon_name ?? "document-open-symbolic",
+                mime_types: mime_types ?? new string[0]);
+    }
+
+    construct {
+        _orig_icon = icon_name;
 
         var main_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 8) {
             halign = Gtk.Align.CENTER,
@@ -101,7 +129,8 @@ private class LivePhotoConv.FileDropArea : Adw.Bin {
         this.child = main_box;
         this.cursor = new Gdk.Cursor.from_name ("pointer", null);
 
-        var drop_target = new Gtk.DropTarget (typeof (File), Gdk.DragAction.COPY);
+        var drop_target = new Gtk.DropTarget (Type.INVALID, Gdk.DragAction.COPY);
+        drop_target.set_gtypes ({typeof (Gdk.FileList), typeof (File)});
         drop_target.drop.connect (on_drop);
         this.add_controller (drop_target);
 
@@ -110,25 +139,77 @@ private class LivePhotoConv.FileDropArea : Adw.Bin {
         this.add_controller (click);
     }
 
+    private void load_files (GenericArray<File> arr) {
+        if (max_files == 1 && arr.length > 1)
+            arr.remove_range (1, arr.length - 1);
+        files = arr;
+    }
+
     private bool on_drop (Value value, double x, double y) {
-        var dropped = value.get_object () as File;
-        if (dropped != null) {
-            file = dropped;
-            return true;
+        var collected = new GenericArray<File> ();
+
+        if (value.holds (typeof (File))) {
+            var f = value.get_object () as File;
+            if (f != null)
+                collected.add (f);
+        } else if (value.holds (typeof (Gdk.FileList))) {
+            var file_list = (Gdk.FileList) value.get_boxed ();
+            var dropped = file_list.get_files ();
+            foreach (File f in dropped)
+                collected.add (f);
+        } else {
+            return false;
         }
-        return false;
+
+        load_files (collected);
+        return collected.length > 0;
+    }
+
+    private Gtk.FileFilter? build_filter () {
+        if (mime_types.length == 0)
+            return null;
+
+        var filter = new Gtk.FileFilter ();
+        foreach (unowned var mime in mime_types)
+            filter.add_mime_type (mime);
+        return filter;
     }
 
     private void on_clicked (int n_press, double x, double y) {
+        var filters = new ListStore (typeof (Gtk.FileFilter));
+        var filter = build_filter ();
+        if (filter != null)
+            filters.append (filter);
+
         var dialog = new Gtk.FileDialog () {
             title = hint,
+            filters = filter != null ? filters : null,
         };
-        dialog.open.begin ((Gtk.Window) this.get_root (), null, (obj, res) => {
-            try {
-                var f = dialog.open.end (res);
-                if (f != null) file = f;
-            } catch {}
-        });
+
+        if (max_files == 1) {
+            dialog.open.begin ((Gtk.Window) this.get_root (), null, (obj, res) => {
+                try {
+                    var f = dialog.open.end (res);
+                    if (f != null) {
+                        var arr = new GenericArray<File> ();
+                        arr.add (f);
+                        load_files (arr);
+                    }
+                } catch {}
+            });
+        } else {
+            dialog.open_multiple.begin ((Gtk.Window) this.get_root (), null, (obj, res) => {
+                try {
+                    var model = dialog.open_multiple.end (res);
+                    if (model == null) return;
+
+                    var collected = new GenericArray<File> ();
+                    for (uint i = 0; i < model.get_n_items (); i++)
+                        collected.add ((File) model.get_item (i));
+                    load_files (collected);
+                } catch {}
+            });
+        }
     }
 }
 
@@ -311,10 +392,12 @@ public class LivePhotoConv.Application : Adw.Application {
             xalign = 0,
             css_classes = { "heading" },
         });
-        make_video_area = new FileDropArea ("Drop video here\nor click to browse", "folder-videos-symbolic");
-        make_video_area.file_changed.connect (() => {
+        make_video_area = new FileDropArea ("Drop video here\nor click to browse", "folder-videos-symbolic", {"video/*"}) {
+            max_files = 1,
+        };
+        make_video_area.changed.connect (() => {
             if (!working)
-                make_button.sensitive = (make_video_area.file != null);
+                make_button.sensitive = (make_video_area.files.length > 0);
         });
         video_col.append (make_video_area);
         drop_row.append (video_col);
@@ -324,7 +407,9 @@ public class LivePhotoConv.Application : Adw.Application {
             xalign = 0,
             css_classes = { "heading" },
         });
-        make_image_area = new FileDropArea ("Drop image here\nor click to browse", "folder-pictures-symbolic");
+        make_image_area = new FileDropArea ("Drop image here\nor click to browse", "folder-pictures-symbolic", {"image/*"}) {
+            max_files = 1,
+        };
         image_col.append (make_image_area);
         drop_row.append (image_col);
 
@@ -385,10 +470,10 @@ public class LivePhotoConv.Application : Adw.Application {
                 maker.export_async.begin ((obj, res2) => {
                     try {
                         maker.export_async.end (res2);
-                        end_work (make_button, "Make Live Photo", make_video_area.file != null);
+                        end_work (make_button, "Make Live Photo", make_video_area.files.length > 0);
                         show_toast ("Live photo created");
                     } catch (Error e) {
-                        end_work (make_button, "Make Live Photo", make_video_area.file != null);
+                        end_work (make_button, "Make Live Photo", make_video_area.files.length > 0);
                         show_toast (@"Error: $(e.message)");
                     }
                 });
@@ -406,15 +491,15 @@ public class LivePhotoConv.Application : Adw.Application {
         var files_group = make_group ("Live Photo",
             "Select the live photo file to extract from.");
 
-        extract_live_photo_area = new FileDropArea ("Drop live photo file here\nor click to browse", "camera-photo-symbolic") {
+        extract_live_photo_area = new FileDropArea ("Drop live photo file here\nor click to browse", "camera-photo-symbolic", {"image/*"}) {
             margin_start = 12,
             margin_end = 12,
             margin_top = 12,
             margin_bottom = 12,
         };
-        extract_live_photo_area.file_changed.connect (() => {
+        extract_live_photo_area.changed.connect (() => {
             if (!working)
-                extract_button.sensitive = (extract_live_photo_area.file != null);
+                extract_button.sensitive = (extract_live_photo_area.files.length > 0);
         });
         files_group.add (new Adw.ActionRow () { child = extract_live_photo_area });
         box.append (files_group);
@@ -446,8 +531,8 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     private void on_extract_clicked () {
-        var live_photo_file = extract_live_photo_area.file;
-        if (live_photo_file == null) {
+        var files = extract_live_photo_area.files;
+        if (files.length == 0) {
             show_toast ("Please select a live photo file first");
             return;
         }
@@ -460,7 +545,6 @@ public class LivePhotoConv.Application : Adw.Application {
                 var folder = dialog.select_folder.end (res);
                 if (folder == null) return;
 
-                var live_photo_path = live_photo_file.get_path ();
                 var dest_dir = folder.get_path ();
                 bool do_image = extract_main_image_check.active;
                 bool do_video = extract_video_check.active;
@@ -469,32 +553,16 @@ public class LivePhotoConv.Application : Adw.Application {
                 string? img_format = extract_img_format_entry.text.strip ();
                 if (img_format == "") img_format = null;
 
-                LivePhoto live_photo;
-                try {
-#if ENABLE_GST
-                    live_photo = new LivePhotoGst (live_photo_path, dest_dir);
-#else
-                    live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir);
-#endif
-                } catch (Error e) {
-                    show_toast (@"Error: $(e.message)");
-                    return;
-                }
-
                 start_work (extract_button, "Processing…");
-
-                string? long_exp_dest = do_long
-                    ? Path.build_filename (dest_dir, "long_exposure.jpg") : null;
-
-                live_photo.extract_items_async.begin (do_image, do_video,
-                    do_long, do_frames, long_exp_dest, img_format, 0,
+                extract_batch_async.begin (files, dest_dir,
+                    do_image, do_video, do_long, do_frames, img_format,
                     (obj, res2) => {
                         try {
-                            live_photo.extract_items_async.end (res2);
-                            end_work (extract_button, "Extract", extract_live_photo_area.file != null);
-                            show_toast ("Extraction completed");
+                            extract_batch_async.end (res2);
+                            end_work (extract_button, "Extract", extract_live_photo_area.files.length > 0);
+                            show_toast (@"$(files.length) file(s) extracted");
                         } catch (Error e) {
-                            end_work (extract_button, "Extract", extract_live_photo_area.file != null);
+                            end_work (extract_button, "Extract", extract_live_photo_area.files.length > 0);
                             show_toast (@"Error: $(e.message)");
                         }
                     });
@@ -512,15 +580,15 @@ public class LivePhotoConv.Application : Adw.Application {
         var files_group = make_group ("Live Photo",
             "Select the live photo file to repair its XMP metadata.");
 
-        repair_live_photo_area = new FileDropArea ("Drop live photo file here\nor click to browse", "camera-photo-symbolic") {
+        repair_live_photo_area = new FileDropArea ("Drop live photo file here\nor click to browse", "camera-photo-symbolic", {"image/*"}) {
             margin_start = 12,
             margin_end = 12,
             margin_top = 12,
             margin_bottom = 12,
         };
-        repair_live_photo_area.file_changed.connect (() => {
+        repair_live_photo_area.changed.connect (() => {
             if (!working)
-                repair_button.sensitive = (repair_live_photo_area.file != null);
+                repair_button.sensitive = (repair_live_photo_area.files.length > 0);
         });
         files_group.add (new Adw.ActionRow () { child = repair_live_photo_area });
         box.append (files_group);
@@ -592,40 +660,93 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     private void on_repair_clicked () {
-        var live_photo_file = repair_live_photo_area.file;
-        if (live_photo_file == null) {
+        var files = repair_live_photo_area.files;
+        if (files.length == 0) {
             show_toast ("Please select a live photo file first");
             return;
         }
 
-        var live_photo_path = live_photo_file.get_path ();
         bool force = repair_force_check.active;
         uint video_size = (uint) repair_video_size_spin.value;
 
-        LivePhoto live_photo;
-        try {
-#if ENABLE_GST
-            live_photo = new LivePhotoGst (live_photo_path);
-#else
-            live_photo = new LivePhotoFFmpeg (live_photo_path);
-#endif
-        } catch (Error e) {
-            show_toast (@"Error: $(e.message)");
-            return;
-        }
-
         start_work (repair_button, "Processing…");
-
-        live_photo.repair_live_metadata_async.begin (force, video_size, (obj, res) => {
+        repair_batch_async.begin (files, force, video_size, (obj, res) => {
             try {
-                live_photo.repair_live_metadata_async.end (res);
-                end_work (repair_button, "Repair", repair_live_photo_area.file != null);
-                show_toast ("Repair completed");
+                repair_batch_async.end (res);
+                end_work (repair_button, "Repair", repair_live_photo_area.files.length > 0);
+                show_toast (@"$(files.length) file(s) repaired");
             } catch (Error e) {
-                end_work (repair_button, "Repair", repair_live_photo_area.file != null);
+                end_work (repair_button, "Repair", repair_live_photo_area.files.length > 0);
                 show_toast (@"Error: $(e.message)");
             }
         });
+    }
+
+    // ── Batch async wrappers ──
+
+    private async void extract_batch_async (GenericArray<File> files, string dest_dir,
+                                             bool do_image, bool do_video,
+                                             bool do_long, bool do_frames,
+                                             string? img_format) throws Error {
+        SourceFunc callback = extract_batch_async.callback;
+        string? error_msg = null;
+        new Thread<int> ("extract-batch", () => {
+            foreach (var file in files) {
+                if (error_msg != null) break;
+                var path = file.get_path ();
+                try {
+#if ENABLE_GST
+                    var live_photo = new LivePhotoGst (path, dest_dir);
+#else
+                    var live_photo = new LivePhotoFFmpeg (path, dest_dir);
+#endif
+                    if (do_image)
+                        live_photo.export_main_image ();
+                    if (do_video)
+                        live_photo.export_video ();
+                    if (do_long)
+                        live_photo.generate_long_exposure (
+                            Path.build_filename (dest_dir,
+                                Path.get_basename (path) + "_long_exposure.jpg"));
+                    if (do_frames)
+                        live_photo.split_images_from_video (img_format, dest_dir);
+                } catch (Error e) {
+                    error_msg = @"$(path): $(e.message)";
+                }
+            }
+            Idle.add ((owned) callback);
+            return 0;
+        });
+        yield;
+        if (error_msg != null)
+            throw new ExportError.FILE_PUSH_ERROR (error_msg);
+    }
+
+    private async void repair_batch_async (GenericArray<File> files, bool force,
+                                            uint video_size) throws Error {
+        SourceFunc callback = repair_batch_async.callback;
+        string? error_msg = null;
+        new Thread<int> ("repair-batch", () => {
+            foreach (var file in files) {
+                if (error_msg != null) break;
+                var path = file.get_path ();
+                try {
+#if ENABLE_GST
+                    var live_photo = new LivePhotoGst (path);
+#else
+                    var live_photo = new LivePhotoFFmpeg (path);
+#endif
+                    live_photo.repair_live_metadata (force, video_size);
+                } catch (Error e) {
+                    error_msg = @"$(path): $(e.message)";
+                }
+            }
+            Idle.add ((owned) callback);
+            return 0;
+        });
+        yield;
+        if (error_msg != null)
+            throw new ExportError.FILE_PUSH_ERROR (error_msg);
     }
     
     /**
