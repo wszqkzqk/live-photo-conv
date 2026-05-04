@@ -98,6 +98,14 @@ gui_sources = ['gui.vala']
 if with_gui
   gui_deps = lib_deps + [gtk4_dep, libadwaita_dep]
 
+  # Embed application icons via GResource on non-Linux
+  if not is_freedesktop
+    gui_sources += gnome.compile_resources('live-photo-conv-gtk-resources',
+      'icons.gresource.xml',
+      source_dir: '..',
+    )
+  endif
+
   if is_windows
     # Embed application icon as a Windows resource
     win_rc = configure_file(
@@ -121,7 +129,7 @@ if with_gui
     win_subsystem: 'windows',
   )
 
-  if is_linux
+  if is_freedesktop
     # Install desktop file and hicolor icon (freedesktop / Linux)
     install_data('../assets/com.github.wszqkzqk.live-photo-conv.desktop',
       install_dir: get_option('datadir') / 'applications',

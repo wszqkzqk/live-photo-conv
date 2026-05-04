@@ -9,7 +9,8 @@ lib_soversion = '0'      # SONAME version / ABI version
 
 # Windows-specific flags
 is_windows = target_machine.system() == 'windows'
-is_linux = target_machine.system() == 'linux'
+is_darwin = target_machine.system() == 'darwin'
+is_freedesktop = not is_windows and not is_darwin  # Linux, BSD, etc.
 if is_windows
   add_project_arguments('-D', 'WINDOWS', language: 'vala')
 endif
@@ -61,7 +62,7 @@ valadoc = find_program('valadoc', required: get_option('docs'))
 
 subdir('src')
 
-if with_gui and is_linux
+if with_gui and is_freedesktop
   gnome.post_install (
     gtk_update_icon_cache: true,
     update_desktop_database: true,

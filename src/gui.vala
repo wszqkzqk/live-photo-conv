@@ -296,6 +296,9 @@ public class LivePhotoConv.Application : Adw.Application {
             default_height = 750,
         };
 
+        Gtk.IconTheme.get_for_display (Gdk.Display.get_default ())
+            .add_resource_path ("/com/github/wszqkzqk/live-photo-conv/icons");
+
         toast_overlay = new Adw.ToastOverlay ();
 
         var header = new Adw.HeaderBar ();
