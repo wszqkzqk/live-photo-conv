@@ -302,9 +302,19 @@ public class LivePhotoConv.Application : Adw.Application {
         var view_switcher = new Adw.ViewSwitcher ();
 
         var stack = new Adw.ViewStack ();
-        stack.add_titled_with_icon (wrap_in_scroll (build_make_page ()), "make", "Make", "list-add-symbolic");
-        stack.add_titled_with_icon (wrap_in_scroll (build_extract_page ()), "extract", "Extract", "document-send-symbolic");
-        stack.add_titled_with_icon (wrap_in_scroll (build_repair_page ()), "repair", "Repair", "applications-utilities-symbolic");
+
+        make_button = make_action_button ("Make Live Photo");
+        make_button.clicked.connect (on_make_clicked);
+
+        extract_button = make_action_button ("Extract");
+        extract_button.clicked.connect (on_extract_clicked);
+
+        repair_button = make_action_button ("Repair");
+        repair_button.clicked.connect (on_repair_clicked);
+
+        stack.add_titled_with_icon (page_with_action_button (build_make_page (), make_button), "make", "Make", "list-add-symbolic");
+        stack.add_titled_with_icon (page_with_action_button (build_extract_page (), extract_button), "extract", "Extract", "document-send-symbolic");
+        stack.add_titled_with_icon (page_with_action_button (build_repair_page (), repair_button), "repair", "Repair", "applications-utilities-symbolic");
 
         view_switcher.stack = stack;
         stack.visible_child_name = "extract";
@@ -338,16 +348,31 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     /**
-     * Wraps a widget in a {@link Gtk.ScrolledWindow} with both scrollbars
-     * set to expand.
+     * Wraps page content in a scrollable area with the action button fixed at the bottom.
      */
-    private Gtk.Widget wrap_in_scroll (Gtk.Widget child) {
+    private Gtk.Widget page_with_action_button (Gtk.Widget content, Gtk.Button button) {
         var scroll = new Gtk.ScrolledWindow () {
-            child = child,
+            child = content,
             vexpand = true,
             hexpand = true,
         };
-        return scroll;
+        var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+        box.append (scroll);
+        box.append (button);
+        return box;
+    }
+
+    private Gtk.Button make_action_button (string label) {
+        return new Gtk.Button.with_label (label) {
+            halign = Gtk.Align.FILL,
+            hexpand = true,
+            css_classes = { "pill", "suggested-action" },
+            margin_start = 24,
+            margin_end = 24,
+            margin_top = 12,
+            margin_bottom = 12,
+            sensitive = false,
+        };
     }
 
     // ── Button state helpers ──
@@ -488,19 +513,6 @@ public class LivePhotoConv.Application : Adw.Application {
         options_group.add (make_check_row ("Export metadata", out make_export_metadata_check, true));
         box.append (options_group);
 
-        make_button = new Gtk.Button.with_label ("Make Live Photo") {
-            halign = Gtk.Align.FILL,
-            hexpand = true,
-            css_classes = { "pill", "suggested-action" },
-            margin_start = 24,
-            margin_end = 24,
-            margin_top = 18,
-            margin_bottom = 12,
-            sensitive = false,
-        };
-        make_button.clicked.connect (on_make_clicked);
-        box.append (make_button);
-
         return box;
     }
 
@@ -580,19 +592,6 @@ public class LivePhotoConv.Application : Adw.Application {
         exports_group.add (make_check_row ("Export Long Exposure Photo", out extract_long_exposure_check, false));
         exports_group.add (make_entry_row ("Image Format", out extract_img_format_entry, "auto"));
         box.append (exports_group);
-
-        extract_button = new Gtk.Button.with_label ("Extract") {
-            halign = Gtk.Align.FILL,
-            hexpand = true,
-            css_classes = { "pill", "suggested-action" },
-            margin_start = 24,
-            margin_end = 24,
-            margin_top = 18,
-            margin_bottom = 12,
-            sensitive = false,
-        };
-        extract_button.clicked.connect (on_extract_clicked);
-        box.append (extract_button);
 
         return box;
     }
@@ -710,19 +709,6 @@ public class LivePhotoConv.Application : Adw.Application {
         expander.add_row (spin_box);
         advanced_group.add (expander);
         box.append (advanced_group);
-
-        repair_button = new Gtk.Button.with_label ("Repair") {
-            halign = Gtk.Align.FILL,
-            hexpand = true,
-            css_classes = { "pill", "suggested-action" },
-            margin_start = 24,
-            margin_end = 24,
-            margin_top = 18,
-            margin_bottom = 12,
-            sensitive = false,
-        };
-        repair_button.clicked.connect (on_repair_clicked);
-        box.append (repair_button);
 
         return box;
     }

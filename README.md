@@ -89,37 +89,17 @@ flatpak run com.github.wszqkzqk.live-photo-conv
 ### Dependencies
 
 * Build Dependencies
-  * Meson
-  * Vala
-  * GExiv2
-  * GTK4 (optional, for the GUI)
-  * LibAdwaita (optional, for the GUI)
-  * GStreamer (optional, used for exporting images from attached videos, otherwise FFmpeg commands are used)
-    * `gstreamer`
-    * `gst-plugins-base-libs`
-  * gdk-pixbuf2 (optional, used for exporting images from attached videos, otherwise FFmpeg commands are used)
-  * gobject-introspection (optional, used for generating GObject Introspection information)
+  * Meson, Vala, GExiv2
+  * GTK4, LibAdwaita (optional, for the GUI)
+  * GStreamer (`gstreamer`, `gst-plugins-base-libs`) — optional, for exporting images from videos; FFmpeg used otherwise
+  * gdk-pixbuf2 — optional, same as above
+  * gobject-introspection — optional, for generating GObject Introspection data
 * Runtime Dependencies
-  * GLib
-    * GObject
-    * GIO
-  * GExiv2
-  * GTK4 (required by the GUI)
-  * LibAdwaita (required by the GUI)
-  * GStreamer (required when built with GStreamer support)
-    * `gstreamer`
-    * `gst-plugins-base-libs`
-    * `gst-plugins-good`
-    * `gst-plugins-bad`
-    * `gst-plugin-va` (optional, for hardware acceleration)
-  * gdk-pixbuf2 (required when built with GStreamer support)
-    * `gdk-pixbuf2`
-    * To support more export formats, you can install optional dependencies such as:
-      * `libavif`: .avif
-      * `libheif`: .heif, .heic, and .avif
-      * `libjxl`: .jxl
-      * `webp-pixbuf-loader`: .webp
-  * FFmpeg (optional, required when not built with GStreamer support and need to export images from attached videos)
+  * GLib (GObject, GIO), GExiv2
+  * GTK4, LibAdwaita (required by the GUI)
+  * GStreamer (`gstreamer`, `gst-plugins-base-libs`, `gst-plugins-good`, `gst-plugins-bad`) — required when built with GStreamer; `gst-plugin-va` optional, for hardware acceleration
+  * gdk-pixbuf2 — required when built with GStreamer; optional format loaders: `libavif` (.avif), `libheif` (.heif/.heic/.avif), `libjxl` (.jxl), `webp-pixbuf-loader` (.webp)
+  * FFmpeg — optional, required when not built with GStreamer and need to export images from videos
 
 For example, to install dependencies on Arch Linux:
 
