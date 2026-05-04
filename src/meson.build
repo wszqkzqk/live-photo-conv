@@ -1,7 +1,25 @@
-version_file = vcs_tag(
-   command: meson.project_version(),
-     input: 'version.vala.in',
-    output: 'version.vala',
+vcs_version = meson.project_version()
+git = find_program('git', required: false)
+if git.found()
+  git_desc = run_command('git', 'describe', '--tags', '--abbrev=12', '--dirty', check: false)
+  if git_desc.returncode() == 0
+    raw = git_desc.stdout().strip()
+    if raw.startswith('v')
+      raw = raw.substring(1)
+    endif
+    vcs_version = raw.replace('-', '.')
+  endif
+endif
+
+localedir = join_paths(get_option('prefix'), get_option('localedir'))
+constants_data = configuration_data()
+constants_data.set_quoted('VERSION', vcs_version)
+constants_data.set_quoted('GETTEXT_PACKAGE', meson.project_name())
+constants_data.set_quoted('LOCALEDIR', localedir)
+constants_file = configure_file(
+    input: 'constants.vala.in',
+    output: 'constants.vala',
+    configuration: constants_data,
 )
 
 lib_common_sources = [
@@ -24,7 +42,7 @@ if with_gst
   ]
 endif
 
-lib_sources = lib_common_sources + [version_file]
+lib_sources = lib_common_sources + [constants_file]
 
 lib_gi_name = 'LivePhotoTools'
 lib_gi_version = lib_api_version  # Use centralized API version
@@ -247,7 +265,7 @@ if valadoc.found()
         '--vapidir', join_paths(meson.global_source_root(), 'vapi'),
         '--doclet=devhelp',
         '-o', 'docs',
-        version_file.full_path(),
+        constants_file.full_path(),
         '--gir', '@OUTPUT@',
         '@INPUT@'
     ],
