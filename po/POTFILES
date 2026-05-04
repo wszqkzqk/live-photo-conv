@@ -1,0 +1,4 @@
+# List of source files containing translatable strings.
+# Paths are relative to the project source root.
+# Please keep this file sorted alphabetically.
+src/gui.vala

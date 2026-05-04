@@ -1,6 +1,6 @@
 project('live-photo-conv', ['c', 'vala'],
           version: '0.40.2',
-    meson_version: '>= 1.1',
+    meson_version: '>= 1.4',
 )
 
 # Library versioning
@@ -51,7 +51,11 @@ endif
 # Other tool dependencies
 pkg = import('pkgconfig')
 gnome = import('gnome')
+i18n = import('i18n')
 python = import('python').find_installation()
+
+# i18n - must be defined before vala sources that use _()
+add_project_arguments('-DGETTEXT_PACKAGE="@0@"'.format(meson.project_name()), language: 'c')
 
 # Optional tools
 g_ir_compiler = find_program('g-ir-compiler', required: get_option('gir'))
@@ -61,6 +65,8 @@ valadoc = find_program('valadoc', required: get_option('docs'))
 #incdir = include_directories('include')
 
 subdir('src')
+
+subdir('po')
 
 if with_gui and is_freedesktop
   gnome.post_install (

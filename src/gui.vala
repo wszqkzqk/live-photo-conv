@@ -61,7 +61,7 @@ private class LivePhotoConv.FileDropArea : Adw.Bin {
                 icon_image.icon_name = "emblem-documents-symbolic";
                 icon_image.opacity = 1.0;
             } else {
-                file_label.label = @"$(value.length) files selected";
+                file_label.label = ngettext ("%u file selected", "%u files selected", value.length).printf (value.length);
                 label_stack.visible_child = file_label;
                 icon_image.icon_name = "emblem-documents-symbolic";
                 icon_image.opacity = 1.0;
@@ -291,7 +291,7 @@ public class LivePhotoConv.Application : Adw.Application {
      */
     public override void activate () {
         var window = new Adw.ApplicationWindow (this) {
-            title = "Live Photo Converter",
+            title = _("Live Photo Converter"),
             default_width = 520,
             default_height = 750,
         };
@@ -306,18 +306,18 @@ public class LivePhotoConv.Application : Adw.Application {
 
         var stack = new Adw.ViewStack ();
 
-        make_button = make_action_button ("Make Live Photo");
+        make_button = make_action_button (_("Make Live Photo"));
         make_button.clicked.connect (on_make_clicked);
 
-        extract_button = make_action_button ("Extract");
+        extract_button = make_action_button (_("Extract"));
         extract_button.clicked.connect (on_extract_clicked);
 
-        repair_button = make_action_button ("Repair");
+        repair_button = make_action_button (_("Repair"));
         repair_button.clicked.connect (on_repair_clicked);
 
-        stack.add_titled_with_icon (page_with_action_button (build_make_page (), make_button), "make", "Make", "list-add-symbolic");
-        stack.add_titled_with_icon (page_with_action_button (build_extract_page (), extract_button), "extract", "Extract", "document-send-symbolic");
-        stack.add_titled_with_icon (page_with_action_button (build_repair_page (), repair_button), "repair", "Repair", "applications-utilities-symbolic");
+        stack.add_titled_with_icon (page_with_action_button (build_make_page (), make_button), "make", _("Make"), "list-add-symbolic");
+        stack.add_titled_with_icon (page_with_action_button (build_extract_page (), extract_button), "extract", _("Extract"), "document-send-symbolic");
+        stack.add_titled_with_icon (page_with_action_button (build_repair_page (), repair_button), "repair", _("Repair"), "applications-utilities-symbolic");
 
         view_switcher.stack = stack;
         stack.visible_child_name = "extract";
@@ -325,14 +325,14 @@ public class LivePhotoConv.Application : Adw.Application {
 
         var appearance_menu = new Menu ();
         var section = new Menu ();
-        section.append ("Follow System", "app.color-scheme::default");
-        section.append ("Light", "app.color-scheme::force-light");
-        section.append ("Dark", "app.color-scheme::force-dark");
+        section.append (_("Follow System"), "app.color-scheme::default");
+        section.append (_("Light"), "app.color-scheme::force-light");
+        section.append (_("Dark"), "app.color-scheme::force-dark");
         appearance_menu.append_section (null, section);
 
         var menu = new Menu ();
-        menu.append_submenu ("Appearance", appearance_menu);
-        menu.append ("About", "app.about");
+        menu.append_submenu (_("Appearance"), appearance_menu);
+        menu.append (_("About"), "app.about");
 
         var menu_button = new Gtk.MenuButton () {
             icon_name = "open-menu-symbolic",
@@ -401,7 +401,7 @@ public class LivePhotoConv.Application : Adw.Application {
 
     private void show_about () {
         var about = new Adw.AboutDialog () {
-            application_name = "Live Photo Converter",
+            application_name = _("Live Photo Converter"),
             application_icon = "com.github.wszqkzqk.live-photo-conv",
             developer_name = "Zhou Qiankang (wszqkzqk)",
             version = VERSION,
@@ -470,8 +470,8 @@ public class LivePhotoConv.Application : Adw.Application {
             margin_top = 6,
         };
 
-        var files_group = make_group ("Source Files",
-            "Provide a video file (required) and a static image.");
+        var files_group = make_group (_("Source Files"),
+            _("Provide a video file (required) and a static image."));
 
         // Side-by-side drop areas: Video | Main Image
         var drop_row = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12) {
@@ -483,11 +483,11 @@ public class LivePhotoConv.Application : Adw.Application {
         };
 
         var video_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
-        video_col.append (new Gtk.Label ("Video") {
+        video_col.append (new Gtk.Label (_("Video")) {
             xalign = 0,
             css_classes = { "heading" },
         });
-        make_video_area = new FileDropArea ("Drop video here\nor click to browse", "folder-videos-symbolic", {"video/*"}) {
+        make_video_area = new FileDropArea (_("Drop video here\nor click to browse"), "folder-videos-symbolic", {"video/*"}) {
             max_files = 1,
             vexpand = true,
             valign = Gtk.Align.FILL,
@@ -500,11 +500,11 @@ public class LivePhotoConv.Application : Adw.Application {
         drop_row.append (video_col);
 
         var image_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
-        image_col.append (new Gtk.Label ("Main Image") {
+        image_col.append (new Gtk.Label (_("Main Image")) {
             xalign = 0,
             css_classes = { "heading" },
         });
-        make_image_area = new FileDropArea ("Drop image here\nor click to browse", "folder-pictures-symbolic", {"image/*"}) {
+        make_image_area = new FileDropArea (_("Drop image here\nor click to browse"), "folder-pictures-symbolic", {"image/*"}) {
             max_files = 1,
             vexpand = true,
             valign = Gtk.Align.FILL,
@@ -515,9 +515,9 @@ public class LivePhotoConv.Application : Adw.Application {
         files_group.add (new Adw.ActionRow () { child = drop_row });
         box.append (files_group);
 
-        var options_group = make_group ("Options");
+        var options_group = make_group (_("Options"));
         make_export_metadata_check = null;
-        options_group.add (make_check_row ("Export metadata", out make_export_metadata_check, true));
+        options_group.add (make_check_row (_("Export metadata"), out make_export_metadata_check, true));
         box.append (options_group);
 
         return box;
@@ -528,7 +528,7 @@ public class LivePhotoConv.Application : Adw.Application {
         if (video_file == null) return;
 
         var dialog = new Gtk.FileDialog () {
-            title = "Save Live Photo As",
+            title = _("Save Live Photo As"),
             initial_name = "MVIMG_live_photo.jpg",
         };
         dialog.save.begin (active_window, null, (obj, res) => {
@@ -542,7 +542,7 @@ public class LivePhotoConv.Application : Adw.Application {
                 var output_path = output_file.get_path ();
                 bool export_metadata = make_export_metadata_check.active;
 
-                start_work (make_button, "Processing…");
+                start_work (make_button, _("Processing…"));
 
 #if ENABLE_GST
                 var maker = new LiveMakerGst (video_path, image_path, output_path) {
@@ -556,11 +556,11 @@ public class LivePhotoConv.Application : Adw.Application {
                 maker.export_async.begin ((obj, res2) => {
                     try {
                         maker.export_async.end (res2);
-                        end_work (make_button, "Make Live Photo", make_video_area.files.length > 0);
-                        show_toast ("Live photo created");
+                        end_work (make_button, _("Make Live Photo"), make_video_area.files.length > 0);
+                        show_toast (_("Live photo created"));
                     } catch (Error e) {
-                        end_work (make_button, "Make Live Photo", make_video_area.files.length > 0);
-                        show_toast (@"Error: $(e.message)");
+                        end_work (make_button, _("Make Live Photo"), make_video_area.files.length > 0);
+                        show_toast (_("Error: %s").printf (e.message));
                     }
                 });
             } catch {}
@@ -574,10 +574,10 @@ public class LivePhotoConv.Application : Adw.Application {
             margin_top = 6,
         };
 
-        var files_group = make_group ("Live Photo",
-            "Select the live photo file to extract from.");
+        var files_group = make_group (_("Live Photo"),
+            _("Select the live photo file to extract from."));
 
-        extract_live_photo_area = new FileDropArea ("Drop live photo file here\nor click to browse", "camera-photo-symbolic", {"image/*"}) {
+        extract_live_photo_area = new FileDropArea (_("Drop live photo file here\nor click to browse"), "camera-photo-symbolic", {"image/*"}) {
             margin_start = 12,
             margin_end = 12,
             margin_top = 12,
@@ -590,14 +590,14 @@ public class LivePhotoConv.Application : Adw.Application {
         files_group.add (new Adw.ActionRow () { child = extract_live_photo_area });
         box.append (files_group);
 
-        var exports_group = make_group ("Export Items",
-            "Choose what to extract from the live photo.");
+        var exports_group = make_group (_("Export Items"),
+            _("Choose what to extract from the live photo."));
 
-        exports_group.add (make_check_row ("Export Main Image", out extract_main_image_check, true));
-        exports_group.add (make_check_row ("Export Video", out extract_video_check, true));
-        exports_group.add (make_check_row ("Export Frames as Photos", out extract_frames_check, false));
-        exports_group.add (make_check_row ("Export Long Exposure Photo", out extract_long_exposure_check, false));
-        exports_group.add (make_entry_row ("Image Format", out extract_img_format_entry, "auto"));
+        exports_group.add (make_check_row (_("Export Main Image"), out extract_main_image_check, true));
+        exports_group.add (make_check_row (_("Export Video"), out extract_video_check, true));
+        exports_group.add (make_check_row (_("Export Frames as Photos"), out extract_frames_check, false));
+        exports_group.add (make_check_row (_("Export Long Exposure Photo"), out extract_long_exposure_check, false));
+        exports_group.add (make_entry_row (_("Image Format"), out extract_img_format_entry, _("auto")));
         box.append (exports_group);
 
         return box;
@@ -606,12 +606,12 @@ public class LivePhotoConv.Application : Adw.Application {
     private void on_extract_clicked () {
         var files = extract_live_photo_area.files;
         if (files.length == 0) {
-            show_toast ("Please select a live photo file first");
+            show_toast (_("Please select a live photo file first"));
             return;
         }
 
         var dialog = new Gtk.FileDialog () {
-            title = "Select Output Directory",
+            title = _("Select Output Directory"),
         };
         dialog.select_folder.begin (active_window, null, (obj, res) => {
             try {
@@ -626,18 +626,18 @@ public class LivePhotoConv.Application : Adw.Application {
                 string? img_format = extract_img_format_entry.text.strip ();
                 if (img_format == "") img_format = null;
 
-                start_work (extract_button, "Extracting…");
+                start_work (extract_button, _("Extracting…"));
                 extract_batch_async.begin (files, dest_dir,
                     do_image, do_video, do_long, do_frames, img_format,
                     extract_button,
                     (obj, res2) => {
                         try {
                             extract_batch_async.end (res2);
-                            end_work (extract_button, "Extract", extract_live_photo_area.files.length > 0);
-                            show_toast (@"$(files.length) file(s) extracted");
+                            end_work (extract_button, _("Extract"), extract_live_photo_area.files.length > 0);
+                            show_toast (ngettext ("%u file extracted", "%u files extracted", (uint) files.length).printf ((uint) files.length));
                         } catch (Error e) {
-                            end_work (extract_button, "Extract", extract_live_photo_area.files.length > 0);
-                            show_toast (@"Error: $(e.message)");
+                            end_work (extract_button, _("Extract"), extract_live_photo_area.files.length > 0);
+                            show_toast (_("Error: %s").printf (e.message));
                         }
                     });
             } catch {}
@@ -651,10 +651,10 @@ public class LivePhotoConv.Application : Adw.Application {
             margin_top = 6,
         };
 
-        var files_group = make_group ("Live Photo",
-            "Select the live photo file to repair its XMP metadata.");
+        var files_group = make_group (_("Live Photo"),
+            _("Select the live photo file to repair its XMP metadata."));
 
-        repair_live_photo_area = new FileDropArea ("Drop live photo file here\nor click to browse", "camera-photo-symbolic", {"image/*"}) {
+        repair_live_photo_area = new FileDropArea (_("Drop live photo file here\nor click to browse"), "camera-photo-symbolic", {"image/*"}) {
             margin_start = 12,
             margin_end = 12,
             margin_top = 12,
@@ -667,23 +667,23 @@ public class LivePhotoConv.Application : Adw.Application {
         files_group.add (new Adw.ActionRow () { child = repair_live_photo_area });
         box.append (files_group);
 
-        var options_group = make_group ("Repair Options");
+        var options_group = make_group (_("Repair Options"));
 
-        options_group.add (make_check_row ("Force Repair",
+        options_group.add (make_check_row (_("Force Repair"),
             out repair_force_check, false,
-            "If enabled, the video offset will be re-discovered by scanning\n"
+            _("If enabled, the video offset will be re-discovered by scanning\n"
             + "the entire file for the MP4 header, overriding any existing\n"
-            + "offset value in the XMP metadata."));
+            + "offset value in the XMP metadata.")));
 
         box.append (options_group);
 
-        var advanced_group = make_group ("Advanced");
+        var advanced_group = make_group (_("Advanced"));
         var expander = new Adw.ExpanderRow () {
-            title = "Manual Video Size",
-            subtitle = "Specify the size of the embedded video in bytes",
-            tooltip_text = "If the video size cannot be detected automatically,\n"
+            title = _("Manual Video Size"),
+            subtitle = _("Specify the size of the embedded video in bytes"),
+            tooltip_text = _("If the video size cannot be detected automatically,\n"
                             + "you can manually specify its size in bytes.\n"
-                            + "Leave at 0 to use automatic detection.",
+                            + "Leave at 0 to use automatic detection."),
             expanded = false,
             show_enable_switch = false,
         };
@@ -696,8 +696,8 @@ public class LivePhotoConv.Application : Adw.Application {
             halign = Gtk.Align.END,
             valign = Gtk.Align.CENTER,
             width_chars = 12,
-            tooltip_text = "Enter the exact size of the video portion in bytes.\n"
-                            + "Only needed if automatic detection fails.",
+            tooltip_text = _("Enter the exact size of the video portion in bytes.\n"
+                            + "Only needed if automatic detection fails."),
         };
 
         var spin_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 6) {
@@ -706,7 +706,7 @@ public class LivePhotoConv.Application : Adw.Application {
             margin_top = 6,
             margin_bottom = 6,
         };
-        spin_box.append (new Gtk.Label ("Video size in bytes") {
+        spin_box.append (new Gtk.Label (_("Video size in bytes")) {
             hexpand = true,
             xalign = 0,
             valign = Gtk.Align.CENTER,
@@ -723,22 +723,22 @@ public class LivePhotoConv.Application : Adw.Application {
     private void on_repair_clicked () {
         var files = repair_live_photo_area.files;
         if (files.length == 0) {
-            show_toast ("Please select a live photo file first");
+            show_toast (_("Please select a live photo file first"));
             return;
         }
 
         bool force = repair_force_check.active;
         uint video_size = (uint) repair_video_size_spin.value;
 
-        start_work (repair_button, "Repairing…");
+        start_work (repair_button, _("Repairing…"));
         repair_batch_async.begin (files, force, video_size, repair_button, (obj, res) => {
             try {
                 repair_batch_async.end (res);
-                end_work (repair_button, "Repair", repair_live_photo_area.files.length > 0);
-                show_toast (@"$(files.length) file(s) repaired");
+                end_work (repair_button, _("Repair"), repair_live_photo_area.files.length > 0);
+                show_toast (ngettext ("%u file repaired", "%u files repaired", (uint) files.length).printf ((uint) files.length));
             } catch (Error e) {
-                end_work (repair_button, "Repair", repair_live_photo_area.files.length > 0);
-                show_toast (@"Error: $(e.message)");
+                end_work (repair_button, _("Repair"), repair_live_photo_area.files.length > 0);
+                show_toast (_("Error: %s").printf (e.message));
             }
         });
     }
@@ -760,7 +760,7 @@ public class LivePhotoConv.Application : Adw.Application {
         int total = (int) files.length;
         int processed = 0;
 
-        report_progress (button, "Extracting", 0, total);
+        report_progress (button, _("Extracting"), 0, total);
 
         new Thread<void> ("extract-batch", () => {
             foreach (unowned var file in files) {
@@ -787,7 +787,7 @@ public class LivePhotoConv.Application : Adw.Application {
                 }
                 processed += 1;
                 Idle.add (() => {
-                    report_progress (button, "Extracting", processed, total);
+                    report_progress (button, _("Extracting"), processed, total);
                     return false;
                 });
             }
@@ -806,7 +806,7 @@ public class LivePhotoConv.Application : Adw.Application {
         int total = (int) files.length;
         int processed = 0;
 
-        report_progress (button, "Repairing", 0, total);
+        report_progress (button, _("Repairing"), 0, total);
 
         new Thread<void> ("repair-batch", () => {
             foreach (unowned var file in files) {
@@ -824,7 +824,7 @@ public class LivePhotoConv.Application : Adw.Application {
                 }
                 processed += 1;
                 Idle.add (() => {
-                    report_progress (button, "Repairing", processed, total);
+                    report_progress (button, _("Repairing"), processed, total);
                     return false;
                 });
             }
@@ -842,6 +842,10 @@ public class LivePhotoConv.Application : Adw.Application {
      * @return exit code
      */
     public static int main (string[] args) {
+        Intl.setlocale (LocaleCategory.ALL, "");
+        Intl.bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+        Intl.bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+        Intl.textdomain (GETTEXT_PACKAGE);
         var app = new Application ();
         return app.run (args);
     }

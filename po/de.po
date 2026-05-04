@@ -1,0 +1,266 @@
+# German translations for live-photo-conv package.
+# Copyright (C) 2026 THE live-photo-conv'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the live-photo-conv package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: live-photo-conv\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-04 17:38+0800\n"
+"PO-Revision-Date: 2026-05-04 14:06+0800\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/gui.vala:64
+#, c-format
+msgid "%u file selected"
+msgid_plural "%u files selected"
+msgstr[0] "%u Datei ausgewählt"
+msgstr[1] "%u Dateien ausgewählt"
+
+#: src/gui.vala:294 src/gui.vala:404
+msgid "Live Photo Converter"
+msgstr "Live Photo Konverter"
+
+#: src/gui.vala:309 src/gui.vala:559 src/gui.vala:562
+msgid "Make Live Photo"
+msgstr "Live Photo erstellen"
+
+#: src/gui.vala:312 src/gui.vala:319 src/gui.vala:636 src/gui.vala:639
+msgid "Extract"
+msgstr "Extrahieren"
+
+#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:737 src/gui.vala:740
+msgid "Repair"
+msgstr "Reparieren"
+
+#: src/gui.vala:318
+msgid "Make"
+msgstr "Erstellen"
+
+#: src/gui.vala:328
+msgid "Follow System"
+msgstr "System folgen"
+
+#: src/gui.vala:329
+msgid "Light"
+msgstr "Hell"
+
+#: src/gui.vala:330
+msgid "Dark"
+msgstr "Dunkel"
+
+#: src/gui.vala:334
+msgid "Appearance"
+msgstr "Erscheinungsbild"
+
+#: src/gui.vala:335
+msgid "About"
+msgstr "Über"
+
+#: src/gui.vala:473
+msgid "Source Files"
+msgstr "Quelldateien"
+
+#: src/gui.vala:474
+msgid "Provide a video file (required) and a static image."
+msgstr "Eine Videodatei (erforderlich) und ein statisches Bild bereitstellen."
+
+#: src/gui.vala:486
+msgid "Video"
+msgstr "Video"
+
+#: src/gui.vala:490
+msgid ""
+"Drop video here\n"
+"or click to browse"
+msgstr ""
+"Video hier ablegen\n"
+"oder zum Durchsuchen klicken"
+
+#: src/gui.vala:503
+msgid "Main Image"
+msgstr "Hauptbild"
+
+#: src/gui.vala:507
+msgid ""
+"Drop image here\n"
+"or click to browse"
+msgstr ""
+"Bild hier ablegen\n"
+"oder zum Durchsuchen klicken"
+
+#: src/gui.vala:518
+msgid "Options"
+msgstr "Optionen"
+
+#: src/gui.vala:520
+msgid "Export metadata"
+msgstr "Metadaten exportieren"
+
+#: src/gui.vala:531
+msgid "Save Live Photo As"
+msgstr "Live Photo speichern als"
+
+#: src/gui.vala:545
+msgid "Processing…"
+msgstr "Verarbeitung…"
+
+#: src/gui.vala:560
+msgid "Live photo created"
+msgstr "Live Photo erstellt"
+
+#: src/gui.vala:563 src/gui.vala:640 src/gui.vala:741
+#, c-format
+msgid "Error: %s"
+msgstr "Fehler: %s"
+
+#: src/gui.vala:577 src/gui.vala:654
+msgid "Live Photo"
+msgstr "Live Photo"
+
+#: src/gui.vala:578
+msgid "Select the live photo file to extract from."
+msgstr "Wählen Sie die zu extrahierende Live-Photo-Datei aus."
+
+#: src/gui.vala:580 src/gui.vala:657
+msgid ""
+"Drop live photo file here\n"
+"or click to browse"
+msgstr ""
+"Live-Photo-Datei hier ablegen\n"
+"oder zum Durchsuchen klicken"
+
+#: src/gui.vala:593
+msgid "Export Items"
+msgstr "Exportelemente"
+
+#: src/gui.vala:594
+msgid "Choose what to extract from the live photo."
+msgstr "Wählen Sie, was aus dem Live Photo extrahiert werden soll."
+
+#: src/gui.vala:596
+msgid "Export Main Image"
+msgstr "Hauptbild exportieren"
+
+#: src/gui.vala:597
+msgid "Export Video"
+msgstr "Video exportieren"
+
+#: src/gui.vala:598
+msgid "Export Frames as Photos"
+msgstr "Einzelbilder als Fotos exportieren"
+
+#: src/gui.vala:599
+msgid "Export Long Exposure Photo"
+msgstr "Langzeitbelichtungsfoto exportieren"
+
+#: src/gui.vala:600
+msgid "Image Format"
+msgstr "Bildformat"
+
+#: src/gui.vala:600
+msgid "auto"
+msgstr "automatisch"
+
+#: src/gui.vala:609 src/gui.vala:726
+msgid "Please select a live photo file first"
+msgstr "Bitte wählen Sie zuerst eine Live-Photo-Datei aus"
+
+#: src/gui.vala:614
+msgid "Select Output Directory"
+msgstr "Ausgabeverzeichnis auswählen"
+
+#: src/gui.vala:629
+msgid "Extracting…"
+msgstr "Extraktion…"
+
+#: src/gui.vala:637
+#, c-format
+msgid "%u file extracted"
+msgid_plural "%u files extracted"
+msgstr[0] "%u Datei extrahiert"
+msgstr[1] "%u Dateien extrahiert"
+
+#: src/gui.vala:655
+msgid "Select the live photo file to repair its XMP metadata."
+msgstr ""
+"Wählen Sie die Live-Photo-Datei, deren XMP-Metadaten repariert werden sollen."
+
+#: src/gui.vala:670
+msgid "Repair Options"
+msgstr "Reparaturoptionen"
+
+#: src/gui.vala:672
+msgid "Force Repair"
+msgstr "Reparatur erzwingen"
+
+#: src/gui.vala:674
+msgid ""
+"If enabled, the video offset will be re-discovered by scanning\n"
+"the entire file for the MP4 header, overriding any existing\n"
+"offset value in the XMP metadata."
+msgstr ""
+"Wenn aktiviert, wird der Video-Offset durch Scannen\n"
+"der gesamten Datei nach dem MP4-Header neu ermittelt,\n"
+"wobei vorhandene Offset-Werte in den XMP-Metadaten\n"
+"überschrieben werden."
+
+#: src/gui.vala:680
+msgid "Advanced"
+msgstr "Erweitert"
+
+#: src/gui.vala:682
+msgid "Manual Video Size"
+msgstr "Manuelle Videogröße"
+
+#: src/gui.vala:683
+msgid "Specify the size of the embedded video in bytes"
+msgstr "Größe des eingebetteten Videos in Bytes angeben"
+
+#: src/gui.vala:684
+msgid ""
+"If the video size cannot be detected automatically,\n"
+"you can manually specify its size in bytes.\n"
+"Leave at 0 to use automatic detection."
+msgstr ""
+"Wenn die Videogröße nicht automatisch erkannt werden kann,\n"
+"können Sie die Größe manuell in Bytes angeben.\n"
+"Bei 0 wird die automatische Erkennung verwendet."
+
+#: src/gui.vala:699
+msgid ""
+"Enter the exact size of the video portion in bytes.\n"
+"Only needed if automatic detection fails."
+msgstr ""
+"Geben Sie die genaue Größe des Videoteils in Bytes ein.\n"
+"Nur erforderlich, wenn die automatische Erkennung fehlschlägt."
+
+#: src/gui.vala:709
+msgid "Video size in bytes"
+msgstr "Videogröße in Bytes"
+
+#: src/gui.vala:733
+msgid "Repairing…"
+msgstr "Reparatur…"
+
+#: src/gui.vala:738
+#, c-format
+msgid "%u file repaired"
+msgid_plural "%u files repaired"
+msgstr[0] "%u Datei repariert"
+msgstr[1] "%u Dateien repariert"
+
+#: src/gui.vala:763 src/gui.vala:790
+msgid "Extracting"
+msgstr "Extraktion"
+
+#: src/gui.vala:809 src/gui.vala:827
+msgid "Repairing"
+msgstr "Reparatur"

@@ -1,0 +1,261 @@
+# Chinese translations for live-photo-conv package.
+# Copyright (C) 2026 THE live-photo-conv'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the live-photo-conv package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: live-photo-conv\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-04 17:38+0800\n"
+"PO-Revision-Date: 2026-05-04 14:06+0800\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: src/gui.vala:64
+#, c-format
+msgid "%u file selected"
+msgid_plural "%u files selected"
+msgstr[0] "%u 个文件已选择"
+
+#: src/gui.vala:294 src/gui.vala:404
+msgid "Live Photo Converter"
+msgstr "动态照片转换器"
+
+#: src/gui.vala:309 src/gui.vala:559 src/gui.vala:562
+msgid "Make Live Photo"
+msgstr "制作动态照片"
+
+#: src/gui.vala:312 src/gui.vala:319 src/gui.vala:636 src/gui.vala:639
+msgid "Extract"
+msgstr "提取"
+
+#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:737 src/gui.vala:740
+msgid "Repair"
+msgstr "修复"
+
+#: src/gui.vala:318
+msgid "Make"
+msgstr "制作"
+
+#: src/gui.vala:328
+msgid "Follow System"
+msgstr "跟随系统"
+
+#: src/gui.vala:329
+msgid "Light"
+msgstr "浅色"
+
+#: src/gui.vala:330
+msgid "Dark"
+msgstr "深色"
+
+#: src/gui.vala:334
+msgid "Appearance"
+msgstr "外观"
+
+#: src/gui.vala:335
+msgid "About"
+msgstr "关于"
+
+#: src/gui.vala:473
+msgid "Source Files"
+msgstr "源文件"
+
+#: src/gui.vala:474
+msgid "Provide a video file (required) and a static image."
+msgstr "提供视频文件（必需）和一张静态图像。"
+
+#: src/gui.vala:486
+msgid "Video"
+msgstr "视频"
+
+#: src/gui.vala:490
+msgid ""
+"Drop video here\n"
+"or click to browse"
+msgstr ""
+"将视频拖放到此处\n"
+"或点击浏览"
+
+#: src/gui.vala:503
+msgid "Main Image"
+msgstr "主图像"
+
+#: src/gui.vala:507
+msgid ""
+"Drop image here\n"
+"or click to browse"
+msgstr ""
+"将图像拖放到此处\n"
+"或点击浏览"
+
+#: src/gui.vala:518
+msgid "Options"
+msgstr "选项"
+
+#: src/gui.vala:520
+msgid "Export metadata"
+msgstr "导出元数据"
+
+#: src/gui.vala:531
+msgid "Save Live Photo As"
+msgstr "保存动态照片为"
+
+#: src/gui.vala:545
+msgid "Processing…"
+msgstr "正在处理…"
+
+#: src/gui.vala:560
+msgid "Live photo created"
+msgstr "动态照片已创建"
+
+#: src/gui.vala:563 src/gui.vala:640 src/gui.vala:741
+#, c-format
+msgid "Error: %s"
+msgstr "错误：%s"
+
+#: src/gui.vala:577 src/gui.vala:654
+msgid "Live Photo"
+msgstr "动态照片"
+
+#: src/gui.vala:578
+msgid "Select the live photo file to extract from."
+msgstr "选择要从中提取的动态照片文件。"
+
+#: src/gui.vala:580 src/gui.vala:657
+msgid ""
+"Drop live photo file here\n"
+"or click to browse"
+msgstr ""
+"将动态照片文件拖放到此处\n"
+"或点击浏览"
+
+#: src/gui.vala:593
+msgid "Export Items"
+msgstr "导出项目"
+
+#: src/gui.vala:594
+msgid "Choose what to extract from the live photo."
+msgstr "选择要从动态照片中提取的内容。"
+
+#: src/gui.vala:596
+msgid "Export Main Image"
+msgstr "导出主图像"
+
+#: src/gui.vala:597
+msgid "Export Video"
+msgstr "导出视频"
+
+#: src/gui.vala:598
+msgid "Export Frames as Photos"
+msgstr "导出帧为照片"
+
+#: src/gui.vala:599
+msgid "Export Long Exposure Photo"
+msgstr "导出长曝光照片"
+
+#: src/gui.vala:600
+msgid "Image Format"
+msgstr "图像格式"
+
+#: src/gui.vala:600
+msgid "auto"
+msgstr "自动"
+
+#: src/gui.vala:609 src/gui.vala:726
+msgid "Please select a live photo file first"
+msgstr "请先选择动态照片文件"
+
+#: src/gui.vala:614
+msgid "Select Output Directory"
+msgstr "选择输出目录"
+
+#: src/gui.vala:629
+msgid "Extracting…"
+msgstr "正在提取…"
+
+#: src/gui.vala:637
+#, c-format
+msgid "%u file extracted"
+msgid_plural "%u files extracted"
+msgstr[0] "已提取 %u 个文件"
+
+#: src/gui.vala:655
+msgid "Select the live photo file to repair its XMP metadata."
+msgstr "选择要修复 XMP 元数据的动态照片文件。"
+
+#: src/gui.vala:670
+msgid "Repair Options"
+msgstr "修复选项"
+
+#: src/gui.vala:672
+msgid "Force Repair"
+msgstr "强制修复"
+
+#: src/gui.vala:674
+msgid ""
+"If enabled, the video offset will be re-discovered by scanning\n"
+"the entire file for the MP4 header, overriding any existing\n"
+"offset value in the XMP metadata."
+msgstr ""
+"启用后，将通过扫描整个文件查找 MP4 标头\n"
+"来重新发现视频偏移量，覆盖 XMP 元数据中\n"
+"现有的偏移值。"
+
+#: src/gui.vala:680
+msgid "Advanced"
+msgstr "高级"
+
+#: src/gui.vala:682
+msgid "Manual Video Size"
+msgstr "手动指定视频大小"
+
+#: src/gui.vala:683
+msgid "Specify the size of the embedded video in bytes"
+msgstr "指定嵌入视频的大小（字节）"
+
+#: src/gui.vala:684
+msgid ""
+"If the video size cannot be detected automatically,\n"
+"you can manually specify its size in bytes.\n"
+"Leave at 0 to use automatic detection."
+msgstr ""
+"如果无法自动检测视频大小，\n"
+"您可以手动指定其字节大小。\n"
+"设置为 0 以使用自动检测。"
+
+#: src/gui.vala:699
+msgid ""
+"Enter the exact size of the video portion in bytes.\n"
+"Only needed if automatic detection fails."
+msgstr ""
+"输入视频部分的精确字节大小。\n"
+"仅在自动检测失败时需要。"
+
+#: src/gui.vala:709
+msgid "Video size in bytes"
+msgstr "视频大小（字节）"
+
+#: src/gui.vala:733
+msgid "Repairing…"
+msgstr "正在修复…"
+
+#: src/gui.vala:738
+#, c-format
+msgid "%u file repaired"
+msgid_plural "%u files repaired"
+msgstr[0] "已修复 %u 个文件"
+
+#: src/gui.vala:763 src/gui.vala:790
+msgid "Extracting"
+msgstr "正在提取"
+
+#: src/gui.vala:809 src/gui.vala:827
+msgid "Repairing"
+msgstr "正在修复"
