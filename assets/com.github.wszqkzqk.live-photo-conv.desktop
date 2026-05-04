@@ -1,6 +1,22 @@
 [Desktop Entry]
 Name=Live Photo Converter
+Name[de]=Live Photo Konverter
+Name[es]=Conversor de Live Photo
+Name[fr]=Convertisseur Live Photo
+Name[ja]=Live Photo コンバーター
+Name[ko]=Live Photo 변환기
+Name[pt_BR]=Conversor de Live Photo
+Name[ru]=Конвертер Live Photo
+Name[zh_CN]=动态照片转换器
 Comment=Convert, extract and repair Android Live Photos
+Comment[de]=Android Live Photos konvertieren, extrahieren und reparieren
+Comment[es]=Convierte, extrae y repara Live Photos de Android
+Comment[fr]=Convertissez, extrayez et réparez des Live Photos Android
+Comment[ja]=Android Live Photo の変換、抽出、修復
+Comment[ko]=Android Live Photo 변환, 추출 및 복구
+Comment[pt_BR]=Converta, extraia e repare Live Photos do Android
+Comment[ru]=Конвертируйте, извлекайте и восстанавливайте Android Live Photos
+Comment[zh_CN]=转换、提取和修复 Android 动态照片
 Exec=live-photo-conv-gtk
 Icon=com.github.wszqkzqk.live-photo-conv
 Type=Application
