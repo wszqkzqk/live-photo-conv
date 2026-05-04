@@ -358,7 +358,7 @@ live-photo-conv --make --image /path/to/dest.jpg --video /path/to/video.mp4 --li
 
 ### 代码贡献
 
-本项目使用 [Meson](https://mesonbuild.com/) 构建系统，主要使用 **Vala** 语言。构建方法参见 [手动构建](#手动构建)。Pull Request 请提交至 `main` 分支。
+本项目使用 [Meson](https://mesonbuild.com/) 构建系统，主要使用 **Vala** 语言。构建方法参见 [手动构建](#手动构建)。[Pull Request](https://github.com/wszqkzqk/live-photo-conv/pulls) 请提交至 `main` 分支。
 
 ### 翻译
 

@@ -368,7 +368,7 @@ This way, you can obtain a live photo that is recognized and playable on the res
 
 ### Code Contributions
 
-This project uses [Meson](https://mesonbuild.com/) as the build system and is primarily written in **Vala**. See [Manual Build](#manual-build) for build instructions. Pull requests should target the `main` branch.
+This project uses [Meson](https://mesonbuild.com/) as the build system and is primarily written in **Vala**. See [Manual Build](#manual-build) for build instructions. [Pull requests](https://github.com/wszqkzqk/live-photo-conv/pulls) should target the `main` branch.
 
 ### Translations
 
