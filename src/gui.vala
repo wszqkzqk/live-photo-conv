@@ -204,7 +204,7 @@ private class LivePhotoConv.FileDropArea : Adw.Bin {
                     if (model == null) return;
 
                     var collected = new GenericArray<File> ();
-                    for (uint i = 0; i < model.get_n_items (); i++)
+                    for (uint i = 0; i < model.get_n_items (); i += 1)
                         collected.add ((File) model.get_item (i));
                     load_files (collected);
                 } catch {}
@@ -756,7 +756,8 @@ public class LivePhotoConv.Application : Adw.Application {
                                              string? img_format,
                                              Gtk.Button button) throws Error {
         SourceFunc callback = extract_batch_async.callback;
-        string? error_msg = null;
+        var sb = new StringBuilder ();
+        int error_count = 0;
         int total = (int) files.length;
         int processed = 0;
 
@@ -764,7 +765,6 @@ public class LivePhotoConv.Application : Adw.Application {
 
         new Thread<void> ("extract-batch", () => {
             foreach (unowned var file in files) {
-                if (error_msg != null) break;
                 var path = file.get_path ();
                 try {
 #if ENABLE_GST
@@ -783,7 +783,9 @@ public class LivePhotoConv.Application : Adw.Application {
                     if (do_frames)
                         live_photo.split_images_from_video (img_format, dest_dir);
                 } catch (Error e) {
-                    error_msg = @"$(path): $(e.message)";
+                    if (error_count > 0) sb.append_c ('\n');
+                    sb.append_printf ("%s: %s", path, e.message);
+                    error_count += 1;
                 }
                 processed += 1;
                 Idle.add (() => {
@@ -794,15 +796,21 @@ public class LivePhotoConv.Application : Adw.Application {
             Idle.add ((owned) callback);
         });
         yield;
-        if (error_msg != null)
-            throw new ExportError.FILE_PUSH_ERROR (error_msg);
+        if (error_count > 0) {
+            unowned string detail = sb.str;
+            throw new ExportError.FILE_PUSH_ERROR (
+                error_count != total
+                    ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
+                    : detail);
+        }
     }
 
     private async void repair_batch_async (GenericArray<File> files, bool force,
                                             uint video_size,
                                             Gtk.Button button) throws Error {
         SourceFunc callback = repair_batch_async.callback;
-        string? error_msg = null;
+        var sb = new StringBuilder ();
+        int error_count = 0;
         int total = (int) files.length;
         int processed = 0;
 
@@ -810,7 +818,6 @@ public class LivePhotoConv.Application : Adw.Application {
 
         new Thread<void> ("repair-batch", () => {
             foreach (unowned var file in files) {
-                if (error_msg != null) break;
                 var path = file.get_path ();
                 try {
 #if ENABLE_GST
@@ -820,7 +827,9 @@ public class LivePhotoConv.Application : Adw.Application {
 #endif
                     live_photo.repair_live_metadata (force, video_size);
                 } catch (Error e) {
-                    error_msg = @"$(path): $(e.message)";
+                    if (error_count > 0) sb.append_c ('\n');
+                    sb.append_printf ("%s: %s", path, e.message);
+                    error_count += 1;
                 }
                 processed += 1;
                 Idle.add (() => {
@@ -831,8 +840,13 @@ public class LivePhotoConv.Application : Adw.Application {
             Idle.add ((owned) callback);
         });
         yield;
-        if (error_msg != null)
-            throw new ExportError.FILE_PUSH_ERROR (error_msg);
+        if (error_count > 0) {
+            unowned string detail = sb.str;
+            throw new ExportError.FILE_PUSH_ERROR (
+                error_count != total
+                    ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
+                    : detail);
+        }
     }
     
     /**
