@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 17:38+0800\n"
+"POT-Creation-Date: 2026-05-04 17:44+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,10 +24,6 @@ msgid "%u file selected"
 msgid_plural "%u files selected"
 msgstr[0] ""
 msgstr[1] ""
-
-#: src/gui.vala:294 src/gui.vala:404
-msgid "Live Photo Converter"
-msgstr ""
 
 #: src/gui.vala:309 src/gui.vala:559 src/gui.vala:562
 msgid "Make Live Photo"
