@@ -479,8 +479,11 @@ public class LivePhotoConv.Application : Adw.Application {
             margin_bottom = 12,
         };
 
-        var video_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
-        video_col.append (new Gtk.Label ("Video *") {
+        var video_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4) {
+            valign = Gtk.Align.FILL,
+            vexpand = true,
+        };
+        video_col.append (new Gtk.Label ("Video") {
             xalign = 0,
             css_classes = { "heading" },
         });
@@ -494,7 +497,10 @@ public class LivePhotoConv.Application : Adw.Application {
         video_col.append (make_video_area);
         drop_row.append (video_col);
 
-        var image_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
+        var image_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4) {
+            valign = Gtk.Align.FILL,
+            vexpand = true,
+        };
         image_col.append (new Gtk.Label ("Main Image") {
             xalign = 0,
             css_classes = { "heading" },
