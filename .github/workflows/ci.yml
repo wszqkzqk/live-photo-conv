@@ -28,7 +28,7 @@ jobs:
         echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
         chmod 0440 /etc/sudoers.d/builder
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -42,7 +42,7 @@ jobs:
         su builder -c "cd $PWD/distros/archlinux && makepkg --noconfirm -s"
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: archlinux-package
         path: distros/archlinux/*.pkg.tar.zst
@@ -51,7 +51,7 @@ jobs:
     name: Build Flatpak
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -82,7 +82,7 @@ jobs:
           com.github.wszqkzqk.live-photo-conv
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: flatpak-bundle
         path: live-photo-conv*.flatpak
@@ -91,7 +91,7 @@ jobs:
     name: Build Windows (MSYS2 UCRT64) Package
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -110,7 +110,7 @@ jobs:
         makepkg-mingw --noconfirm -s
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: windows-package
         path: distros/msys2/*.pkg.tar.zst
@@ -123,13 +123,13 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         pattern: '*-package'
         merge-multiple: true
         path: dist
 
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         name: flatpak-bundle
         merge-multiple: true
