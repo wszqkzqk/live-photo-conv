@@ -292,7 +292,7 @@ public class LivePhotoConv.Application : Adw.Application {
     public override void activate () {
         var window = new Adw.ApplicationWindow (this) {
             title = "Live Photo Converter",
-            default_width = 500,
+            default_width = 520,
             default_height = 750,
         };
 
