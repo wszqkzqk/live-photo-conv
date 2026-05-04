@@ -479,16 +479,15 @@ public class LivePhotoConv.Application : Adw.Application {
             margin_bottom = 12,
         };
 
-        var video_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4) {
-            valign = Gtk.Align.FILL,
-            vexpand = true,
-        };
+        var video_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
         video_col.append (new Gtk.Label ("Video") {
             xalign = 0,
             css_classes = { "heading" },
         });
         make_video_area = new FileDropArea ("Drop video here\nor click to browse", "folder-videos-symbolic", {"video/*"}) {
             max_files = 1,
+            vexpand = true,
+            valign = Gtk.Align.FILL,
         };
         make_video_area.changed.connect (() => {
             if (!working)
@@ -497,16 +496,15 @@ public class LivePhotoConv.Application : Adw.Application {
         video_col.append (make_video_area);
         drop_row.append (video_col);
 
-        var image_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4) {
-            valign = Gtk.Align.FILL,
-            vexpand = true,
-        };
+        var image_col = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
         image_col.append (new Gtk.Label ("Main Image") {
             xalign = 0,
             css_classes = { "heading" },
         });
         make_image_area = new FileDropArea ("Drop image here\nor click to browse", "folder-pictures-symbolic", {"image/*"}) {
             max_files = 1,
+            vexpand = true,
+            valign = Gtk.Align.FILL,
         };
         image_col.append (make_image_area);
         drop_row.append (image_col);
