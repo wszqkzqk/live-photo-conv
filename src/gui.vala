@@ -399,7 +399,7 @@ public class LivePhotoConv.Application : Adw.Application {
     private void show_about () {
         var about = new Adw.AboutDialog () {
             application_name = "Live Photo Converter",
-            application_icon = "live-photo-conv",
+            application_icon = "com.github.wszqkzqk.live-photo-conv",
             developer_name = "Zhou Qiankang (wszqkzqk)",
             version = VERSION,
             website = WEBSITE,
