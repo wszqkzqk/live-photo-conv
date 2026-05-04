@@ -1,0 +1,33 @@
+#!/bin/bash
+# pre-push hook: reject tags that don't match the version in meson.build
+# Bypass with: git push --no-verify
+
+set -e
+
+has_error=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [[ "$local_ref" != refs/tags/* ]]; then
+        continue
+    fi
+
+    # Read meson.build from the commit the tag points to, not the working tree
+    PROJECT_VERSION=$(git show "$local_sha:meson.build" 2>/dev/null | grep -oP "version:\s*'\K[^']+" | head -1)
+
+    if [ -z "$PROJECT_VERSION" ]; then
+        echo "ERROR: Could not extract version from meson.build at $local_sha" >&2
+        has_error=1
+        continue
+    fi
+
+    tag_name="${local_ref#refs/tags/}"
+    tag_version="${tag_name#v}"
+
+    if [ "$tag_version" != "$PROJECT_VERSION" ]; then
+        echo "ERROR: Tag '$tag_name' does not match project version '$PROJECT_VERSION'" >&2
+        echo "       Expected tag: v$PROJECT_VERSION or $PROJECT_VERSION" >&2
+        has_error=1
+    fi
+done
+
+exit $has_error
