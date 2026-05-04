@@ -1,0 +1,7 @@
+# Build artifacts
+**/*.tar.zst
+**/*.pkg.tar.*
+
+# Arch Linux makepkg directories
+**/src/
+**/pkg/
