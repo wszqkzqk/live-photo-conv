@@ -354,10 +354,14 @@ live-photo-conv --make --image /path/to/dest.jpg --video /path/to/video.mp4 --li
 
 这样可以一次性得到可以在对应品牌的手机上正常识别的动态照片。
 
-## 翻译
+## 贡献
 
-翻译在 [Hosted Weblate](https://hosted.weblate.org/projects/live-photo-conv/) 上管理。翻译内容请使用 Weblate 贡献，而非提交 Pull Request。
+### 代码贡献
 
-<a href="https://hosted.weblate.org/engage/live-photo-conv/">
-<img src="https://hosted.weblate.org/widget/live-photo-conv/multi-auto.svg" alt="翻译状态" />
-</a>
+本项目使用 [Meson](https://mesonbuild.com/) 构建系统，主要使用 **Vala** 语言。构建方法参见 [手动构建](#手动构建)。Pull Request 请提交至 `main` 分支。
+
+### 翻译
+
+翻译在 [Hosted Weblate](https://hosted.weblate.org/projects/live-photo-conv/) 上管理。请使用 Weblate 贡献翻译，不要提交翻译内容的 Pull Request。
+
+[![翻译状态](https://hosted.weblate.org/widget/live-photo-conv/multi-auto.svg)](https://hosted.weblate.org/projects/live-photo-conv/)
