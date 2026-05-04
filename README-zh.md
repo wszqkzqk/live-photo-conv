@@ -89,37 +89,17 @@ flatpak run com.github.wszqkzqk.live-photo-conv
 ### 依赖
 
 * 构建依赖
-  * Meson
-  * Vala
-  * GExiv2
-  * GTK4（可选，用于 GUI）
-  * LibAdwaita（可选，用于 GUI）
-  * GStreamer (可选，用于从附加视频导出图片，如果没有则使用FFmpeg命令来实现)
-    * `gstreamer`
-    * `gst-plugins-base-libs`
-  * gdk-pixbuf2 (可选，用于从附加视频导出图片，如果没有则使用FFmpeg命令来实现)
-  * gobject-introspection (可选，用于生成GObject Introspection信息)
+  * Meson、Vala、GExiv2
+  * GTK4、LibAdwaita（可选，GUI 需要）
+  * GStreamer（`gstreamer`, `gst-plugins-base-libs`）— 可选，用于从视频导出图片，否则使用 FFmpeg
+  * gdk-pixbuf2 — 可选，同上
+  * gobject-introspection — 可选，用于生成 GObject Introspection 信息
 * 运行依赖
-  * GLib
-    * GObject
-    * GIO
-  * GExiv2
-  * GTK4（GUI 需要）
-  * LibAdwaita（GUI 需要）
-  * GStreamer （在针对GStreamer构建时需要）
-    * `gstreamer`
-    * `gst-plugins-base-libs`
-    * `gst-plugins-good`
-    * `gst-plugins-bad`
-    * `gst-plugin-va` （可选，用于硬件加速）
-  * gdk-pixbuf2 （在针对GStreamer构建时需要）
-    * `gdk-pixbuf2`
-    * 如果想要支持更多导出格式，可以安装可选依赖，例如：
-      * `libavif`: .avif
-      * `libheif`: .heif, .heic, and .avif
-      * `libjxl`: .jxl
-      * `webp-pixbuf-loader`: .webp
-  * FFmpeg （可选，在没有针对GStreamer构建且需要从附加视频导出图片时需要）
+  * GLib（GObject, GIO）、GExiv2
+  * GTK4、LibAdwaita（GUI 需要）
+  * GStreamer（`gstreamer`, `gst-plugins-base-libs`, `gst-plugins-good`, `gst-plugins-bad`）— GStreamer 构建时需要；`gst-plugin-va` 可选，用于硬件加速
+  * gdk-pixbuf2 — GStreamer 构建时需要；可选格式加载器：`libavif` (.avif)、`libheif` (.heif/.heic/.avif)、`libjxl` (.jxl)、`webp-pixbuf-loader` (.webp)
+  * FFmpeg — 可选，未使用 GStreamer 构建时从视频导出图片需要
 
 例如，在Arch Linux上安装依赖：
 
