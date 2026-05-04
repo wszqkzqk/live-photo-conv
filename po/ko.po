@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 17:44+0800\n"
+"POT-Creation-Date: 2026-05-05 00:08+0800\n"
 "PO-Revision-Date: 2026-05-04 14:06+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -23,15 +23,15 @@ msgid "%u file selected"
 msgid_plural "%u files selected"
 msgstr[0] "%u개 파일 선택됨"
 
-#: src/gui.vala:309 src/gui.vala:559 src/gui.vala:562
+#: src/gui.vala:309 src/gui.vala:565 src/gui.vala:568
 msgid "Make Live Photo"
 msgstr "Live Photo 만들기"
 
-#: src/gui.vala:312 src/gui.vala:319 src/gui.vala:636 src/gui.vala:639
+#: src/gui.vala:312 src/gui.vala:319 src/gui.vala:642 src/gui.vala:645
 msgid "Extract"
 msgstr "추출"
 
-#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:737 src/gui.vala:740
+#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:743 src/gui.vala:746
 msgid "Repair"
 msgstr "복구"
 
@@ -59,19 +59,19 @@ msgstr "외관"
 msgid "About"
 msgstr "정보"
 
-#: src/gui.vala:473
+#: src/gui.vala:479
 msgid "Source Files"
 msgstr "원본 파일"
 
-#: src/gui.vala:474
+#: src/gui.vala:480
 msgid "Provide a video file (required) and a static image."
 msgstr "비디오 파일(필수)과 정적 이미지를 제공하세요."
 
-#: src/gui.vala:486
+#: src/gui.vala:492
 msgid "Video"
 msgstr "비디오"
 
-#: src/gui.vala:490
+#: src/gui.vala:496
 msgid ""
 "Drop video here\n"
 "or click to browse"
@@ -79,11 +79,11 @@ msgstr ""
 "비디오를 여기에 드롭\n"
 "또는 클릭하여 찾아보기"
 
-#: src/gui.vala:503
+#: src/gui.vala:509
 msgid "Main Image"
 msgstr "메인 이미지"
 
-#: src/gui.vala:507
+#: src/gui.vala:513
 msgid ""
 "Drop image here\n"
 "or click to browse"
@@ -91,40 +91,39 @@ msgstr ""
 "이미지를 여기에 드롭\n"
 "또는 클릭하여 찾아보기"
 
-#: src/gui.vala:518
+#: src/gui.vala:524
 msgid "Options"
 msgstr "옵션"
 
-#: src/gui.vala:520
+#: src/gui.vala:526
 msgid "Export metadata"
 msgstr "메타데이터 내보내기"
 
-#: src/gui.vala:531
+#: src/gui.vala:537
 msgid "Save Live Photo As"
 msgstr "Live Photo 저장"
 
-#: src/gui.vala:545
+#: src/gui.vala:551
 msgid "Processing…"
 msgstr "처리 중…"
 
-#: src/gui.vala:560
+#: src/gui.vala:566
 msgid "Live photo created"
 msgstr "Live Photo가 생성되었습니다"
 
-#: src/gui.vala:563 src/gui.vala:640 src/gui.vala:741
-#, c-format
-msgid "Error: %s"
-msgstr "오류: %s"
+#: src/gui.vala:569 src/gui.vala:646 src/gui.vala:747
+msgid "Error"
+msgstr "오류"
 
-#: src/gui.vala:577 src/gui.vala:654
+#: src/gui.vala:583 src/gui.vala:660
 msgid "Live Photo"
 msgstr "Live Photo"
 
-#: src/gui.vala:578
+#: src/gui.vala:584
 msgid "Select the live photo file to extract from."
 msgstr "추출할 Live Photo 파일을 선택하세요."
 
-#: src/gui.vala:580 src/gui.vala:657
+#: src/gui.vala:586 src/gui.vala:663
 msgid ""
 "Drop live photo file here\n"
 "or click to browse"
@@ -132,69 +131,69 @@ msgstr ""
 "Live Photo 파일을 여기에 드롭\n"
 "또는 클릭하여 찾아보기"
 
-#: src/gui.vala:593
+#: src/gui.vala:599
 msgid "Export Items"
 msgstr "내보내기 항목"
 
-#: src/gui.vala:594
+#: src/gui.vala:600
 msgid "Choose what to extract from the live photo."
 msgstr "Live Photo에서 추출할 항목을 선택하세요."
 
-#: src/gui.vala:596
+#: src/gui.vala:602
 msgid "Export Main Image"
 msgstr "메인 이미지 내보내기"
 
-#: src/gui.vala:597
+#: src/gui.vala:603
 msgid "Export Video"
 msgstr "비디오 내보내기"
 
-#: src/gui.vala:598
+#: src/gui.vala:604
 msgid "Export Frames as Photos"
 msgstr "프레임을 사진으로 내보내기"
 
-#: src/gui.vala:599
+#: src/gui.vala:605
 msgid "Export Long Exposure Photo"
 msgstr "장노출 사진 내보내기"
 
-#: src/gui.vala:600
+#: src/gui.vala:606
 msgid "Image Format"
 msgstr "이미지 형식"
 
-#: src/gui.vala:600
+#: src/gui.vala:606
 msgid "auto"
 msgstr "자동"
 
-#: src/gui.vala:609 src/gui.vala:726
+#: src/gui.vala:615 src/gui.vala:732
 msgid "Please select a live photo file first"
 msgstr "먼저 Live Photo 파일을 선택하세요"
 
-#: src/gui.vala:614
+#: src/gui.vala:620
 msgid "Select Output Directory"
 msgstr "출력 디렉토리 선택"
 
-#: src/gui.vala:629
+#: src/gui.vala:635
 msgid "Extracting…"
 msgstr "추출 중…"
 
-#: src/gui.vala:637
+#: src/gui.vala:643
 #, c-format
 msgid "%u file extracted"
 msgid_plural "%u files extracted"
 msgstr[0] "%u개 파일 추출됨"
 
-#: src/gui.vala:655
+#: src/gui.vala:661
 msgid "Select the live photo file to repair its XMP metadata."
 msgstr "XMP 메타데이터를 복구할 Live Photo 파일을 선택하세요."
 
-#: src/gui.vala:670
+#: src/gui.vala:676
 msgid "Repair Options"
 msgstr "복구 옵션"
 
-#: src/gui.vala:672
+#: src/gui.vala:678
 msgid "Force Repair"
 msgstr "강제 복구"
 
-#: src/gui.vala:674
+#: src/gui.vala:680
 msgid ""
 "If enabled, the video offset will be re-discovered by scanning\n"
 "the entire file for the MP4 header, overriding any existing\n"
@@ -204,19 +203,19 @@ msgstr ""
 "다시 발견하고 XMP 메타데이터의 기존\n"
 "오프셋 값을 덮어씁니다."
 
-#: src/gui.vala:680
+#: src/gui.vala:686
 msgid "Advanced"
 msgstr "고급"
 
-#: src/gui.vala:682
+#: src/gui.vala:688
 msgid "Manual Video Size"
 msgstr "수동 비디오 크기"
 
-#: src/gui.vala:683
+#: src/gui.vala:689
 msgid "Specify the size of the embedded video in bytes"
 msgstr "포함된 비디오의 크기를 바이트 단위로 지정"
 
-#: src/gui.vala:684
+#: src/gui.vala:690
 msgid ""
 "If the video size cannot be detected automatically,\n"
 "you can manually specify its size in bytes.\n"
@@ -226,7 +225,7 @@ msgstr ""
 "바이트 단위로 수동 지정할 수 있습니다.\n"
 "0으로 두면 자동 감지를 사용합니다."
 
-#: src/gui.vala:699
+#: src/gui.vala:705
 msgid ""
 "Enter the exact size of the video portion in bytes.\n"
 "Only needed if automatic detection fails."
@@ -234,25 +233,25 @@ msgstr ""
 "비디오 부분의 정확한 크기를 바이트 단위로 입력하세요.\n"
 "자동 감지가 실패한 경우에만 필요합니다."
 
-#: src/gui.vala:709
+#: src/gui.vala:715
 msgid "Video size in bytes"
 msgstr "비디오 크기(바이트)"
 
-#: src/gui.vala:733
+#: src/gui.vala:739
 msgid "Repairing…"
 msgstr "복구 중…"
 
-#: src/gui.vala:738
+#: src/gui.vala:744
 #, c-format
 msgid "%u file repaired"
 msgid_plural "%u files repaired"
 msgstr[0] "%u개 파일 복구됨"
 
-#: src/gui.vala:763 src/gui.vala:790
+#: src/gui.vala:770 src/gui.vala:798
 msgid "Extracting"
 msgstr "추출 중"
 
-#: src/gui.vala:809 src/gui.vala:827
+#: src/gui.vala:823 src/gui.vala:842
 msgid "Repairing"
 msgstr "복구 중"
 

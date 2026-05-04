@@ -399,6 +399,12 @@ public class LivePhotoConv.Application : Adw.Application {
         toast_overlay.add_toast (toast);
     }
 
+    private void show_error_dialog (string title, string detail) {
+        var dialog = new Adw.AlertDialog (title, detail);
+        dialog.add_response ("ok", "OK");
+        dialog.present (active_window);
+    }
+
     private void show_about () {
         var about = new Adw.AboutDialog () {
             application_name = "Live Photo Converter",
@@ -560,7 +566,7 @@ public class LivePhotoConv.Application : Adw.Application {
                         show_toast (_("Live photo created"));
                     } catch (Error e) {
                         end_work (make_button, _("Make Live Photo"), make_video_area.files.length > 0);
-                        show_toast (_("Error: %s").printf (e.message));
+                        show_error_dialog (_("Error"), e.message);
                     }
                 });
             } catch {}
@@ -637,7 +643,7 @@ public class LivePhotoConv.Application : Adw.Application {
                             show_toast (ngettext ("%u file extracted", "%u files extracted", (uint) files.length).printf ((uint) files.length));
                         } catch (Error e) {
                             end_work (extract_button, _("Extract"), extract_live_photo_area.files.length > 0);
-                            show_toast (_("Error: %s").printf (e.message));
+                            show_error_dialog (_("Error"), e.message);
                         }
                     });
             } catch {}
@@ -738,7 +744,7 @@ public class LivePhotoConv.Application : Adw.Application {
                 show_toast (ngettext ("%u file repaired", "%u files repaired", (uint) files.length).printf ((uint) files.length));
             } catch (Error e) {
                 end_work (repair_button, _("Repair"), repair_live_photo_area.files.length > 0);
-                show_toast (_("Error: %s").printf (e.message));
+                show_error_dialog (_("Error"), e.message);
             }
         });
     }
