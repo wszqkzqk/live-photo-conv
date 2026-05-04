@@ -363,3 +363,11 @@ live-photo-conv --make --image /path/to/dest.jpg --video /path/to/video.mp4 --li
 ```
 
 This way, you can obtain a live photo that is recognized and playable on the respective brand's phone.
+
+## Translations
+
+Translations are managed on [Hosted Weblate](https://hosted.weblate.org/projects/live-photo-conv/). Contributions are welcome — please use Weblate rather than opening pull requests for translation changes.
+
+<a href="https://hosted.weblate.org/engage/live-photo-conv/">
+<img src="https://hosted.weblate.org/widget/live-photo-conv/multi-auto.svg" alt="Translation status" />
+</a>

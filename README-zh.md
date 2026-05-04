@@ -353,3 +353,11 @@ live-photo-conv --make --image /path/to/dest.jpg --video /path/to/video.mp4 --li
 ```
 
 这样可以一次性得到可以在对应品牌的手机上正常识别的动态照片。
+
+## 翻译
+
+翻译在 [Hosted Weblate](https://hosted.weblate.org/projects/live-photo-conv/) 上管理。翻译内容请使用 Weblate 贡献，而非提交 Pull Request。
+
+<a href="https://hosted.weblate.org/engage/live-photo-conv/">
+<img src="https://hosted.weblate.org/widget/live-photo-conv/multi-auto.svg" alt="翻译状态" />
+</a>
