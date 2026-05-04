@@ -47,6 +47,46 @@ jobs:
         name: archlinux-package
         path: distros/archlinux/*.pkg.tar.zst
 
+  build-flatpak:
+    name: Build Flatpak
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install Flatpak
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flatpak flatpak-builder
+
+    - name: Setup Flathub
+      run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+    - name: Install Platform & SDK
+      run: |
+        flatpak install --user --noninteractive flathub \
+          org.gnome.Sdk//50 \
+          org.gnome.Platform//50
+
+    - name: Build Flatpak
+      run: |
+        flatpak-builder --user --install --force-clean --disable-rofiles-fuse \
+          build-flatpak com.github.wszqkzqk.live-photo-conv.yml
+
+    - name: Export Flatpak Bundle
+      run: |
+        flatpak build-bundle \
+          ~/.local/share/flatpak/repo \
+          live-photo-conv.flatpak \
+          com.github.wszqkzqk.live-photo-conv
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: flatpak-bundle
+        path: live-photo-conv.flatpak
+
   build-windows:
     name: Build Windows (MSYS2 UCRT64) Package
     runs-on: windows-latest
@@ -78,7 +118,7 @@ jobs:
   release:
     name: Release
     if: github.ref_type == 'tag'
-    needs: [build-archlinux, build-windows]
+    needs: [build-archlinux, build-flatpak, build-windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -86,6 +126,12 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         pattern: '*-package'
+        merge-multiple: true
+        path: dist
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: flatpak-bundle
         merge-multiple: true
         path: dist
 

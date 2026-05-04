@@ -66,6 +66,24 @@ cd live-photo-conv
 makepkg -si
 ```
 
+### Flatpak
+
+Download the `.flatpak` bundle from [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) and install (recommended):
+
+```bash
+flatpak install --user live-photo-conv.flatpak
+```
+
+To build directly from source with flatpak-builder:
+
+```bash
+git clone https://github.com/wszqkzqk/live-photo-conv.git
+cd live-photo-conv
+flatpak install --user flathub org.gnome.Sdk//50 org.gnome.Platform//50
+flatpak-builder --user --install --force-clean build-flatpak com.github.wszqkzqk.live-photo-conv.yml
+flatpak run com.github.wszqkzqk.live-photo-conv
+```
+
 ## Manual Build
 
 ### Dependencies

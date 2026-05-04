@@ -66,6 +66,24 @@ cd live-photo-conv
 makepkg -si
 ```
 
+### Flatpak
+
+从 [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 下载 `.flatpak` 包并安装（推荐）：
+
+```bash
+flatpak install --user live-photo-conv.flatpak
+```
+
+使用 flatpak-builder 从源码构建：
+
+```bash
+git clone https://github.com/wszqkzqk/live-photo-conv.git
+cd live-photo-conv
+flatpak install --user flathub org.gnome.Sdk//50 org.gnome.Platform//50
+flatpak-builder --user --install --force-clean build-flatpak com.github.wszqkzqk.live-photo-conv.yml
+flatpak run com.github.wszqkzqk.live-photo-conv
+```
+
 ## 手动构建
 
 ### 依赖

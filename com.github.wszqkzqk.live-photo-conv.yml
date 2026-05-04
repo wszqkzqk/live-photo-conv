@@ -1,0 +1,67 @@
+app-id: com.github.wszqkzqk.live-photo-conv
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: live-photo-conv-gtk
+
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=host
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /lib/cmake
+  - /share/gtk-doc
+  - /share/man
+  - /share/vala
+  - "*.la"
+  - "*.a"
+
+modules:
+  - name: exiv2
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_LIBDIR=lib
+      - -DEXIV2_BUILD_EXIV2_COMMAND=OFF
+      - -DEXIV2_BUILD_SAMPLES=OFF
+      - -DEXIV2_ENABLE_BMFF=ON
+      - -DEXIV2_ENABLE_INIH=OFF
+    cleanup:
+      - /bin
+    sources:
+      - type: git
+        url: https://github.com/Exiv2/exiv2.git
+        tag: v0.28.8
+
+  - name: gexiv2
+    buildsystem: meson
+    config-opts:
+      - -Dlibdir=lib
+      - -Dpython3=false
+      - -Dvapi=true
+    sources:
+      - type: git
+        url: https://gitlab.gnome.org/GNOME/gexiv2.git
+        tag: 0.16.0
+    post-install:
+      - for f in /app/lib/pkgconfig/gexiv2-*.pc; do ln -sf "$(basename "$f")" /app/lib/pkgconfig/gexiv2.pc; break; done
+      - for f in /app/share/vala/vapi/gexiv2-*.vapi; do ln -sf "$(basename "$f")" /app/share/vala/vapi/gexiv2.vapi; break; done
+      - for f in /app/share/vala/vapi/gexiv2-*.deps; do ln -sf "$(basename "$f")" /app/share/vala/vapi/gexiv2.deps; break; done
+
+  - name: live-photo-conv
+    buildsystem: meson
+    config-opts:
+      - -Dlibdir=lib
+      - -Dgst=enabled
+      - -Dgui=enabled
+      - -Dgir=enabled
+      - -Dmanpages=disabled
+      - -Ddocs=disabled
+    sources:
+      - type: dir
+        path: .

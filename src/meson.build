@@ -128,7 +128,7 @@ if with_gui
     )
     install_data('../assets/icon.png',
       install_dir: get_option('datadir') / 'icons' / 'hicolor' / '256x256' / 'apps',
-      rename: 'live-photo-conv.png',
+      rename: 'com.github.wszqkzqk.live-photo-conv.png',
     )
   endif
 endif

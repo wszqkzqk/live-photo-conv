@@ -2,7 +2,7 @@
 Name=Live Photo Converter
 Comment=Convert, extract and repair Android Live Photos
 Exec=live-photo-conv-gtk
-Icon=live-photo-conv
+Icon=com.github.wszqkzqk.live-photo-conv
 Type=Application
 Categories=Utility;Graphics;Photography;
 Terminal=false
