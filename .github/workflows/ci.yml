@@ -78,14 +78,14 @@ jobs:
       run: |
         flatpak build-bundle \
           ~/.local/share/flatpak/repo \
-          live-photo-conv.flatpak \
+          "live-photo-conv-$(git describe --tags --abbrev=12 | sed 's/^v//;s/-/./g')-$(uname -m).flatpak" \
           com.github.wszqkzqk.live-photo-conv
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: flatpak-bundle
-        path: live-photo-conv.flatpak
+        path: live-photo-conv*.flatpak
 
   build-windows:
     name: Build Windows (MSYS2 UCRT64) Package
