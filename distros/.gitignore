@@ -2,6 +2,9 @@
 **/*.tar.zst
 **/*.pkg.tar.*
 
-# Arch Linux makepkg directories
+# Makepkg directories
 **/src/
 **/pkg/
+
+# Source clone
+**/live-photo-conv/
