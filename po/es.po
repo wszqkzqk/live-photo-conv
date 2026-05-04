@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 17:38+0800\n"
+"POT-Creation-Date: 2026-05-04 17:44+0800\n"
 "PO-Revision-Date: 2026-05-04 14:06+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -23,10 +23,6 @@ msgid "%u file selected"
 msgid_plural "%u files selected"
 msgstr[0] "%u archivo seleccionado"
 msgstr[1] "%u archivos seleccionados"
-
-#: src/gui.vala:294 src/gui.vala:404
-msgid "Live Photo Converter"
-msgstr "Conversor de Live Photo"
 
 #: src/gui.vala:309 src/gui.vala:559 src/gui.vala:562
 msgid "Make Live Photo"
@@ -263,3 +259,6 @@ msgstr "Extrayendo"
 #: src/gui.vala:809 src/gui.vala:827
 msgid "Repairing"
 msgstr "Reparando"
+
+#~ msgid "Live Photo Converter"
+#~ msgstr "Conversor de Live Photo"

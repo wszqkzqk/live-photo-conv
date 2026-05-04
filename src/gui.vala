@@ -291,7 +291,7 @@ public class LivePhotoConv.Application : Adw.Application {
      */
     public override void activate () {
         var window = new Adw.ApplicationWindow (this) {
-            title = _("Live Photo Converter"),
+            title = "Live Photo Converter",
             default_width = 520,
             default_height = 750,
         };
@@ -401,7 +401,7 @@ public class LivePhotoConv.Application : Adw.Application {
 
     private void show_about () {
         var about = new Adw.AboutDialog () {
-            application_name = _("Live Photo Converter"),
+            application_name = "Live Photo Converter",
             application_icon = "com.github.wszqkzqk.live-photo-conv",
             developer_name = "Zhou Qiankang (wszqkzqk)",
             version = VERSION,
