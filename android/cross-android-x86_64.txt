@@ -1,0 +1,28 @@
+# Meson cross-compilation file for Android x86_64 (for emulator use)
+#
+# Usage: same as aarch64 variant, just use this cross file instead.
+
+[constants]
+ndk = '/home/user/Android/Sdk/ndk/27.2.12479018'
+api_level = 34
+
+[binaries]
+c = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android' + api_level.to_string() + '-clang'
+cpp = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android' + api_level.to_string() + '-clang++'
+ar = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar'
+strip = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip'
+pkgconfig = 'pkg-config'
+
+[built-in options]
+c_args = ['-DANDROID', '-D__ANDROID_API__=' + api_level.to_string()]
+cpp_args = ['-DANDROID', '-D__ANDROID_API__=' + api_level.to_string()]
+c_link_args = ['-landroid', '-llog']
+
+[host_machine]
+system = 'android'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+
+[properties]
+# See android/cross-android-aarch64.txt for property documentation.

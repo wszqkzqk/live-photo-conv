@@ -134,10 +134,224 @@ jobs:
         brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
         brew test wszqkzqk/live-photo-conv/live-photo-conv
 
+  build-android:
+    name: Build Android APK (aarch64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+
+    env:
+      ANDROID_SDKVER: "35.0.0"
+      ANDROID_NDKVER: "27.2.12479018"
+      ANDROID_API: 35
+      ABI: arm64-v8a
+      MESON_ARCH: aarch64
+      GST_VERSION: "1.28.2"
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Set up environment paths
+      run: |
+        echo "ANDROID_HOME=${HOME}/android-sdk" >> "${GITHUB_ENV}"
+        echo "DEPS_PREFIX=${HOME}/android-deps" >> "${GITHUB_ENV}"
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential ccache cmake curl gettext git git-lfs \
+          glslc gobject-introspection gir1.2-glib-2.0-dev libglib2.0-dev-bin valac \
+          libglib-perl libglib-object-introspection-perl \
+          libipc-run-perl libjson-perl libset-scalar-perl \
+          libxml-libxml-perl libxml-libxslt-perl \
+          libxml2-utils ninja-build openjdk-17-jdk \
+          perl pkg-config python3 python3-pip sassc unzip wget xz-utils
+        pip3 install --break-system-packages meson
+
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: android-${{ env.MESON_ARCH }}
+        max-size: 2G
+
+    # ── Android SDK / NDK ──
+
+    - name: Restore Android SDK cache
+      id: cache-sdk
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ env.ANDROID_HOME }}
+        key: android-sdk-${{ env.ANDROID_SDKVER }}-${{ env.ANDROID_NDKVER }}-v2
+
+    - name: Install Android SDK
+      if: steps.cache-sdk.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p "${ANDROID_HOME}"
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip -q commandlinetools-linux-*.zip
+        mkdir -p "${ANDROID_HOME}/cmdline-tools/latest"
+        mv cmdline-tools/* "${ANDROID_HOME}/cmdline-tools/latest/"
+        rm -rf cmdline-tools commandlinetools-linux-*.zip
+
+        # Accept SDK licenses (sha1 hash method, reliable for CI)
+        mkdir -p "${ANDROID_HOME}/licenses"
+        for entry in \
+          "android-sdk-license=8933bad161af4178b1185d1a37fbf41ea5269c55" \
+          "android-sdk-license=d56f5187479451eabf01fb78af6dfcb131a6481e" \
+          "android-sdk-license=24333f8a63b6825ea9c5514f83c2829b004d1fee" \
+          "android-sdk-preview-license=84831b9409646a918e30573bab4c9c91346d8abd" \
+          "android-sdk-preview-license-old=79120722343a6f314e0719f863036c702b0e6b2a"; do
+          name="${entry%%=*}"
+          hash="${entry#*=}"
+          echo "$hash" >> "${ANDROID_HOME}/licenses/${name}"
+        done
+
+        # Suppress SDK repository prompt
+        mkdir -p ~/.android
+        echo 'count=0' > ~/.android/repositories.cfg
+
+        # Install SDK components
+        "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_HOME}" \
+          "build-tools;${ANDROID_SDKVER}" \
+          "ndk;${ANDROID_NDKVER}" \
+          "platforms;android-${ANDROID_API}"
+
+    - name: Save Android SDK cache
+      if: steps.cache-sdk.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ env.ANDROID_HOME }}
+        key: ${{ steps.cache-sdk.outputs.cache-primary-key }}
+
+    # ── GStreamer & Exiv2/GExiv2 deps ──
+
+    - name: Restore pre-built deps cache
+      id: cache-deps
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ env.DEPS_PREFIX }}
+        key: android-deps-${{ env.GST_VERSION }}-exiv2-v4
+
+    - name: Download and extract pre-built GStreamer
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        set -euo pipefail
+        GST_TARBALL="gstreamer-1.0-android-universal-${GST_VERSION}.tar.xz"
+        GST_URL="https://gstreamer.freedesktop.org/pkg/android/${GST_VERSION}/${GST_TARBALL}"
+        TMPDIR="${RUNNER_TEMP}/gst-extract"
+        mkdir -p "${DEPS_PREFIX}" "${TMPDIR}"
+
+        echo "Downloading GStreamer ${GST_VERSION}..."
+        wget -nv "${GST_URL}" -O "${RUNNER_TEMP}/${GST_TARBALL}"
+
+        echo "Extracting to ${TMPDIR}..."
+        tar -xf "${RUNNER_TEMP}/${GST_TARBALL}" -C "${TMPDIR}"
+
+        # The tarball has a flat structure: arm64/ armv7/ x86/ x86_64/ share/
+        cp -a "${TMPDIR}/arm64/"* "${DEPS_PREFIX}/"
+        if [ -d "${TMPDIR}/share" ]; then
+          mkdir -p "${DEPS_PREFIX}/share"
+          cp -a "${TMPDIR}/share/"* "${DEPS_PREFIX}/share/"
+        fi
+
+        # Keep GStreamer's GLib shared libs (.so) for linking against by GExiv2,
+        # but remove static libs (.a) which carry unresolved pcre2 references,
+        # and remove bundled Expat/zlib pkg-config (we build our own).
+        rm -f "${DEPS_PREFIX}/lib/pkgconfig"/{expat,pcre2-8}.pc 2>/dev/null || true
+        find "${DEPS_PREFIX}" -name '*.a' -delete
+
+        rm -rf "${RUNNER_TEMP}/${GST_TARBALL}" "${TMPDIR}"
+        echo "${GST_VERSION}" > "${DEPS_PREFIX}/.gstreamer-version"
+        echo "GStreamer ${GST_VERSION} installed to ${DEPS_PREFIX}"
+
+    - name: Build Expat, Exiv2 and GExiv2 for Android
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        bash android/build-exiv2-android.sh \
+          "${ANDROID_HOME}/ndk/${ANDROID_NDKVER}" \
+          "${ANDROID_API}" \
+          "${ABI}" \
+          "${DEPS_PREFIX}"
+
+    - name: Save pre-built deps cache
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ env.DEPS_PREFIX }}
+        key: ${{ steps.cache-deps.outputs.cache-primary-key }}
+
+    # ── pixiewood build ──
+
+    - name: Clone pixiewood and mini-studio
+      run: |
+        git clone https://github.com/sp1ritCS/gtk-android-builder.git --branch android36 pixiewood
+        git clone --depth 1 https://github.com/sp1ritCS/mini-studio.git
+
+    - name: pixiewood prepare
+      run: |
+        # Tell pkg-config about our extra pre-built deps (GStreamer, Exiv2, etc.)
+        # PKG_CONFIG_PATH supplements the default search paths that pixiewood sets up.
+        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
+        export PKG_CONFIG_SYSROOT_DIR="${DEPS_PREFIX}"
+
+        ./pixiewood/pixiewood prepare --release \
+          -s "${ANDROID_HOME}" \
+          -a ./mini-studio \
+          pixiewood.xml
+
+    - name: pixiewood generate
+      run: |
+        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
+        ./pixiewood/pixiewood generate
+
+    - name: Copy extra native libraries for APK packaging
+      run: |
+        # pixiewood packages .so files from its meson install prefix,
+        # but our pre-built deps (GStreamer, Exiv2, Expat) are external.
+        # Copy them into the generated Gradle project's jniLibs.
+        JNILIBS=".pixiewood/android/app/src/main/jniLibs/${ABI}"
+        mkdir -p "${JNILIBS}"
+
+        # Copy main shared libraries
+        cp "${DEPS_PREFIX}"/lib/*.so "${JNILIBS}/" 2>/dev/null || true
+
+        # Copy GStreamer plugins into the expected subdirectory
+        if [ -d "${DEPS_PREFIX}/lib/gstreamer-1.0" ]; then
+          mkdir -p "${JNILIBS}/gstreamer-1.0"
+          cp "${DEPS_PREFIX}/lib/gstreamer-1.0/"*.so "${JNILIBS}/gstreamer-1.0/" 2>/dev/null || true
+        fi
+
+        echo "Extra native libraries staged:"
+        find "${JNILIBS}" -name "*.so" | sort
+
+    - name: pixiewood build
+      run: |
+        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
+        ./pixiewood/pixiewood build
+
+    - name: Collect APK
+      run: |
+        mkdir -p apks
+        cp .pixiewood/android/app/build/outputs/apk/release/*.apk apks/ 2>/dev/null || \
+        cp .pixiewood/android/app/build/outputs/apk/debug/*.apk apks/ 2>/dev/null || true
+        echo "APKs produced:"
+        ls -lh apks/
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: android-apk-aarch64
+        path: apks/*.apk
+
+
   release:
     name: Release
     if: github.ref_type == 'tag'
-    needs: [build-archlinux, build-flatpak, build-windows, build-macos]
+    needs: [build-archlinux, build-flatpak, build-windows, build-macos, build-android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -152,6 +366,11 @@ jobs:
       with:
         name: flatpak-bundle
         merge-multiple: true
+        path: dist
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: android-apk-aarch64
         path: dist
 
     - name: Remove Debug Packages
