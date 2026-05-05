@@ -1,5 +1,5 @@
 project('live-photo-conv', ['c', 'vala'],
-          version: '0.40.2',
+          version: '0.40.3',
     meson_version: '>= 1.4',
 )
 
