@@ -71,7 +71,7 @@ makepkg -si
 从 [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 下载 `.flatpak` 包并安装（推荐）：
 
 ```bash
-flatpak install --user live-photo-conv.flatpak
+flatpak install --user live-photo-conv*.flatpak
 ```
 
 使用 flatpak-builder 从源码构建：

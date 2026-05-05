@@ -71,7 +71,7 @@ makepkg -si
 Download the `.flatpak` bundle from [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) and install (recommended):
 
 ```bash
-flatpak install --user live-photo-conv.flatpak
+flatpak install --user live-photo-conv*.flatpak
 ```
 
 To build directly from source with flatpak-builder:
