@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- Adaptive icon foreground for Live Photo Converter -->
+  <!-- A simple camera/live-photo icon: play triangle inside a photo frame -->
+  <defs>
+    <clipPath id="circle">
+      <path d="M54 8C28.6 8 8 28.6 8 54s20.6 46 46 46 46-20.6 46-46S79.4 8 54 8zm0 84c-21 0-38-17-38-38s17-38 38-38 38 17 38 38-17 38-38 38z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Photo frame -->
+  <g clip-path="url(#circle)">
+    <!-- Top bar: camera flash -->
+    <rect x="14" y="24" width="24" height="4" rx="2" fill="white" opacity="0.9"/>
+    <!-- Photo area -->
+    <rect x="14" y="32" width="80" height="52" rx="4" fill="white" opacity="0.9"/>
+    <!-- Play triangle -->
+    <polygon points="48,48 48,68 66,58" fill="white"/>
+  </g>
+
+  <!-- Circle border -->
+  <path d="M54 8C28.6 8 8 28.6 8 54s20.6 46 46 46 46-20.6 46-46S79.4 8 54 8zm0 84c-21 0-38-17-38-38s17-38 38-38 38 17 38 38-17 38-38 38z"
+        fill="none" stroke="white" stroke-width="4" opacity="0.7"/>
+</svg>

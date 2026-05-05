@@ -7,12 +7,16 @@ project('live-photo-conv', ['c', 'vala'],
 lib_api_version = '0.4'  # GIR version / API version
 lib_soversion = '0'      # SONAME version / ABI version
 
-# Windows-specific flags
+# Platform detection
 is_windows = target_machine.system() == 'windows'
 is_darwin = target_machine.system() == 'darwin'
-is_freedesktop = not is_windows and not is_darwin  # Linux, BSD, etc.
+is_android = target_machine.system() == 'android'
+is_freedesktop = not is_windows and not is_darwin and not is_android  # Linux, BSD, etc.
 if is_windows
   add_project_arguments('-D', 'WINDOWS', language: 'vala')
+endif
+if is_android
+  add_project_arguments('-D', 'ANDROID', language: 'vala')
 endif
 
 # Dependencies
@@ -27,16 +31,27 @@ basic_deps = [
 lib_deps = basic_deps
 
 # Optional GStreamer dependencies
+# On Android, GStreamer is required (FFmpeg subprocess not available)
 require_gst = get_option('gst')
+if is_android
+  require_gst = true
+endif
 gst = dependency('gstreamer-1.0', required: require_gst)
 gst_app = dependency('gstreamer-app-1.0', required: require_gst)
 gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 
 # Optional GTK4/LibAdwaita GUI dependencies
+# On Android, the GUI is the only supported interface — require it
 require_gui = get_option('gui')
+if is_android
+  require_gui = true
+endif
 gtk4_dep = dependency('gtk4', required: require_gui)
 libadwaita_dep = dependency('libadwaita-1', required: require_gui)
 with_gui = gtk4_dep.found() and libadwaita_dep.found()
+if is_android and not with_gui
+  error('GTK4 and LibAdwaita are required for Android builds')
+endif
 
 with_gst = gst.found() and gst_app.found() and gdk_pixbuf.found()
 if with_gst

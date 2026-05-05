@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<app xmlns="https://sp1rit.arpa/pixiewood/"
+     xmlns:xi="http://www.w3.org/2001/XInclude">
+  <metainfo vercalc="sem121010">
+    <!--
+      vercalc: sem121010 maps semantic versioning to an Android versionCode
+      via (major << 20) + (minor << 10) + (patch).
+      The app's version info will be read from the Meson project version.
+    -->
+  </metainfo>
+  <style>
+    <!-- Use LibAdwaita theme for the modern GNOME mobile look -->
+    <theme name="adw"/>
+    <icon type="generate">
+      <!-- Adaptive icon: foreground layer from SVG asset -->
+      <drawable target="foreground" scale=".5" type="svg"
+                path="src://android/app-icon-foreground.svg"/>
+      <!-- Background color for the adaptive icon -->
+      <color target="background">#3584e4</color>
+    </icon>
+  </style>
+  <dependencies>
+    <!--
+      pixiewood builds these dependencies from source using Meson
+      subprojects/wrap files. The <patch>hack</patch> on glib applies
+      necessary Android workarounds.
+    -->
+    <glib>
+      <patch>hack</patch>
+    </glib>
+    <cairo/>
+    <fontconfig/>
+    <!-- GTK dependency includes the full stack: pango, harfbuzz, gdk-pixbuf, etc. -->
+    <gtk/>
+    <!--
+      Note: pixiewood does not currently build GStreamer or GExiv2.
+      These must be pre-built for Android and their pkg-config paths
+      added to PKG_CONFIG_LIBDIR before running pixiewood prepare.
+      See android/README.md for instructions.
+    -->
+  </dependencies>
+  <build target="live-photo-conv-gtk"
+         java-sources="gdk/android/glue/java/">
+    <architectures>
+      <arch>aarch64</arch>
+      <!-- Uncomment for emulator support: -->
+      <!-- <arch>x86_64</arch> -->
+    </architectures>
+    <configure-options>
+      <option>-Dgui=enabled</option>
+      <option>-Dgst=enabled</option>
+      <option>-Dgir=disabled</option>
+      <option>-Dmanpages=disabled</option>
+      <option>-Ddocs=disabled</option>
+    </configure-options>
+  </build>
+</app>
