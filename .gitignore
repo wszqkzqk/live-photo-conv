@@ -12,3 +12,12 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Android CI artifacts
+vapi/
+subprojects/*.tar.*
+subprojects/*.tar
+subprojects/packagecache/
+subprojects/expat-*/**
+subprojects/exiv2-*/**
+subprojects/gexiv2-*/**

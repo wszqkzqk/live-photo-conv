@@ -1,0 +1,8 @@
+option('profiling', type: 'boolean', value: false)
+option('introspection', type: 'feature', value: 'auto')
+option('vapi', type: 'boolean', value: true)
+option('package_subdir', type: 'string', value: '')
+option('gtk_doc', type: 'boolean', value: false)
+option('documentation', type: 'boolean', value: false)
+option('tests', type: 'boolean', value: true)
+option('examples', type: 'boolean', value: true)

@@ -1,0 +1,9 @@
+[wrap-file]
+directory = libadwaita-1.6.5
+source_url = https://download.gnome.org/sources/libadwaita/1.6/libadwaita-1.6.5.tar.xz
+source_filename = libadwaita-1.6.5.tar.xz
+source_hash = d4713cfe5daeb2e537ccb6cb013c153677a3f1c29e5c166c5663e33605eb8ee2
+patch_directory = libadwaita
+
+[provide]
+libadwaita-1 = libadwaita_dep

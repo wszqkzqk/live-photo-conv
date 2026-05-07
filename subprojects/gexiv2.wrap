@@ -1,0 +1,8 @@
+[wrap-file]
+directory = gexiv2-0.16.0
+source_url = https://download.gnome.org/sources/gexiv2/0.16/gexiv2-0.16.0.tar.xz
+source_filename = gexiv2-0.16.0.tar.xz
+source_hash = d96f895f24539f966f577b2bb2489ae84f8232970a8d0c064e4a007474a77bbb
+
+[provide]
+gexiv2 = libgexiv2

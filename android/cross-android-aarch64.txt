@@ -5,15 +5,18 @@
 #     -Dgui=enabled -Dgst=enabled -Dgir=disabled -Dmanpages=disabled -Ddocs=disabled
 #
 # Prerequisites:
-#   - Android NDK r26+ installed
-#   - GStreamer for Android pre-built via Cerbero (pkg-config path set below)
-#   - Exiv2 + GExiv2 cross-compiled for Android (pkg-config path set below)
+#   - Android NDK r27+ installed
+#   - GStreamer for Android pre-built (pkg-config path set below)
+#   - Exiv2 cross-compiled for Android (pkg-config path set below)
 #   - GTK4 + LibAdwaita for Android (built by pixiewood or manually)
+#
+# When building via pixiewood, the tool manages cross files automatically;
+# this file is for manual direct builds.
 
 [constants]
 ndk = '/home/user/Android/Sdk/ndk/27.2.12479018'
-# Android API level to target (34 = Android 14)
 api_level = 34
+deps_prefix = '/home/user/android-deps'
 
 [binaries]
 c = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android' + api_level.to_string() + '-clang'
@@ -26,6 +29,7 @@ pkgconfig = 'pkg-config'
 c_args = ['-DANDROID', '-D__ANDROID_API__=' + api_level.to_string()]
 cpp_args = ['-DANDROID', '-D__ANDROID_API__=' + api_level.to_string()]
 c_link_args = ['-landroid', '-llog']
+pkg_config_path = deps_prefix / 'lib/pkgconfig'
 
 [host_machine]
 system = 'android'
@@ -34,11 +38,13 @@ cpu = 'armv8'
 endian = 'little'
 
 [properties]
-# Point these to your pre-built Android dependencies' pkg-config directories.
-# Typically: <prefix>/lib/pkgconfig where <prefix> is where GTK, GStreamer,
-# and Exiv2/GExiv2 were installed for Android.
-#
-# When using pixiewood, it manages these paths automatically.
-# For manual builds, set these to your Android dependency install prefix.
-# pkg_config_libdir = '/path/to/android-deps/lib/pkgconfig'
-# sys_root = '/path/to/android-deps'
+pkg_config_libdir = deps_prefix / 'lib/pkgconfig'
+sys_root = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/sysroot'
+
+[gexiv2:project options]
+introspection = false
+vapi = false
+gtk_doc = false
+python3 = false
+tools = false
+tests = false

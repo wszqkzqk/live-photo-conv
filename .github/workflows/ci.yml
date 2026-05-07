@@ -139,6 +139,7 @@ jobs:
       run: |
         echo "ANDROID_HOME=${HOME}/android-sdk" >> "${GITHUB_ENV}"
         echo "DEPS_PREFIX=${HOME}/android-deps" >> "${GITHUB_ENV}"
+        echo "PATH=${HOME}/android-sdk/ndk/${ANDROID_NDKVER}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}" >> "${GITHUB_ENV}"
 
     - name: Install system dependencies
       run: |
@@ -150,7 +151,8 @@ jobs:
           libipc-run-perl libjson-perl libset-scalar-perl \
           libxml-libxml-perl libxml-libxslt-perl \
           libxml2-utils ninja-build openjdk-17-jdk \
-          perl pkg-config python3 python3-pip sassc unzip wget xz-utils
+          perl pkg-config python3 python3-pip sassc unzip wget xz-utils \
+          gir1.2-appstream-1.0
         pip3 install --break-system-packages meson
 
     - name: Setup ccache
@@ -215,7 +217,7 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.DEPS_PREFIX }}
-        key: android-deps-${{ env.GST_VERSION }}-exiv2-v4
+        key: android-deps-${{ env.GST_VERSION }}-exiv2-v6
 
     - name: Download and extract pre-built GStreamer
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -239,17 +241,18 @@ jobs:
           cp -a "${TMPDIR}/share/"* "${DEPS_PREFIX}/share/"
         fi
 
-        # Keep GStreamer's GLib shared libs (.so) for linking against by GExiv2,
-        # but remove static libs (.a) which carry unresolved pcre2 references,
-        # and remove bundled Expat/zlib pkg-config (we build our own).
-        rm -f "${DEPS_PREFIX}/lib/pkgconfig"/{expat,pcre2-8}.pc 2>/dev/null || true
+        # Remove pkg-config files shipped by GStreamer that conflict with our
+        # own builds (expat, zlib) or with pixiewood's (glib, gobject, gio).
+        # Static libs (.a) carry unresolved pcre2 references; delete them.
+        rm -f "${DEPS_PREFIX}/lib/pkgconfig"/{expat,pcre2-8,glib-2.0,gobject-2.0,gio-2.0,gmodule-2.0}.pc 2>/dev/null || true
+        rm -f "${DEPS_PREFIX}/share/pkgconfig"/{glib-2.0,gobject-2.0,gio-2.0,gmodule-2.0}.pc 2>/dev/null || true
         find "${DEPS_PREFIX}" -name '*.a' -delete
 
         rm -rf "${RUNNER_TEMP}/${GST_TARBALL}" "${TMPDIR}"
         echo "${GST_VERSION}" > "${DEPS_PREFIX}/.gstreamer-version"
         echo "GStreamer ${GST_VERSION} installed to ${DEPS_PREFIX}"
 
-    - name: Build Expat, Exiv2 and GExiv2 for Android
+    - name: Build GExiv2 VAPI natively
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         bash android/build-exiv2-android.sh \
@@ -267,18 +270,36 @@ jobs:
 
     # ── pixiewood build ──
 
+    - name: Install pkg-config wrapper alongside NDK compiler
+      run: |
+        NDK_BIN="${ANDROID_HOME}/ndk/${ANDROID_NDKVER}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+        for api in 31 33 34 35; do
+          NAME="aarch64-linux-android${api}-pkg-config"
+          echo "#!/bin/sh" > /tmp/pkgwrap
+          echo "export PKG_CONFIG_PATH=/home/runner/android-deps/lib/pkgconfig:/home/runner/android-deps/share/pkgconfig" >> /tmp/pkgwrap
+          echo 'exec /usr/bin/pkg-config "$@"' >> /tmp/pkgwrap
+          sudo cp /tmp/pkgwrap "${NDK_BIN}/${NAME}"
+          sudo chmod +x "${NDK_BIN}/${NAME}"
+        done
+        ${NDK_BIN}/aarch64-linux-android31-pkg-config --version
+
     - name: Clone pixiewood and mini-studio
       run: |
         git clone https://github.com/sp1ritCS/gtk-android-builder.git --branch android36 pixiewood
         git clone --depth 1 https://github.com/sp1ritCS/mini-studio.git
 
+    - name: Pre-download subproject tarballs
+      run: |
+        mkdir -p subprojects/
+        wget -nv https://download.gnome.org/sources/gexiv2/0.16/gexiv2-0.16.0.tar.xz -O subprojects/gexiv2-0.16.0.tar.xz || true
+        wget -nv https://github.com/Exiv2/exiv2/archive/refs/tags/v0.28.8.tar.gz -O subprojects/exiv2-0.28.8.tar.gz || true
+        wget -nv https://github.com/libexpat/libexpat/releases/download/R_2_7_5/expat-2.7.5.tar.xz -O subprojects/expat-2.7.5.tar.xz || true
+        wget -nv https://download.gnome.org/sources/libadwaita/1.6/libadwaita-1.6.5.tar.xz -O subprojects/libadwaita-1.6.5.tar.xz || true
+        echo "Subproject tarballs staged:"
+        ls -la subprojects/
+
     - name: pixiewood prepare
       run: |
-        # Tell pkg-config about our extra pre-built deps (GStreamer, Exiv2, etc.)
-        # PKG_CONFIG_PATH supplements the default search paths that pixiewood sets up.
-        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
-        export PKG_CONFIG_SYSROOT_DIR="${DEPS_PREFIX}"
-
         ./pixiewood/pixiewood prepare --release \
           -s "${ANDROID_HOME}" \
           -a ./mini-studio \
@@ -286,19 +307,28 @@ jobs:
 
     - name: pixiewood generate
       run: |
-        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
         ./pixiewood/pixiewood generate
 
     - name: Copy extra native libraries for APK packaging
       run: |
-        # pixiewood packages .so files from its meson install prefix,
-        # but our pre-built deps (GStreamer, Exiv2, Expat) are external.
-        # Copy them into the generated Gradle project's jniLibs.
+        # pixiewood packages .so files from its meson install prefix
+        # (glib, cairo, gtk, etc.). We add external deps here.
         JNILIBS=".pixiewood/android/app/src/main/jniLibs/${ABI}"
         mkdir -p "${JNILIBS}"
 
-        # Copy main shared libraries
-        cp "${DEPS_PREFIX}"/lib/*.so "${JNILIBS}/" 2>/dev/null || true
+        # Copy GStreamer core shared libraries,
+        # but skip glib/gobject/gio/gmodule (pixiewood provides these).
+        for sofile in "${DEPS_PREFIX}"/lib/*.so; do
+          [ -f "$sofile" ] || continue
+          name=$(basename "$sofile")
+          case "$name" in
+            libglib-*|libgobject-*|libgio-*|libgmodule-*)
+              ;;
+            *)
+              cp "$sofile" "${JNILIBS}/"
+              ;;
+          esac
+        done
 
         # Copy GStreamer plugins into the expected subdirectory
         if [ -d "${DEPS_PREFIX}/lib/gstreamer-1.0" ]; then
@@ -309,9 +339,18 @@ jobs:
         echo "Extra native libraries staged:"
         find "${JNILIBS}" -name "*.so" | sort
 
+    - name: Copy GExiv2 VAPI for valac
+      run: |
+        # GExiv2's Android .so is built as a meson subproject (vapi=false).
+        # The VAPI files were pre-generated by android/build-exiv2-android.sh.
+        # Copy them to the vapi/ dir referenced by meson.build's --vapidir.
+        mkdir -p vapi
+        cp "${DEPS_PREFIX}/share/vala/vapi/"* vapi/ 2>/dev/null || true
+        echo "VAPI files staged:"
+        ls -la vapi/
+
     - name: pixiewood build
       run: |
-        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
         ./pixiewood/pixiewood build
 
     - name: Collect APK

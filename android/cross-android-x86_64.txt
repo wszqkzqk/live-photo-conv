@@ -5,6 +5,7 @@
 [constants]
 ndk = '/home/user/Android/Sdk/ndk/27.2.12479018'
 api_level = 34
+deps_prefix = '/home/user/android-deps'
 
 [binaries]
 c = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android' + api_level.to_string() + '-clang'
@@ -17,6 +18,7 @@ pkgconfig = 'pkg-config'
 c_args = ['-DANDROID', '-D__ANDROID_API__=' + api_level.to_string()]
 cpp_args = ['-DANDROID', '-D__ANDROID_API__=' + api_level.to_string()]
 c_link_args = ['-landroid', '-llog']
+pkg_config_path = deps_prefix / 'lib/pkgconfig'
 
 [host_machine]
 system = 'android'
@@ -25,4 +27,13 @@ cpu = 'x86_64'
 endian = 'little'
 
 [properties]
-# See android/cross-android-aarch64.txt for property documentation.
+pkg_config_libdir = deps_prefix / 'lib/pkgconfig'
+sys_root = ndk / 'toolchains/llvm/prebuilt/linux-x86_64/sysroot'
+
+[gexiv2:project options]
+introspection = false
+vapi = false
+gtk_doc = false
+python3 = false
+tools = false
+tests = false

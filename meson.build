@@ -17,6 +17,7 @@ if is_windows
 endif
 if is_android
   add_project_arguments('-D', 'ANDROID', language: 'vala')
+  add_project_arguments('--vapidir', join_paths(meson.project_source_root(), 'vapi'), language: 'vala')
 endif
 
 # Dependencies
@@ -25,7 +26,7 @@ basic_deps = [
   dependency('gobject-2.0'),
   dependency('gio-2.0'),
   dependency('gmodule-2.0'),
-  dependency('gexiv2'),
+  dependency('gexiv2', fallback: ['gexiv2', 'libgexiv2']),
 ]
 # Dependencies for the library
 lib_deps = basic_deps
@@ -36,9 +37,9 @@ require_gst = get_option('gst')
 if is_android
   require_gst = true
 endif
-gst = dependency('gstreamer-1.0', required: require_gst)
-gst_app = dependency('gstreamer-app-1.0', required: require_gst)
-gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
+gst = dependency('gstreamer-1.0', required: require_gst, fallback: is_android ? ['gst-core', 'gst_dep'] : [])
+gst_app = dependency('gstreamer-app-1.0', required: require_gst, fallback: is_android ? ['gst-app', 'gst_app_dep'] : [])
+gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst, fallback: is_android ? ['gdkpixbuf-stub', 'gdk_pixbuf_dep'] : [])
 
 # Optional GTK4/LibAdwaita GUI dependencies
 # On Android, the GUI is the only supported interface — require it
@@ -47,7 +48,7 @@ if is_android
   require_gui = true
 endif
 gtk4_dep = dependency('gtk4', required: require_gui)
-libadwaita_dep = dependency('libadwaita-1', required: require_gui)
+libadwaita_dep = dependency('libadwaita-1', required: require_gui, fallback: is_android ? ['libadwaita', 'libadwaita_dep'] : [])
 with_gui = gtk4_dep.found() and libadwaita_dep.found()
 if is_android and not with_gui
   error('GTK4 and LibAdwaita are required for Android builds')
