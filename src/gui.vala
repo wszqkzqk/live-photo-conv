@@ -862,7 +862,7 @@ public class LivePhotoConv.Application : Adw.Application {
      */
     public static int main (string[] args) {
         Intl.setlocale (LocaleCategory.ALL, "");
-        Intl.bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+        Intl.bindtextdomain (GETTEXT_PACKAGE, Utils.get_localedir ());
         Intl.bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
         Intl.textdomain (GETTEXT_PACKAGE);
         var app = new Application ();
