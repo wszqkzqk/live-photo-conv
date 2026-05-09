@@ -155,7 +155,7 @@ private class LivePhotoConv.FileDropArea : Adw.Bin {
         } else if (value.holds (typeof (Gdk.FileList))) {
             var file_list = (Gdk.FileList) value.get_boxed ();
             var dropped = file_list.get_files ();
-            foreach (File f in dropped)
+            foreach (unowned File f in dropped)
                 collected.add (f);
         } else {
             return false;
