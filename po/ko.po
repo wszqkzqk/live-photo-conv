@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 00:08+0800\n"
+"POT-Creation-Date: 2026-05-10 00:48+0800\n"
 "PO-Revision-Date: 2026-05-04 14:06+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -31,7 +31,7 @@ msgstr "Live Photo 만들기"
 msgid "Extract"
 msgstr "추출"
 
-#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:743 src/gui.vala:746
+#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:742 src/gui.vala:745
 msgid "Repair"
 msgstr "복구"
 
@@ -111,7 +111,7 @@ msgstr "처리 중…"
 msgid "Live photo created"
 msgstr "Live Photo가 생성되었습니다"
 
-#: src/gui.vala:569 src/gui.vala:646 src/gui.vala:747
+#: src/gui.vala:569 src/gui.vala:646 src/gui.vala:746
 msgid "Error"
 msgstr "오류"
 
@@ -163,7 +163,7 @@ msgstr "이미지 형식"
 msgid "auto"
 msgstr "자동"
 
-#: src/gui.vala:615 src/gui.vala:732
+#: src/gui.vala:615 src/gui.vala:731
 msgid "Please select a live photo file first"
 msgstr "먼저 Live Photo 파일을 선택하세요"
 
@@ -195,27 +195,26 @@ msgstr "강제 복구"
 
 #: src/gui.vala:680
 msgid ""
-"If enabled, the video offset will be re-discovered by scanning\n"
-"the entire file for the MP4 header, overriding any existing\n"
-"offset value in the XMP metadata."
+"If enabled, skips validation of the existing video offset and\n"
+"forces a full-file scan to re-discover the MP4 header position."
 msgstr ""
-"활성화하면 전체 파일을 스캔하여 MP4 헤더를\n"
-"다시 발견하고 XMP 메타데이터의 기존\n"
-"오프셋 값을 덮어씁니다."
+"활성화하면 기존 비디오 오프셋의 유효성 검사를 걸너뛰고\n"
+"전체 파일을 강제로 스캔하여\n"
+"MP4 헤더 위치를 다시 찾습니다."
 
-#: src/gui.vala:686
+#: src/gui.vala:685
 msgid "Advanced"
 msgstr "고급"
 
-#: src/gui.vala:688
+#: src/gui.vala:687
 msgid "Manual Video Size"
 msgstr "수동 비디오 크기"
 
-#: src/gui.vala:689
+#: src/gui.vala:688
 msgid "Specify the size of the embedded video in bytes"
 msgstr "포함된 비디오의 크기를 바이트 단위로 지정"
 
-#: src/gui.vala:690
+#: src/gui.vala:689
 msgid ""
 "If the video size cannot be detected automatically,\n"
 "you can manually specify its size in bytes.\n"
@@ -225,7 +224,7 @@ msgstr ""
 "바이트 단위로 수동 지정할 수 있습니다.\n"
 "0으로 두면 자동 감지를 사용합니다."
 
-#: src/gui.vala:705
+#: src/gui.vala:704
 msgid ""
 "Enter the exact size of the video portion in bytes.\n"
 "Only needed if automatic detection fails."
@@ -233,27 +232,36 @@ msgstr ""
 "비디오 부분의 정확한 크기를 바이트 단위로 입력하세요.\n"
 "자동 감지가 실패한 경우에만 필요합니다."
 
-#: src/gui.vala:715
+#: src/gui.vala:714
 msgid "Video size in bytes"
 msgstr "비디오 크기(바이트)"
 
-#: src/gui.vala:739
+#: src/gui.vala:738
 msgid "Repairing…"
 msgstr "복구 중…"
 
-#: src/gui.vala:744
+#: src/gui.vala:743
 #, c-format
 msgid "%u file repaired"
 msgid_plural "%u files repaired"
 msgstr[0] "%u개 파일 복구됨"
 
-#: src/gui.vala:770 src/gui.vala:798
+#: src/gui.vala:769 src/gui.vala:797
 msgid "Extracting"
 msgstr "추출 중"
 
-#: src/gui.vala:823 src/gui.vala:842
+#: src/gui.vala:822 src/gui.vala:841
 msgid "Repairing"
 msgstr "복구 중"
+
+#~ msgid ""
+#~ "If enabled, the video offset will be re-discovered by scanning\n"
+#~ "the entire file for the MP4 header, overriding any existing\n"
+#~ "offset value in the XMP metadata."
+#~ msgstr ""
+#~ "활성화하면 전체 파일을 스캔하여 MP4 헤더를\n"
+#~ "다시 발견하고 XMP 메타데이터의 기존\n"
+#~ "오프셋 값을 덮어씁니다."
 
 #~ msgid "Live Photo Converter"
 #~ msgstr "Live Photo 변환기"

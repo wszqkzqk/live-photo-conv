@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 00:08+0800\n"
+"POT-Creation-Date: 2026-05-10 00:48+0800\n"
 "PO-Revision-Date: 2026-05-04 14:06+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -32,7 +32,7 @@ msgstr "Live Photo erstellen"
 msgid "Extract"
 msgstr "Extrahieren"
 
-#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:743 src/gui.vala:746
+#: src/gui.vala:315 src/gui.vala:320 src/gui.vala:742 src/gui.vala:745
 msgid "Repair"
 msgstr "Reparieren"
 
@@ -112,7 +112,7 @@ msgstr "Verarbeitung…"
 msgid "Live photo created"
 msgstr "Live Photo erstellt"
 
-#: src/gui.vala:569 src/gui.vala:646 src/gui.vala:747
+#: src/gui.vala:569 src/gui.vala:646 src/gui.vala:746
 msgid "Error"
 msgstr "Fehler"
 
@@ -164,7 +164,7 @@ msgstr "Bildformat"
 msgid "auto"
 msgstr "automatisch"
 
-#: src/gui.vala:615 src/gui.vala:732
+#: src/gui.vala:615 src/gui.vala:731
 msgid "Please select a live photo file first"
 msgstr "Bitte wählen Sie zuerst eine Live-Photo-Datei aus"
 
@@ -198,28 +198,26 @@ msgstr "Reparatur erzwingen"
 
 #: src/gui.vala:680
 msgid ""
-"If enabled, the video offset will be re-discovered by scanning\n"
-"the entire file for the MP4 header, overriding any existing\n"
-"offset value in the XMP metadata."
+"If enabled, skips validation of the existing video offset and\n"
+"forces a full-file scan to re-discover the MP4 header position."
 msgstr ""
-"Wenn aktiviert, wird der Video-Offset durch Scannen\n"
-"der gesamten Datei nach dem MP4-Header neu ermittelt,\n"
-"wobei vorhandene Offset-Werte in den XMP-Metadaten\n"
-"überschrieben werden."
+"Wenn aktiviert, wird die Überprüfung des vorhandenen Video-Offsets übersprungen und\n"
+"eine vollständige Dateisuche erzwungen,\n"
+"um die MP4-Header-Position neu zu ermitteln."
 
-#: src/gui.vala:686
+#: src/gui.vala:685
 msgid "Advanced"
 msgstr "Erweitert"
 
-#: src/gui.vala:688
+#: src/gui.vala:687
 msgid "Manual Video Size"
 msgstr "Manuelle Videogröße"
 
-#: src/gui.vala:689
+#: src/gui.vala:688
 msgid "Specify the size of the embedded video in bytes"
 msgstr "Größe des eingebetteten Videos in Bytes angeben"
 
-#: src/gui.vala:690
+#: src/gui.vala:689
 msgid ""
 "If the video size cannot be detected automatically,\n"
 "you can manually specify its size in bytes.\n"
@@ -229,7 +227,7 @@ msgstr ""
 "können Sie die Größe manuell in Bytes angeben.\n"
 "Bei 0 wird die automatische Erkennung verwendet."
 
-#: src/gui.vala:705
+#: src/gui.vala:704
 msgid ""
 "Enter the exact size of the video portion in bytes.\n"
 "Only needed if automatic detection fails."
@@ -237,28 +235,38 @@ msgstr ""
 "Geben Sie die genaue Größe des Videoteils in Bytes ein.\n"
 "Nur erforderlich, wenn die automatische Erkennung fehlschlägt."
 
-#: src/gui.vala:715
+#: src/gui.vala:714
 msgid "Video size in bytes"
 msgstr "Videogröße in Bytes"
 
-#: src/gui.vala:739
+#: src/gui.vala:738
 msgid "Repairing…"
 msgstr "Reparatur…"
 
-#: src/gui.vala:744
+#: src/gui.vala:743
 #, c-format
 msgid "%u file repaired"
 msgid_plural "%u files repaired"
 msgstr[0] "%u Datei repariert"
 msgstr[1] "%u Dateien repariert"
 
-#: src/gui.vala:770 src/gui.vala:798
+#: src/gui.vala:769 src/gui.vala:797
 msgid "Extracting"
 msgstr "Extraktion"
 
-#: src/gui.vala:823 src/gui.vala:842
+#: src/gui.vala:822 src/gui.vala:841
 msgid "Repairing"
 msgstr "Reparatur"
+
+#~ msgid ""
+#~ "If enabled, the video offset will be re-discovered by scanning\n"
+#~ "the entire file for the MP4 header, overriding any existing\n"
+#~ "offset value in the XMP metadata."
+#~ msgstr ""
+#~ "Wenn aktiviert, wird der Video-Offset durch Scannen\n"
+#~ "der gesamten Datei nach dem MP4-Header neu ermittelt,\n"
+#~ "wobei vorhandene Offset-Werte in den XMP-Metadaten\n"
+#~ "überschrieben werden."
 
 #~ msgid "Live Photo Converter"
 #~ msgstr "Live Photo Konverter"

@@ -677,9 +677,8 @@ public class LivePhotoConv.Application : Adw.Application {
 
         options_group.add (make_check_row (_("Force Repair"),
             out repair_force_check, false,
-            _("If enabled, the video offset will be re-discovered by scanning\n"
-            + "the entire file for the MP4 header, overriding any existing\n"
-            + "offset value in the XMP metadata.")));
+            _("If enabled, skips validation of the existing video offset and\n"
+            + "forces a full-file scan to re-discover the MP4 header position.")));
 
         box.append (options_group);
 
