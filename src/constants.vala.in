@@ -40,7 +40,7 @@ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 See the GNU Lesser General Public License for more details.
 """;
 
-    public string get_license () {
+    public unowned string get_license () {
         return LICENSE_TEXT;
     }
 }
