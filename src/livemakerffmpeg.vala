@@ -43,12 +43,6 @@ public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         base (video_path, main_image_path, dest);
     }
 
-    /**
-     * Exports live photo using video only.
-     *
-     * @return The size of the video file
-     * @throws Error If an error occurs during export
-     */
     public override int64 export_with_video_only () throws Error {
         this.metadata.open_path (this.video_path);
         if (!this.export_original_metadata) {

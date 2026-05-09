@@ -227,7 +227,25 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
     }
 
+    /**
+     * Export the live photo using only the video file.
+     *
+     * The first frame of the video is extracted and used as the main image,
+     * then the full video is appended to create the live photo.
+     *
+     * @return The size of the video data appended to the live photo.
+     * @throws Error if an error occurs during export.
+     */
     protected abstract int64 export_with_video_only () throws Error;
 
+    /**
+     * Export the main image to the destination live photo file.
+     *
+     * Copies or converts the main image to the destination path.
+     * If the image format is not supported, it may be converted.
+     *
+     * @return The file handle of the created live photo.
+     * @throws Error if an error occurs during export.
+     */
     protected abstract File export_main_image () throws Error;
 }

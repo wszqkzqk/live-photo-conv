@@ -457,7 +457,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     public async void extract_items_async (bool do_image, bool do_video,
                                             bool do_long_exposure, bool do_frames,
                                             string? long_exposure_dest,
-                                            string? img_format, int threads) throws Error {
+                                            string? img_format = null, int threads = 0) throws Error {
         SourceFunc callback = extract_items_async.callback;
         Error? extract_error = null;
         var thread = new Thread<void> ("live-photo-extract", () => {
@@ -481,7 +481,33 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             throw extract_error;
     }
 
+    /**
+     * Generate a long exposure image from the live photo's video frames.
+     *
+     * This method stacks the video frames to create a long exposure effect
+     * and writes the result to the specified path.
+     *
+     * @param dest_path The destination path for the generated long exposure image.
+     * @throws Error if an error occurs during generation.
+     */
     public abstract void generate_long_exposure (string dest_path) throws Error;
 
+    /**
+     * Split the video into individual images.
+     *
+     * The video of the live photo is split into frames, which are saved
+     * to the destination directory with the specified output format.
+     * If the output format is not provided, the default extension name
+     * of the live photo will be used. The filenames are generated based
+     * on the basename of the live photo.
+     *
+     * @param output_format The format of the output images. If not provided,
+     *                      the default extension name will be used.
+     * @param dest_dir The destination directory where the images will be saved.
+     *                 If not provided, the default destination directory will be used.
+     * @param threads The number of threads to use for parallel processing.
+     *                The exact behavior depends on the backend implementation.
+     * @throws Error if an error occurs during splitting.
+     */
     public abstract void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error;
 }

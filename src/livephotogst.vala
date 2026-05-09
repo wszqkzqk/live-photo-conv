@@ -34,14 +34,6 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         base (filename, dest_dir);
     }
 
-    /**
-     * Split the video into images.
-     *
-     * @param output_format The format of the output images
-     * @param dest_dir The destination directory for output
-     * @param threads Number of concurrent threads for processing
-     * @throws Error If an error occurs during processing
-     */
     public override void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error {
         // Enpty args to Gst
         unowned string[] args = null;
@@ -110,7 +102,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                 "IMG" + this.basename_no_ext[5:] :
                 this.basename_no_ext)
         );
-        unowned var extension = (output_format != null) ? output_format : this.extension_name;
+        unowned var extension = output_format ?? this.extension_name;
         // for jpg, pixbuf requires the format to be "jpeg"
         unowned var format = (extension == "jpg") ? "jpeg" : extension;
         while ((sample = appsink.pull_sample ()) != null) {
