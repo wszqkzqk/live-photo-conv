@@ -1,19 +1,26 @@
 # Meson cross-compilation file for Android aarch64 (arm64-v8a)
 #
 # Usage:
+#   export ANDROID_DEPS_PREFIX=/path/to/your/android-deps
 #   meson setup build-android --cross-file android/cross-android-aarch64.txt \
 #     -Dgui=enabled -Dgst=enabled -Dgir=disabled -Dmanpages=disabled -Ddocs=disabled
 #
 # Prerequisites:
 #   - Android NDK r27+ installed
-#   - GStreamer for Android pre-built (pkg-config path set below)
-#   - Exiv2 cross-compiled for Android (pkg-config path set below)
+#   - GStreamer for Android pre-built under ANDROID_DEPS_PREFIX
+#   - Exiv2 cross-compiled for Android under ANDROID_DEPS_PREFIX
 #   - GTK4 + LibAdwaita for Android (built by pixiewood or manually)
 #
+# IMPORTANT: Update the [constants] section below to match your local paths.
+# The ANDROID_DEPS_PREFIX environment variable must be set and match
+# deps_prefix so that GStreamer fallback subprojects can locate the
+# pre-built libraries.
+#
 # When building via pixiewood, the tool manages cross files automatically;
-# this file is for manual direct builds.
+# this file is intended for manual local development builds only.
 
 [constants]
+# EDIT THESE PATHS FOR YOUR LOCAL MACHINE:
 ndk = '/home/user/Android/Sdk/ndk/27.2.12479018'
 api_level = 34
 deps_prefix = '/home/user/android-deps'

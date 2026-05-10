@@ -7,20 +7,29 @@ project('live-photo-conv', ['c', 'vala'],
 lib_api_version = '0.4'  # GIR version / API version
 lib_soversion = '0'      # SONAME version / ABI version
 
-# Platform detection
-is_windows = target_machine.system() == 'windows'
-is_darwin = target_machine.system() == 'darwin'
-is_android = target_machine.system() == 'android'
+# Platform detection — single source of truth, used throughout the build.
+# Pattern borrowed from libadwaita: define once, reference everywhere.
+target_system = host_machine.system()
+is_windows = target_system == 'windows'
+is_darwin = target_system == 'darwin'
+is_android = target_system == 'android'
 is_freedesktop = not is_windows and not is_darwin and not is_android  # Linux, BSD, etc.
+
 if is_windows
   add_project_arguments('-D', 'WINDOWS', language: 'vala')
 endif
 if is_android
   add_project_arguments('-D', 'ANDROID', language: 'vala')
-  add_project_arguments('--vapidir', join_paths(meson.project_source_root(), 'vapi'), language: 'vala')
+  # GExiv2 VAPI files may be pre-generated for Android builds and placed in
+  # vapi/ (e.g. by android/build-exiv2-android.sh). Only add the vapidir
+  # when the directory actually exists so local non-Android builds don't fail.
+  vapi_dir = meson.project_source_root() / 'vapi'
+  if fs.is_dir(vapi_dir)
+    add_project_arguments('--vapidir', vapi_dir, language: 'vala')
+  endif
 endif
 
-# Dependencies
+# Core dependencies (always required)
 basic_deps = [
   dependency('glib-2.0'),
   dependency('gobject-2.0'),
@@ -28,7 +37,6 @@ basic_deps = [
   dependency('gmodule-2.0'),
   dependency('gexiv2', fallback: ['gexiv2', 'libgexiv2']),
 ]
-# Dependencies for the library
 lib_deps = basic_deps
 
 # Optional GStreamer dependencies
@@ -37,9 +45,17 @@ require_gst = get_option('gst')
 if is_android
   require_gst = true
 endif
-gst = dependency('gstreamer-1.0', required: require_gst, fallback: is_android ? ['gst-core', 'gst_dep'] : [])
-gst_app = dependency('gstreamer-app-1.0', required: require_gst, fallback: is_android ? ['gst-app', 'gst_app_dep'] : [])
-gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst, fallback: is_android ? ['gdkpixbuf-stub', 'gdk_pixbuf_dep'] : [])
+
+# On Android, GStreamer and gdk-pixbuf are provided as pre-built libraries
+# outside the normal pkg-config / wrap ecosystem. Use fallback subprojects
+# that resolve them via the ANDROID_DEPS_PREFIX environment variable.
+gst_fallback = is_android ? ['gst-core', 'gst_dep'] : []
+gst_app_fallback = is_android ? ['gst-app', 'gst_app_dep'] : []
+gdkpixbuf_fallback = is_android ? ['gdkpixbuf-stub', 'gdk_pixbuf_dep'] : []
+
+gst = dependency('gstreamer-1.0', required: require_gst, fallback: gst_fallback)
+gst_app = dependency('gstreamer-app-1.0', required: require_gst, fallback: gst_app_fallback)
+gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst, fallback: gdkpixbuf_fallback)
 
 # Optional GTK4/LibAdwaita GUI dependencies
 # On Android, the GUI is the only supported interface — require it
@@ -47,6 +63,7 @@ require_gui = get_option('gui')
 if is_android
   require_gui = true
 endif
+
 gtk4_dep = dependency('gtk4', required: require_gui)
 libadwaita_dep = dependency('libadwaita-1', required: require_gui, fallback: is_android ? ['libadwaita', 'libadwaita_dep'] : [])
 with_gui = gtk4_dep.found() and libadwaita_dep.found()
@@ -65,6 +82,7 @@ if with_gst
 endif
 
 # Other tool dependencies
+fs = import('fs')
 pkg = import('pkgconfig')
 gnome = import('gnome')
 i18n = import('i18n')

@@ -152,7 +152,7 @@ jobs:
           libxml-libxml-perl libxml-libxslt-perl \
           libxml2-utils ninja-build openjdk-17-jdk \
           perl pkg-config python3 python3-pip sassc unzip wget xz-utils \
-          gir1.2-appstream-1.0
+          gir1.2-appstream-1.0 libcurl4-openssl-dev
         pip3 install --break-system-packages meson
 
     - name: Setup ccache
@@ -275,9 +275,11 @@ jobs:
         NDK_BIN="${ANDROID_HOME}/ndk/${ANDROID_NDKVER}/toolchains/llvm/prebuilt/linux-x86_64/bin"
         for api in 31 33 34 35; do
           NAME="aarch64-linux-android${api}-pkg-config"
-          echo "#!/bin/sh" > /tmp/pkgwrap
-          echo "export PKG_CONFIG_PATH=/home/runner/android-deps/lib/pkgconfig:/home/runner/android-deps/share/pkgconfig" >> /tmp/pkgwrap
-          echo 'exec /usr/bin/pkg-config "$@"' >> /tmp/pkgwrap
+          cat > /tmp/pkgwrap <<'WRAPPER'
+        #!/bin/sh
+        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
+        exec /usr/bin/pkg-config "$@"
+        WRAPPER
           sudo cp /tmp/pkgwrap "${NDK_BIN}/${NAME}"
           sudo chmod +x "${NDK_BIN}/${NAME}"
         done
@@ -351,6 +353,7 @@ jobs:
 
     - name: pixiewood build
       run: |
+        export ANDROID_DEPS_PREFIX="${DEPS_PREFIX}"
         ./pixiewood/pixiewood build
 
     - name: Collect APK

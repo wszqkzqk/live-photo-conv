@@ -1,8 +1,13 @@
 # Meson cross-compilation file for Android x86_64 (for emulator use)
 #
 # Usage: same as aarch64 variant, just use this cross file instead.
+#
+# IMPORTANT: Update the [constants] section below to match your local paths.
+# The ANDROID_DEPS_PREFIX environment variable must also be set and match
+# deps_prefix so that GStreamer fallback subprojects can locate libraries.
 
 [constants]
+# EDIT THESE PATHS FOR YOUR LOCAL MACHINE:
 ndk = '/home/user/Android/Sdk/ndk/27.2.12479018'
 api_level = 34
 deps_prefix = '/home/user/android-deps'

@@ -142,34 +142,22 @@ if with_gui
     gui_sources += import('windows').compile_resources(win_rc)
   endif
 
+  # On Android the GUI is dlopen'd by GTK's Android runtime. Meson >= 1.9
+  # has native support via android_exe_type; older versions need a shared
+  # library. On desktop we build a normal executable.
+  gui_kwargs = {
+    'install': true,
+    'link_with': liblivephototools,
+    'dependencies': gui_deps,
+  }
   if is_android
-    # On Android, the GUI is built as a shared library (.so).
-    # GTK's Android runtime (libgtk-4.so) dlopens it and calls main().
-    # Meson >= 1.9 provides 'android_exe_type' kwarg for this.
     if meson.version().version_compare('>= 1.9.0')
-      gui_exe = executable(gui_name,
-        gui_sources,
-        install: true,
-        link_with: liblivephototools,
-        dependencies: gui_deps,
-        android_exe_type: 'application',
-      )
+      gui_exe = executable(gui_name, gui_sources, android_exe_type: 'application', kwargs: gui_kwargs)
     else
-      gui_exe = shared_library(gui_name,
-        gui_sources,
-        install: true,
-        link_with: liblivephototools,
-        dependencies: gui_deps,
-      )
+      gui_exe = shared_library(gui_name, gui_sources, kwargs: gui_kwargs)
     endif
   else
-    executable(gui_name,
-      gui_sources,
-      install: true,
-      link_with: liblivephototools,
-      dependencies: gui_deps,
-      win_subsystem: 'windows',
-    )
+    executable(gui_name, gui_sources, win_subsystem: 'windows', kwargs: gui_kwargs)
   endif
 
   if is_freedesktop
