@@ -1,0 +1,8 @@
+[wrap-git]
+directory = gstreamer
+url = https://gitlab.freedesktop.org/gstreamer/gstreamer.git
+revision = 1.28.2
+depth = 1
+
+[provide]
+dependency_names = gstreamer-1.0, gstreamer-app-1.0, gstreamer-video-1.0, gstreamer-pbutils-1.0, gstreamer-audio-1.0

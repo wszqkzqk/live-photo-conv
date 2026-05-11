@@ -33,10 +33,10 @@
     <!-- GTK dependency includes the full stack: pango, harfbuzz, gdk-pixbuf, etc. -->
     <gtk/>
     <!--
-      Note: pixiewood does not currently build GStreamer or GExiv2.
-      These must be pre-built for Android and their pkg-config paths
-      added to PKG_CONFIG_LIBDIR before running pixiewood prepare.
-      See android/README.md for instructions.
+      GStreamer and the GExiv2/Exiv2 chain are now resolved via Meson
+      subprojects/wrap files (see subprojects/*.wrap). They are built
+      from source by pixiewood, sharing the same GLib subproject to
+      avoid the fatal "two GLib instances" runtime crash.
     -->
   </dependencies>
   <build target="live-photo-conv-gtk"
@@ -52,6 +52,19 @@
       <option>-Dgir=disabled</option>
       <option>-Dmanpages=disabled</option>
       <option>-Ddocs=disabled</option>
+      <!-- Force GStreamer subproject on Android (shared GLib) -->
+      <option>--force-fallback-for=gstreamer</option>
+      <!-- GStreamer minimal build: only core + app + playback -->
+      <option>-Dgstreamer:base=enabled</option>
+      <option>-Dgstreamer:good=disabled</option>
+      <option>-Dgstreamer:bad=disabled</option>
+      <option>-Dgstreamer:ugly=disabled</option>
+      <option>-Dgstreamer:libav=disabled</option>
+      <option>-Dgstreamer:tests=disabled</option>
+      <option>-Dgstreamer:examples=disabled</option>
+      <option>-Dgstreamer:introspection=disabled</option>
+      <option>-Dgstreamer:doc=disabled</option>
+      <option>-Dgstreamer:tools=disabled</option>
     </configure-options>
   </build>
 </app>

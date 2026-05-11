@@ -20,6 +20,38 @@ if is_android
   add_project_arguments('-D', 'ANDROID', language: 'vala')
 endif
 
+# Android: resolve extra dependencies via subprojects to ensure
+# a single shared GLib across gexiv2, gstreamer and the app.
+# This avoids the fatal "two GLib instances" runtime crash.
+if is_android
+  # Exiv2 (needed by gexiv2). Exiv2 already overrides its own dependency name.
+  subproject('exiv2', default_options: [
+      'app=disabled',
+      'tests=disabled',
+      'unitTests=disabled',
+      'webready=disabled',
+      'curl=disabled',
+      'brotli=disabled',
+      'nls=disabled',
+      'bmff=enabled',
+  ])
+
+  # GExiv2 — introspection/vapi are disabled for cross-compilation.
+  gexiv2_proj = subproject('gexiv2', default_options: [
+      'introspection=false',
+      'vapi=false',
+      'tests=false',
+      'tools=false',
+      'python3=false',
+      'gtk_doc=false',
+  ])
+  meson.override_dependency('gexiv2', gexiv2_proj.get_variable('libgexiv2'))
+
+  # Make sure Vala can find the pre-generated VAPI for gexiv2.
+  vapi_dir = meson.project_source_root() / 'vapi'
+  add_project_arguments('--vapidir', vapi_dir, language: 'vala')
+endif
+
 # Dependencies
 basic_deps = [
   dependency('glib-2.0'),
@@ -37,9 +69,14 @@ require_gst = get_option('gst')
 if is_android
   require_gst = true
 endif
-gst = dependency('gstreamer-1.0', required: require_gst)
-gst_app = dependency('gstreamer-app-1.0', required: require_gst)
-gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
+# On Android, GStreamer is resolved via subproject but the monorepo root
+# does not expose gst_dep / override standard names until we patch it.
+# We therefore do NOT require it at configure-time on Android; the CI
+# patches the subproject and reconfigures before building.
+gst_required = require_gst and not is_android
+gst = dependency('gstreamer-1.0', required: gst_required)
+gst_app = dependency('gstreamer-app-1.0', required: gst_required)
+gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: gst_required)
 
 # Optional GTK4/LibAdwaita GUI dependencies
 # On Android, the GUI is the only supported interface — require it

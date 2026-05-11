@@ -1,0 +1,3 @@
+# This directory holds pre-generated VAPI files for Android cross-compilation.
+# GExiv2's VAPI is generated in CI via a host build because GObject
+# Introspection cannot run during cross-compilation.

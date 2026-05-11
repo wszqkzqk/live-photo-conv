@@ -137,7 +137,7 @@ jobs:
   build-android:
     name: Build Android APK (aarch64)
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     strategy:
       fail-fast: false
 
@@ -147,7 +147,6 @@ jobs:
       ANDROID_API: 35
       ABI: arm64-v8a
       MESON_ARCH: aarch64
-      GST_VERSION: "1.28.2"
 
     steps:
     - uses: actions/checkout@v6
@@ -157,7 +156,6 @@ jobs:
     - name: Set up environment paths
       run: |
         echo "ANDROID_HOME=${HOME}/android-sdk" >> "${GITHUB_ENV}"
-        echo "DEPS_PREFIX=${HOME}/android-deps" >> "${GITHUB_ENV}"
 
     - name: Install system dependencies
       run: |
@@ -169,7 +167,8 @@ jobs:
           libipc-run-perl libjson-perl libset-scalar-perl \
           libxml-libxml-perl libxml-libxslt-perl \
           libxml2-utils ninja-build openjdk-17-jdk \
-          perl pkg-config python3 python3-pip sassc unzip wget xz-utils
+          perl pkg-config python3 python3-pip sassc unzip wget xz-utils \
+          libexiv2-dev
         pip3 install --break-system-packages meson
 
     - name: Setup ccache
@@ -177,6 +176,27 @@ jobs:
       with:
         key: android-${{ env.MESON_ARCH }}
         max-size: 2G
+
+    # ── Generate gexiv2 VAPI (host build, needed for cross-compilation) ──
+
+    - name: Generate gexiv2 VAPI for host
+      run: |
+        mkdir -p vapi
+        wget -q "https://download.gnome.org/sources/gexiv2/0.16/gexiv2-0.16.0.tar.xz"
+        tar -xf gexiv2-0.16.0.tar.xz
+        meson setup build-gexiv2-native gexiv2-0.16.0 \
+          -Dintrospection=true \
+          -Dvapi=true \
+          -Dtests=false \
+          -Dtools=false \
+          -Dpython3=false \
+          -Dgtk_doc=false
+        meson compile -C build-gexiv2-native
+        find build-gexiv2-native -name "gexiv2*.vapi" -exec cp {} vapi/ \;
+        find build-gexiv2-native -name "gexiv2*.deps" -exec cp {} vapi/ \;
+        rm -rf gexiv2-0.16.0 build-gexiv2-native gexiv2-0.16.0.tar.xz
+        echo "Generated VAPI files:"
+        ls -la vapi/
 
     # ── Android SDK / NDK ──
 
@@ -227,110 +247,100 @@ jobs:
         path: ${{ env.ANDROID_HOME }}
         key: ${{ steps.cache-sdk.outputs.cache-primary-key }}
 
-    # ── GStreamer & Exiv2/GExiv2 deps ──
+    # ── Cache subprojects source downloads ──
 
-    - name: Restore pre-built deps cache
-      id: cache-deps
+    - name: Restore subprojects cache
+      id: cache-subprojects
       uses: actions/cache/restore@v4
       with:
-        path: ${{ env.DEPS_PREFIX }}
-        key: android-deps-${{ env.GST_VERSION }}-exiv2-v4
+        path: subprojects/
+        key: subprojects-${{ hashFiles('subprojects/*.wrap') }}-${{ env.ANDROID_NDKVER }}
 
-    - name: Download and extract pre-built GStreamer
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      run: |
-        set -euo pipefail
-        GST_TARBALL="gstreamer-1.0-android-universal-${GST_VERSION}.tar.xz"
-        GST_URL="https://gstreamer.freedesktop.org/pkg/android/${GST_VERSION}/${GST_TARBALL}"
-        TMPDIR="${RUNNER_TEMP}/gst-extract"
-        mkdir -p "${DEPS_PREFIX}" "${TMPDIR}"
-
-        echo "Downloading GStreamer ${GST_VERSION}..."
-        wget -nv "${GST_URL}" -O "${RUNNER_TEMP}/${GST_TARBALL}"
-
-        echo "Extracting to ${TMPDIR}..."
-        tar -xf "${RUNNER_TEMP}/${GST_TARBALL}" -C "${TMPDIR}"
-
-        # The tarball has a flat structure: arm64/ armv7/ x86/ x86_64/ share/
-        cp -a "${TMPDIR}/arm64/"* "${DEPS_PREFIX}/"
-        if [ -d "${TMPDIR}/share" ]; then
-          mkdir -p "${DEPS_PREFIX}/share"
-          cp -a "${TMPDIR}/share/"* "${DEPS_PREFIX}/share/"
-        fi
-
-        # Keep GStreamer's GLib shared libs (.so) for linking against by GExiv2,
-        # but remove static libs (.a) which carry unresolved pcre2 references,
-        # and remove bundled Expat/zlib pkg-config (we build our own).
-        rm -f "${DEPS_PREFIX}/lib/pkgconfig"/{expat,pcre2-8}.pc 2>/dev/null || true
-        find "${DEPS_PREFIX}" -name '*.a' -delete
-
-        rm -rf "${RUNNER_TEMP}/${GST_TARBALL}" "${TMPDIR}"
-        echo "${GST_VERSION}" > "${DEPS_PREFIX}/.gstreamer-version"
-        echo "GStreamer ${GST_VERSION} installed to ${DEPS_PREFIX}"
-
-    - name: Build Expat, Exiv2 and GExiv2 for Android
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      run: |
-        bash android/build-exiv2-android.sh \
-          "${ANDROID_HOME}/ndk/${ANDROID_NDKVER}" \
-          "${ANDROID_API}" \
-          "${ABI}" \
-          "${DEPS_PREFIX}"
-
-    - name: Save pre-built deps cache
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
-      with:
-        path: ${{ env.DEPS_PREFIX }}
-        key: ${{ steps.cache-deps.outputs.cache-primary-key }}
-
-    # ── pixiewood build ──
+    # ── pixiewood unified build (all deps from source, single GLib) ──
 
     - name: Clone pixiewood and mini-studio
       run: |
         git clone https://github.com/sp1ritCS/gtk-android-builder.git --branch android36 pixiewood
         git clone --depth 1 https://github.com/sp1ritCS/mini-studio.git
 
-    - name: pixiewood prepare
+    - name: pixiewood prepare (first pass — download subprojects)
       run: |
-        # Tell pkg-config about our extra pre-built deps (GStreamer, Exiv2, etc.)
-        # PKG_CONFIG_PATH supplements the default search paths that pixiewood sets up.
-        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
-        export PKG_CONFIG_SYSROOT_DIR="${DEPS_PREFIX}"
-
         ./pixiewood/pixiewood prepare --release \
           -s "${ANDROID_HOME}" \
           -a ./mini-studio \
           pixiewood.xml
 
-    - name: pixiewood generate
+    - name: Save subprojects cache
+      if: steps.cache-subprojects.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: subprojects/
+        key: ${{ steps.cache-subprojects.outputs.cache-primary-key }}
+
+    # GStreamer monorepo root does not expose gst_dep / override standard
+    # dependency names. We patch it so that meson can find gstreamer-1.0 etc.
+    - name: Patch GStreamer subproject for dependency forwarding
       run: |
-        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
-        ./pixiewood/pixiewood generate
-
-    - name: Copy extra native libraries for APK packaging
-      run: |
-        # pixiewood packages .so files from its meson install prefix,
-        # but our pre-built deps (GStreamer, Exiv2, Expat) are external.
-        # Copy them into the generated Gradle project's jniLibs.
-        JNILIBS=".pixiewood/android/app/src/main/jniLibs/${ABI}"
-        mkdir -p "${JNILIBS}"
-
-        # Copy main shared libraries
-        cp "${DEPS_PREFIX}"/lib/*.so "${JNILIBS}/" 2>/dev/null || true
-
-        # Copy GStreamer plugins into the expected subdirectory
-        if [ -d "${DEPS_PREFIX}/lib/gstreamer-1.0" ]; then
-          mkdir -p "${JNILIBS}/gstreamer-1.0"
-          cp "${DEPS_PREFIX}/lib/gstreamer-1.0/"*.so "${JNILIBS}/gstreamer-1.0/" 2>/dev/null || true
+        GST_DIR="subprojects/gstreamer"
+        if [ -f "${GST_DIR}/meson.build" ]; then
+          {
+            echo ""
+            echo "# === Injected by live-photo-conv CI ==="
+            echo "# Forward subproject dependencies for external consumers."
+            echo "# GStreamer monorepo root normally does not expose these."
+            echo "_gst_core_sp = subproject('gstreamer')"
+            echo "gst_dep      = _gst_core_sp.get_variable('gst_dep')"
+            echo "gst_base_dep = _gst_core_sp.get_variable('gst_base_dep')"
+            echo "meson.override_dependency('gstreamer-1.0',      gst_dep)"
+            echo "meson.override_dependency('gstreamer-base-1.0', gst_base_dep)"
+            echo ""
+            echo "_gst_base_sp = subproject('gst-plugins-base')"
+            echo "app_dep      = _gst_base_sp.get_variable('app_dep')"
+            echo "video_dep    = _gst_base_sp.get_variable('video_dep')"
+            echo "pbutils_dep  = _gst_base_sp.get_variable('pbutils_dep')"
+            echo "meson.override_dependency('gstreamer-app-1.0',    app_dep)"
+            echo "meson.override_dependency('gstreamer-video-1.0',  video_dep)"
+            echo "meson.override_dependency('gstreamer-pbutils-1.0', pbutils_dep)"
+            echo "# === End injection ==="
+          } >> "${GST_DIR}/meson.build"
+          echo "Patched ${GST_DIR}/meson.build"
+        else
+          echo "WARNING: GStreamer subproject not found, skipping patch"
         fi
 
-        echo "Extra native libraries staged:"
-        find "${JNILIBS}" -name "*.so" | sort
+    - name: Reconfigure meson with patched GStreamer
+      run: |
+        # Re-run meson setup so that it re-parses the patched GStreamer
+        # subproject and finds gstreamer-1.0 / gstreamer-app-1.0.
+        meson setup --reconfigure .pixiewood/bin-aarch64 . \
+          --cross-file .pixiewood/toolchain.cross \
+          --cross-file pixiewood/prepare/arch/aarch64.cross \
+          --cross-file pixiewood/prepare/android.cross \
+          --buildtype release \
+          --strip \
+          -Dgui=enabled \
+          -Dgst=enabled \
+          -Dgir=disabled \
+          -Dmanpages=disabled \
+          -Ddocs=disabled \
+          --force-fallback-for=gstreamer \
+          -Dgstreamer:base=enabled \
+          -Dgstreamer:good=disabled \
+          -Dgstreamer:bad=disabled \
+          -Dgstreamer:ugly=disabled \
+          -Dgstreamer:libav=disabled \
+          -Dgstreamer:tests=disabled \
+          -Dgstreamer:examples=disabled \
+          -Dgstreamer:introspection=disabled \
+          -Dgstreamer:doc=disabled \
+          -Dgstreamer:tools=disabled
+
+    - name: pixiewood generate
+      run: |
+        ./pixiewood/pixiewood generate
 
     - name: pixiewood build
       run: |
-        export PKG_CONFIG_PATH="${DEPS_PREFIX}/lib/pkgconfig:${DEPS_PREFIX}/share/pkgconfig"
         ./pixiewood/pixiewood build
 
     - name: Collect APK
