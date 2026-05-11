@@ -37,12 +37,11 @@ if is_android
   ])
 
   # GExiv2 — introspection/vapi are disabled for cross-compilation.
+  # Only pass options known to exist in both 0.14.x and 0.16.x.
   gexiv2_proj = subproject('gexiv2', default_options: [
       'introspection=false',
       'vapi=false',
       'tests=false',
-      'tools=false',
-      'python3=false',
       'gtk_doc=false',
   ])
   meson.override_dependency('gexiv2', gexiv2_proj.get_variable('libgexiv2'))

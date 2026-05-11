@@ -162,13 +162,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           build-essential ccache cmake curl gettext git git-lfs \
-          glslc gobject-introspection gir1.2-glib-2.0-dev libglib2.0-dev-bin valac \
+          glslc gobject-introspection gir1.2-glib-2.0-dev gir1.2-appstream-1.0 libglib2.0-dev-bin valac \
           libglib-perl libglib-object-introspection-perl \
           libipc-run-perl libjson-perl libset-scalar-perl \
           libxml-libxml-perl libxml-libxslt-perl \
           libxml2-utils ninja-build openjdk-17-jdk \
           perl pkg-config python3 python3-pip sassc unzip wget xz-utils \
-          libexiv2-dev
+          libgexiv2-dev
         pip3 install --break-system-packages meson
 
     - name: Setup ccache
@@ -177,26 +177,33 @@ jobs:
         key: android-${{ env.MESON_ARCH }}
         max-size: 2G
 
-    # ── Generate gexiv2 VAPI (host build, needed for cross-compilation) ──
+    # ── Detect host gexiv2 version and reuse system VAPI ──
 
-    - name: Generate gexiv2 VAPI for host
+    - name: Detect host gexiv2 version and setup VAPI
       run: |
+        # Query the gexiv2 version installed on the host (Ubuntu)
+        GEXIV2_VERSION=$(pkg-config --modversion gexiv2)
+        echo "Host gexiv2 version: ${GEXIV2_VERSION}"
+        echo "gexiv2_version=${GEXIV2_VERSION}" >> "${GITHUB_ENV}"
+
+        # Copy the system VAPI so Vala can use it during cross-compilation
         mkdir -p vapi
-        wget -q "https://download.gnome.org/sources/gexiv2/0.16/gexiv2-0.16.0.tar.xz"
-        tar -xf gexiv2-0.16.0.tar.xz
-        meson setup build-gexiv2-native gexiv2-0.16.0 \
-          -Dintrospection=true \
-          -Dvapi=true \
-          -Dtests=false \
-          -Dtools=false \
-          -Dpython3=false \
-          -Dgtk_doc=false
-        meson compile -C build-gexiv2-native
-        find build-gexiv2-native -name "gexiv2*.vapi" -exec cp {} vapi/ \;
-        find build-gexiv2-native -name "gexiv2*.deps" -exec cp {} vapi/ \;
-        rm -rf gexiv2-0.16.0 build-gexiv2-native gexiv2-0.16.0.tar.xz
-        echo "Generated VAPI files:"
-        ls -la vapi/
+        cp /usr/share/vala/vapi/gexiv2.vapi vapi/ 2>/dev/null || true
+        cp /usr/share/vala/vapi/gexiv2.deps vapi/ 2>/dev/null || true
+
+        # Generate a matching wrap file for the Android cross-build
+        GEXIV2_MM=$(echo "${GEXIV2_VERSION}" | cut -d. -f1,2)
+        printf '%s\n' \
+          '[wrap-file]' \
+          "directory = gexiv2-${GEXIV2_VERSION}" \
+          "source_url = https://download.gnome.org/sources/gexiv2/${GEXIV2_MM}/gexiv2-${GEXIV2_VERSION}.tar.xz" \
+          "source_filename = gexiv2-${GEXIV2_VERSION}.tar.xz" \
+          '' \
+          '[provide]' \
+          'dependency_names = gexiv2' \
+          > subprojects/gexiv2.wrap
+        echo "Generated gexiv2.wrap:"
+        cat subprojects/gexiv2.wrap
 
     # ── Android SDK / NDK ──
 
