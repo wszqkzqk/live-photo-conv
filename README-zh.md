@@ -84,6 +84,14 @@ flatpak-builder --user --install --force-clean build-flatpak com.github.wszqkzqk
 flatpak run com.github.wszqkzqk.live-photo-conv
 ```
 
+### macOS (Homebrew)
+
+对于已安装 [Homebrew](https://brew.sh/) 的 macOS 用户，可以直接使用本仓库提供的 Formula 安装：
+
+```bash
+brew install --HEAD --build-from-source ./distros/homebrew/live-photo-conv.rb
+```
+
 ## 手动构建
 
 ### 依赖
@@ -117,6 +125,12 @@ sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgtk
 
 ```bash
 pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-cc mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-libadwaita mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
+```
+
+在 macOS 上通过 Homebrew 安装依赖：
+
+```bash
+brew install glib gexiv2 meson vala gtk4 libadwaita gstreamer gdk-pixbuf gobject-introspection gettext help2man pkgconf adwaita-icon-theme
 ```
 
 ### 编译

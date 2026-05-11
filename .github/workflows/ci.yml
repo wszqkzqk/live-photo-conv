@@ -115,10 +115,51 @@ jobs:
         name: windows-package
         path: distros/msys2/*.pkg.tar.zst
 
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Update Homebrew
+      run: brew update
+
+    - name: Create source archive and formula
+      run: |
+        VERSION=$(git describe --tags --abbrev=12 | sed 's/^v//;s/-/./g')
+        git archive --format=tar.gz --prefix="live-photo-conv-${VERSION}/" -o "/tmp/live-photo-conv-${VERSION}.tar.gz" HEAD
+        SHA256=$(shasum -a 256 "/tmp/live-photo-conv-${VERSION}.tar.gz" | cut -d' ' -f1)
+
+        cp "$GITHUB_WORKSPACE/distros/homebrew/live-photo-conv.rb" /tmp/live-photo-conv.rb
+        awk -v version="$VERSION" -v sha256="$SHA256" '
+        /license "LGPL-2.1-or-later"/ {
+            print
+            print "  url \"file:///tmp/live-photo-conv-" version ".tar.gz\""
+            print "  sha256 \"" sha256 "\""
+            next
+        }
+        { print }' /tmp/live-photo-conv.rb > /tmp/live-photo-conv-patched.rb
+        mv /tmp/live-photo-conv-patched.rb /tmp/live-photo-conv.rb
+
+    - name: Build and bottle
+      run: |
+        brew install --build-from-source /tmp/live-photo-conv.rb
+        cd "$GITHUB_WORKSPACE"
+        brew bottle --no-rebuild /tmp/live-photo-conv.rb
+        ls -la *.bottle.tar.gz
+
+    - name: Upload Bottle
+      uses: actions/upload-artifact@v7
+      with:
+        name: macos-bottle
+        path: '*.bottle.tar.gz'
+
   release:
     name: Release
     if: github.ref_type == 'tag'
-    needs: [build-archlinux, build-flatpak, build-windows]
+    needs: [build-archlinux, build-flatpak, build-windows, build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -132,6 +173,12 @@ jobs:
     - uses: actions/download-artifact@v8
       with:
         name: flatpak-bundle
+        merge-multiple: true
+        path: dist
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: macos-bottle
         merge-multiple: true
         path: dist
 

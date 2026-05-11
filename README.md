@@ -84,6 +84,14 @@ flatpak-builder --user --install --force-clean build-flatpak com.github.wszqkzqk
 flatpak run com.github.wszqkzqk.live-photo-conv
 ```
 
+### macOS (Homebrew)
+
+For macOS users with [Homebrew](https://brew.sh/) installed, you can install directly from this repository's formula:
+
+```bash
+brew install --HEAD --build-from-source ./distros/homebrew/live-photo-conv.rb
+```
+
 ## Manual Build
 
 ### Dependencies
@@ -117,6 +125,12 @@ To install dependencies on Windows by MSYS2 (UCRT64 environment):
 
 ```bash
 pacman -S --needed mingw-w64-ucrt-x86_64-glib2 mingw-w64-ucrt-x86_64-cc  mingw-w64-ucrt-x86_64-gexiv2 mingw-w64-ucrt-x86_64-meson mingw-w64-ucrt-x86_64-vala mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-libadwaita mingw-w64-ucrt-x86_64-gstreamer mingw-w64-ucrt-x86_64-gst-plugins-base mingw-w64-ucrt-x86_64-gdk-pixbuf2 mingw-w64-ucrt-x86_64-gobject-introspection mingw-w64-ucrt-x86_64-gst-plugins-good mingw-w64-ucrt-x86_64-gst-plugins-bad
+```
+
+To install dependencies on macOS (via Homebrew):
+
+```bash
+brew install glib gexiv2 meson vala gtk4 libadwaita gstreamer gdk-pixbuf gobject-introspection gettext help2man pkgconf adwaita-icon-theme
 ```
 
 ### Compilation
