@@ -69,14 +69,20 @@ require_gst = get_option('gst')
 if is_android
   require_gst = true
 endif
-# On Android, GStreamer is resolved via subproject but the monorepo root
-# does not expose gst_dep / override standard names until we patch it.
-# We therefore do NOT require it at configure-time on Android; the CI
-# patches the subproject and reconfigures before building.
-gst_required = require_gst and not is_android
-gst = dependency('gstreamer-1.0', required: gst_required)
-gst_app = dependency('gstreamer-app-1.0', required: gst_required)
-gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: gst_required)
+# On Android, GStreamer comes from a subproject whose root does not
+# override standard dependency names until CI patches it. Use
+# required:false during the initial configure to avoid errors;
+# CI reconfigures after patching, at which point the dependencies
+# are found and with_gst becomes true.
+if is_android
+  gst = dependency('gstreamer-1.0', required: false)
+  gst_app = dependency('gstreamer-app-1.0', required: false)
+  gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: false)
+else
+  gst = dependency('gstreamer-1.0', required: require_gst)
+  gst_app = dependency('gstreamer-app-1.0', required: require_gst)
+  gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
+endif
 
 # Optional GTK4/LibAdwaita GUI dependencies
 # On Android, the GUI is the only supported interface — require it
