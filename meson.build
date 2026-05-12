@@ -1,5 +1,6 @@
 project('live-photo-conv', ['c', 'vala'],
-          version: '0.40.3',
+          version: '0.40.4',
+          license: 'LGPL-2.1-or-later',
     meson_version: '>= 1.4',
 )
 
