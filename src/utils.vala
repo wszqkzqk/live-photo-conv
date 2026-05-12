@@ -91,4 +91,17 @@ namespace LivePhotoConv.Utils {
             bytes_to_write -= bytes_read;
         }
     }
+
+    /**
+     * Returns the effective locale directory at runtime.
+     */
+    public string get_localedir () {
+#if WINDOWS
+        var prefix = Win32.get_package_installation_directory_of_module (null);
+        if (prefix != null) {
+            return Path.build_filename (prefix, "share", "locale");
+        }
+#endif
+        return LOCALEDIR;
+    }
 }
