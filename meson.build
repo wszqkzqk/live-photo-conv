@@ -68,20 +68,11 @@ require_gst = get_option('gst')
 if is_android
   require_gst = true
 endif
-# On Android, GStreamer comes from a subproject whose root does not
-# override standard dependency names until CI patches it. Use
-# required:false during the initial configure to avoid errors;
-# CI reconfigures after patching, at which point the dependencies
-# are found and with_gst becomes true.
-if is_android
-  gst = dependency('gstreamer-1.0', required: false)
-  gst_app = dependency('gstreamer-app-1.0', required: false)
-  gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: false)
-else
-  gst = dependency('gstreamer-1.0', required: require_gst)
-  gst_app = dependency('gstreamer-app-1.0', required: require_gst)
-  gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
-endif
+gst = dependency('gstreamer-1.0', required: require_gst,
+  fallback: ['gstreamer', 'gst_dep'])
+gst_app = dependency('gstreamer-app-1.0', required: require_gst,
+  fallback: ['gst-plugins-base', 'app_dep'])
+gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 
 # Optional GTK4/LibAdwaita GUI dependencies
 # On Android, the GUI is the only supported interface — require it

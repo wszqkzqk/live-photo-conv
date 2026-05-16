@@ -1,0 +1,8 @@
+[wrap-file]
+directory = gst-plugins-base-1.28.2
+source_url = https://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-1.28.2.tar.xz
+source_filename = gst-plugins-base-1.28.2.tar.xz
+source_hash = 4db76b3619280037a4047de7d9dbb38613a4272dcc40efb333257124635a888d
+
+[provide]
+dependency_names = gstreamer-app-1.0, gstreamer-video-1.0, gstreamer-pbutils-1.0, gstreamer-audio-1.0, gstreamer-rtp-1.0, gstreamer-tag-1.0

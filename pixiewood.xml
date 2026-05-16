@@ -52,19 +52,8 @@
       <option>-Dgir=disabled</option>
       <option>-Dmanpages=disabled</option>
       <option>-Ddocs=disabled</option>
-      <!-- Force GStreamer subproject on Android (shared GLib) -->
-      <option>--force-fallback-for=gstreamer</option>
-      <!-- GStreamer minimal build: only core + app + playback -->
-      <option>-Dgstreamer:base=enabled</option>
-      <option>-Dgstreamer:good=disabled</option>
-      <option>-Dgstreamer:bad=disabled</option>
-      <option>-Dgstreamer:ugly=disabled</option>
-      <option>-Dgstreamer:libav=disabled</option>
-      <option>-Dgstreamer:tests=disabled</option>
-      <option>-Dgstreamer:examples=disabled</option>
-      <option>-Dgstreamer:introspection=disabled</option>
-      <option>-Dgstreamer:doc=disabled</option>
-      <option>-Dgstreamer:tools=disabled</option>
+      <!-- Force GStreamer subprojects on Android (shared GLib) -->
+      <option>--force-fallback-for=gstreamer,gst-plugins-base</option>
     </configure-options>
   </build>
 </app>

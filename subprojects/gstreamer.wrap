@@ -1,8 +1,8 @@
-[wrap-git]
-directory = gstreamer
-url = https://gitlab.freedesktop.org/gstreamer/gstreamer.git
-revision = 1.28.2
-depth = 1
+[wrap-file]
+directory = gstreamer-1.28.2
+source_url = https://gstreamer.freedesktop.org/src/gstreamer/gstreamer-1.28.2.tar.xz
+source_filename = gstreamer-1.28.2.tar.xz
+source_hash = ce5cd44d4ffeafdcc3dddaa072b2179c0b7cb1abf4e6c5d18d4375f8a39fe491
 
 [provide]
-dependency_names = gstreamer-1.0, gstreamer-app-1.0, gstreamer-video-1.0, gstreamer-pbutils-1.0, gstreamer-audio-1.0
+dependency_names = gstreamer-1.0, gstreamer-base-1.0, gstreamer-controller-1.0, gstreamer-net-1.0, gstreamer-check-1.0

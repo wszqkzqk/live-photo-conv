@@ -270,7 +270,7 @@ jobs:
         git clone https://github.com/sp1ritCS/gtk-android-builder.git --branch android36 pixiewood
         git clone --depth 1 https://github.com/sp1ritCS/mini-studio.git
 
-    - name: pixiewood prepare (first pass — download subprojects)
+    - name: pixiewood prepare
       run: |
         ./pixiewood/pixiewood prepare --release \
           -s "${ANDROID_HOME}" \
@@ -283,64 +283,6 @@ jobs:
       with:
         path: subprojects/
         key: ${{ steps.cache-subprojects.outputs.cache-primary-key }}
-
-    # GStreamer monorepo root does not expose gst_dep / override standard
-    # dependency names. We patch it so that meson can find gstreamer-1.0 etc.
-    - name: Patch GStreamer subproject for dependency forwarding
-      run: |
-        GST_DIR="subprojects/gstreamer"
-        if [ -f "${GST_DIR}/meson.build" ]; then
-          {
-            echo ""
-            echo "# === Injected by live-photo-conv CI ==="
-            echo "# Forward subproject dependencies for external consumers."
-            echo "# GStreamer monorepo root normally does not expose these."
-            echo "_gst_core_sp = subproject('gstreamer')"
-            echo "gst_dep      = _gst_core_sp.get_variable('gst_dep')"
-            echo "gst_base_dep = _gst_core_sp.get_variable('gst_base_dep')"
-            echo "meson.override_dependency('gstreamer-1.0',      gst_dep)"
-            echo "meson.override_dependency('gstreamer-base-1.0', gst_base_dep)"
-            echo ""
-            echo "_gst_base_sp = subproject('gst-plugins-base')"
-            echo "app_dep      = _gst_base_sp.get_variable('app_dep')"
-            echo "video_dep    = _gst_base_sp.get_variable('video_dep')"
-            echo "pbutils_dep  = _gst_base_sp.get_variable('pbutils_dep')"
-            echo "meson.override_dependency('gstreamer-app-1.0',    app_dep)"
-            echo "meson.override_dependency('gstreamer-video-1.0',  video_dep)"
-            echo "meson.override_dependency('gstreamer-pbutils-1.0', pbutils_dep)"
-            echo "# === End injection ==="
-          } >> "${GST_DIR}/meson.build"
-          echo "Patched ${GST_DIR}/meson.build"
-        else
-          echo "WARNING: GStreamer subproject not found, skipping patch"
-        fi
-
-    - name: Reconfigure meson with patched GStreamer
-      run: |
-        # Re-run meson setup so that it re-parses the patched GStreamer
-        # subproject and finds gstreamer-1.0 / gstreamer-app-1.0.
-        meson setup --reconfigure .pixiewood/bin-aarch64 . \
-          --cross-file .pixiewood/toolchain.cross \
-          --cross-file pixiewood/prepare/arch/aarch64.cross \
-          --cross-file pixiewood/prepare/android.cross \
-          --buildtype release \
-          --strip \
-          -Dgui=enabled \
-          -Dgst=enabled \
-          -Dgir=disabled \
-          -Dmanpages=disabled \
-          -Ddocs=disabled \
-          --force-fallback-for=gstreamer \
-          -Dgstreamer:base=enabled \
-          -Dgstreamer:good=disabled \
-          -Dgstreamer:bad=disabled \
-          -Dgstreamer:ugly=disabled \
-          -Dgstreamer:libav=disabled \
-          -Dgstreamer:tests=disabled \
-          -Dgstreamer:examples=disabled \
-          -Dgstreamer:introspection=disabled \
-          -Dgstreamer:doc=disabled \
-          -Dgstreamer:tools=disabled
 
     - name: pixiewood generate
       run: |
