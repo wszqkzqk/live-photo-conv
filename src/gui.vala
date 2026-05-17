@@ -316,7 +316,7 @@ public class LivePhotoConv.Application : Adw.Application {
         repair_button.clicked.connect (on_repair_clicked);
 
         stack.add_titled_with_icon (page_with_action_button (build_make_page (), make_button), "make", _("Make"), "list-add-symbolic");
-        stack.add_titled_with_icon (page_with_action_button (build_extract_page (), extract_button), "extract", _("Extract"), "document-send-symbolic");
+        stack.add_titled_with_icon (page_with_action_button (build_extract_page (), extract_button), "extract", _("Extract"), "document-export-symbolic");
         stack.add_titled_with_icon (page_with_action_button (build_repair_page (), repair_button), "repair", _("Repair"), "applications-utilities-symbolic");
 
         view_switcher.stack = stack;
