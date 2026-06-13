@@ -4,12 +4,12 @@ class LivePhotoConv < Formula
   license "LGPL-2.1-or-later"
   head "https://github.com/wszqkzqk/live-photo-conv.git", branch: "main", using: :git
 
+  depends_on "gobject-introspection" => :build
+  depends_on "help2man" => :build
   depends_on "meson" => :build
   depends_on "ninja" => :build
   depends_on "pkgconf" => :build
   depends_on "vala" => :build
-  depends_on "gobject-introspection" => :build
-  depends_on "help2man" => :build
 
   depends_on "adwaita-icon-theme"
   depends_on "gdk-pixbuf"
@@ -27,6 +27,6 @@ class LivePhotoConv < Formula
 
   test do
     assert_match "Live Photo Converter", shell_output("#{bin}/live-photo-conv --version 2>&1")
-    assert_predicate bin/"live-photo-conv-gtk", :exist?
+    assert_path_exists bin/"live-photo-conv-gtk"
   end
 end
