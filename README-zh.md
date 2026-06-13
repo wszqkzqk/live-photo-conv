@@ -84,6 +84,15 @@ flatpak-builder --user --install --force-clean build-flatpak com.github.wszqkzqk
 flatpak run com.github.wszqkzqk.live-photo-conv
 ```
 
+### macOS (Homebrew)
+
+macOS 可以将本仓库作为 Homebrew tap 安装：
+
+```bash
+brew tap wszqkzqk/live-photo-conv https://github.com/wszqkzqk/live-photo-conv
+brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
+```
+
 ## 手动构建
 
 ### 依赖
@@ -111,6 +120,12 @@ sudo pacman -S --needed glib2 libgexiv2 meson vala gtk4 libadwaita gstreamer gst
 
 ```bash
 sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgtk-4-dev libadwaita-1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection libgirepository1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-vaapi
+```
+
+在 macOS 上使用 Homebrew 安装依赖：
+
+```bash
+brew install meson vala pkgconf glib gexiv2 gtk4 libadwaita adwaita-icon-theme gstreamer gdk-pixbuf gobject-introspection ffmpeg help2man
 ```
 
 在Windows的MSYS2（UCRT64）环境上安装依赖：
