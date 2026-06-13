@@ -90,7 +90,7 @@ macOS 可以将本仓库作为 Homebrew tap 安装：
 
 ```bash
 brew tap wszqkzqk/live-photo-conv https://github.com/wszqkzqk/live-photo-conv
-brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
+HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
 ```
 
 ## 手动构建

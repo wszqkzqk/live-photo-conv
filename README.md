@@ -90,7 +90,7 @@ On macOS, install from this repository as a Homebrew tap:
 
 ```bash
 brew tap wszqkzqk/live-photo-conv https://github.com/wszqkzqk/live-photo-conv
-brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
+HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
 ```
 
 ## Manual Build
