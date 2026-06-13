@@ -84,6 +84,15 @@ flatpak-builder --user --install --force-clean build-flatpak com.github.wszqkzqk
 flatpak run com.github.wszqkzqk.live-photo-conv
 ```
 
+### macOS (Homebrew)
+
+On macOS, install from this repository as a Homebrew tap:
+
+```bash
+brew tap wszqkzqk/live-photo-conv https://github.com/wszqkzqk/live-photo-conv
+brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
+```
+
 ## Manual Build
 
 ### Dependencies
@@ -111,6 +120,12 @@ To install dependencies on Debian/Ubuntu:
 
 ```bash
 sudo apt install build-essential meson valac libgexiv2-dev libglib2.0-dev libgtk-4-dev libadwaita-1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgdk-pixbuf-2.0-dev gobject-introspection libgirepository1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-vaapi
+```
+
+To install dependencies on macOS with Homebrew:
+
+```bash
+brew install meson vala pkgconf glib gexiv2 gtk4 libadwaita adwaita-icon-theme gstreamer gdk-pixbuf gobject-introspection ffmpeg help2man
 ```
 
 To install dependencies on Windows by MSYS2 (UCRT64 environment):

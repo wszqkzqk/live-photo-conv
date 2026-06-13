@@ -115,10 +115,29 @@ jobs:
         name: windows-package
         path: distros/msys2/*.pkg.tar.zst
 
+  build-macos:
+    name: Build macOS Homebrew Package
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Build Package
+      run: |
+        brew update
+        brew tap-new --no-git wszqkzqk/live-photo-conv
+        formula="$(brew --repository wszqkzqk/live-photo-conv)/Formula/live-photo-conv.rb"
+        cp Formula/live-photo-conv.rb "$formula"
+        sed -i '' "s|https://github.com/wszqkzqk/live-photo-conv.git\", branch: \"main\", using: :git|file://$GITHUB_WORKSPACE\", revision: \"$GITHUB_SHA\", using: :git|" "$formula"
+
+        brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
+        brew test wszqkzqk/live-photo-conv/live-photo-conv
+
   release:
     name: Release
     if: github.ref_type == 'tag'
-    needs: [build-archlinux, build-flatpak, build-windows]
+    needs: [build-archlinux, build-flatpak, build-windows, build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write

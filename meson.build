@@ -22,7 +22,7 @@ basic_deps = [
   dependency('gobject-2.0'),
   dependency('gio-2.0'),
   dependency('gmodule-2.0'),
-  dependency('gexiv2'),
+  dependency('gexiv2-0.16', 'gexiv2'),
 ]
 # Dependencies for the library
 lib_deps = basic_deps
