@@ -45,7 +45,12 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         set;
         default = true;
     }
-    
+    public bool oppo_compatible {
+        get;
+        set;
+        default = false;
+    }
+
     /**
      * Creates a new LiveMaker instance.
      *
@@ -157,6 +162,24 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
         this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
+
+        // OPPO needs specific tags
+        if (this.oppo_compatible) {
+            Reporter.info_puts ("OppoCompatibility", "Setting extra metadata for OPPO compatibility.");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.oplus.com/photos/1.0/camera/", "OpCamera");
+            this.metadata.try_set_tag_string ("Xmp.OpCamera.MotionPhotoPrimaryPresentationTimestampUs", presentation_timestamp_us_to_write);
+            this.metadata.try_set_tag_string ("Xmp.OpCamera.MotionPhotoOwner", "oplus");
+            this.metadata.try_set_tag_string ("Xmp.OpCamera.OLivePhotoVersion", "2");
+            this.metadata.try_set_tag_string ("Xmp.OpCamera.VideoLength", video_size.to_string ());
+            // oplus_11534368 is the constant used by OPPO Find X8s+, reported to work. Use it here for compatibility.
+            string? user_comment = null;
+            try {
+                user_comment = this.metadata.try_get_tag_string ("Exif.Photo.UserComment");
+            } catch {}
+            if (user_comment == null || (!user_comment.has_prefix ("oplus_"))) {
+                this.metadata.try_set_tag_string ("Exif.Photo.UserComment", "oplus_11534368");
+            }
+        }
 
         try {
             this.metadata.save_file (this.dest);
