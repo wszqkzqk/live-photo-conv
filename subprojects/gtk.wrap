@@ -5,7 +5,7 @@ directory = gtk
 url = https://gitlab.gnome.org/GNOME/gtk.git
 revision = main
 depth = 1
-diff_files = gtk/content-uri.patch,gtk/drop-get-path.patch
+diff_files = gtk/content-uri.patch
 
 [provide]
 dependency_names = gtk4

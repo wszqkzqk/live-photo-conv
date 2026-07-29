@@ -1,62 +1,316 @@
 diff --git a/gdk/android/gdkandroidcontentfile.c b/gdk/android/gdkandroidcontentfile.c
-index 20b76185c2..b493910e2b 100644
+index 20b76185c2..f22d259a93 100644
 --- a/gdk/android/gdkandroidcontentfile.c
 +++ b/gdk/android/gdkandroidcontentfile.c
-@@ -1719,14 +1719,8 @@ gdk_android_content_file_from_uri (jobject uri)
-   self->child_name = NULL;
+@@ -827,6 +827,7 @@ struct _GdkAndroidContentFile
  
-   if ((*env)->CallStaticBooleanMethod (env, gdk_android_get_java_cache()->a_documents_contract.klass,
--                                       gdk_android_get_java_cache()->a_documents_contract.is_document,
--                                       self->context, uri))
--    {
--      self->uri = (*env)->NewGlobalRef (env, uri);
--    }
--  else if ((*env)->CallStaticBooleanMethod (env, gdk_android_get_java_cache()->a_documents_contract.klass,
--                                            gdk_android_get_java_cache()->a_documents_contract.is_tree,
--                                            uri))
-+                                       gdk_android_get_java_cache()->a_documents_contract.is_tree,
-+                                       uri))
+   jobject context;
+ 
++  gboolean is_document;
+   jobject uri;
+   jstring child_name; // if this is set, uri refers to the parent of the file
+ };
+@@ -914,7 +915,7 @@ gdk_android_content_file_init (GdkAndroidContentFile *self)
+ static gboolean
+ gdk_android_content_file_make_valid (GdkAndroidContentFile *self, GError **error)
+ {
+-  if (self->child_name == NULL)
++  if (!self->is_document || self->child_name == NULL)
+     return TRUE;
+ 
+   JNIEnv *env = gdk_android_get_env();
+@@ -1058,29 +1059,51 @@ gdk_android_content_file_copy (GFile *file,
+   if (!gdk_android_content_file_make_valid (self, error))
+     return FALSE;
+ 
++  if (self->child_name)
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND, "Source does not exist");
++      return FALSE;
++    }
++
+   JNIEnv *env = gdk_android_get_env();
+   if (dest->child_name)
      {
+-      (*env)->PushLocalFrame (env, 3);
++      if (self->is_document)
++        {
++          (*env)->PushLocalFrame (env, 3);
+ 
+-      jobject resolver = (*env)->CallObjectMethod (env, self->context,
+-                                                   gdk_android_get_java_cache ()->a_context.get_content_resolver);
+-      jobject uri = (*env)->CallStaticObjectMethod (env, gdk_android_get_java_cache ()->a_documents_contract.klass,
+-                                                    gdk_android_get_java_cache ()->a_documents_contract.copy_document,
+-                                                    resolver, self->uri, dest->uri);
+-      uri = (*env)->CallStaticObjectMethod (env, gdk_android_get_java_cache ()->a_documents_contract.klass,
+-                                            gdk_android_get_java_cache ()->a_documents_contract.rename_document,
+-                                            uri, dest->child_name);
+-
+-      (*env)->DeleteGlobalRef (env, dest->uri);
+-      dest->uri = (*env)->NewGlobalRef (env, uri);
+-      (*env)->DeleteGlobalRef (env, dest->child_name);
+-      dest->child_name = NULL;
++          jobject resolver = (*env)->CallObjectMethod (env, self->context,
++                                                       gdk_android_get_java_cache ()->a_context.get_content_resolver);
++          jobject uri = (*env)->CallStaticObjectMethod (env, gdk_android_get_java_cache ()->a_documents_contract.klass,
++                                                        gdk_android_get_java_cache ()->a_documents_contract.copy_document,
++                                                        resolver, self->uri, dest->uri);
++          if (gdk_android_content_file_has_exception (env, error))
++            {
++              (*env)->PopLocalFrame (env, NULL);
++              return FALSE;
++            }
++          uri = (*env)->CallStaticObjectMethod (env, gdk_android_get_java_cache ()->a_documents_contract.klass,
++                                                gdk_android_get_java_cache ()->a_documents_contract.rename_document,
++                                                uri, dest->child_name);
++          if (gdk_android_content_file_has_exception (env, error))
++            {
++              (*env)->PopLocalFrame (env, NULL);
++              return FALSE;
++            }
++
++          (*env)->DeleteGlobalRef (env, dest->uri);
++          dest->uri = (*env)->NewGlobalRef (env, uri);
++          (*env)->DeleteGlobalRef (env, dest->child_name);
++          dest->child_name = NULL;
+ 
+-      (*env)->PopLocalFrame (env, NULL);
+-      return TRUE;
++          (*env)->PopLocalFrame (env, NULL);
++          return TRUE;
++        }
++      else
++        goto manual;
+     }
+   else if (flags & G_FILE_COPY_OVERWRITE)
++manual:
+     {
+       GFileInputStream *istream = g_file_read (file, cancellable, error);
+       if (!istream)
+@@ -1126,6 +1149,12 @@ gdk_android_content_file_create (GFile *file,
+                                  GError **error)
+ {
+   GdkAndroidContentFile *self = (GdkAndroidContentFile *)file;
++  if (!self->is_document)
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED, "Operation not supported");
++      return NULL;
++    }
++
+   if (!self->child_name)
+     {
+       g_set_error (error, G_IO_ERROR, G_IO_ERROR_EXISTS, "File already exists");
+@@ -1171,6 +1200,12 @@ gdk_android_content_file_delete_file (GFile *file,
+   if (!gdk_android_content_file_make_valid (self, error))
+     return FALSE;
+ 
++  if (!self->is_document)
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED, "Operation not supported");
++      return FALSE;
++    }
++
+   JNIEnv *env = gdk_android_get_env();
+   (*env)->PushLocalFrame (env, 1);
+   jobject resolver = (*env)->CallObjectMethod (env, self->context,
+@@ -1196,6 +1231,7 @@ gdk_android_content_file_dup (GFile *file)
+ 
+   GdkAndroidContentFile *copy = g_object_new (GDK_TYPE_ANDROID_CONTENT_FILE, NULL);
+   copy->context = (*env)->NewGlobalRef (env, self->context);
++  copy->is_document = self->is_document;
+   copy->uri = (*env)->NewGlobalRef (env, self->uri);
+   copy->child_name = self->child_name ? (*env)->NewGlobalRef (env, self->child_name) : NULL;
+   return (GFile *)copy;
+@@ -1212,6 +1248,12 @@ gdk_android_content_file_enumerate_children (GFile *file,
+   if (!gdk_android_content_file_make_valid (self, error))
+     return NULL;
+ 
++  if (!self->is_document)
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED, "Operation not supported");
++      return NULL;
++    }
++
+   JNIEnv *env = gdk_android_get_env();
+   (*env)->PushLocalFrame (env, 4);
+   jobject resolver = (*env)->CallObjectMethod (env, self->context,
+@@ -1258,6 +1300,9 @@ gdk_android_content_file_equal (GFile *lhsf, GFile *rhsf)
+ 
+   JNIEnv *env = gdk_android_get_env();
+ 
++  if (lhs->is_document != rhs->is_document)
++    return FALSE;
++
+   if (!(*env)->CallBooleanMethod (env, lhs->uri,
+                                   gdk_android_get_java_cache ()->j_object.equals,
+                                   rhs->uri))
+@@ -1279,6 +1324,14 @@ static gchar *
+ gdk_android_content_file_get_basename (GFile *file)
+ {
+   GdkAndroidContentFile *self = (GdkAndroidContentFile *)file;
++  if (!self->is_document)
++    {
++      gchar *path = g_file_get_path (file);
++      gchar *basename = g_path_get_basename (path);
++      g_free (path);
++      return basename;
++    }
++
+   if (self->child_name)
+     return gdk_android_java_to_utf8 (self->child_name, NULL);
+ 
+@@ -1301,11 +1354,18 @@ gdk_android_content_file_get_child_for_displayname (GFile *file,
+   if (!gdk_android_content_file_make_valid (self, error))
+     return NULL;
+ 
++  if (!self->is_document)
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED, "Operation not supported");
++      return NULL;
++    }
++
+   JNIEnv *env = gdk_android_get_env();
+   (*env)->PushLocalFrame (env, 1);
+ 
+   GdkAndroidContentFile *child = g_object_new (GDK_TYPE_ANDROID_CONTENT_FILE, NULL);
+   child->context = (*env)->NewGlobalRef (env, self->context);
++  child->is_document = TRUE;
+   child->uri = (*env)->NewGlobalRef (env, self->uri);
+ 
+   jobject child_name = gdk_android_utf8_to_java (display_name);
+@@ -1409,6 +1469,12 @@ gdk_android_content_file_make_directory (GFile *file,
+                                          GError **error)
+ {
+   GdkAndroidContentFile *self = (GdkAndroidContentFile *)file;
++  if (!self->is_document)
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED, "Operation not supported");
++      return FALSE;
++    }
++
+   if (!self->child_name)
+     {
+       g_set_error (error, G_IO_ERROR, G_IO_ERROR_EXISTS, "Directory already exists");
+@@ -1477,6 +1543,10 @@ gdk_android_content_file_prefix_matches (GFile *prefixf,
+   GdkAndroidContentFile *prefix = (GdkAndroidContentFile *)prefixf;
+   GdkAndroidContentFile *file = (GdkAndroidContentFile *)filef;
+   gdk_android_content_file_make_valid (prefix, NULL);
++
++  if (!prefix->is_document || !file->is_document)
++    return FALSE;
++
+   if (prefix->child_name)
+     return FALSE; // if prefix does not exist, it cant be a prefix
+ 
+@@ -1511,6 +1581,33 @@ gdk_android_content_file_query_info (GFile *file,
+   if (!gdk_android_content_file_make_valid (self, error))
+     return NULL;
+ 
++  if (!self->is_document)
++    {
++      GFileInfo *info = g_file_info_new ();
++
++      GFileAttributeMatcher *matcher = g_file_attribute_matcher_new (attributes);
++      if (g_file_attribute_matcher_matches (matcher, G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE))
++        {
++          JNIEnv *env = gdk_android_get_env ();
++          (*env)->PushLocalFrame (env, 2);
++          jobject resolver = (*env)->CallObjectMethod (env, self->context,
++                                                       gdk_android_get_java_cache ()->a_context.get_content_resolver);
++          jstring jcontent_type = (*env)->CallObjectMethod (env, resolver,
++                                                            gdk_android_get_java_cache ()->a_content_resolver.get_type,
++                                                            self->uri);
++          if (jcontent_type)
++            {
++              gchar *content_type = gdk_android_java_to_utf8 (jcontent_type, NULL);
++              g_file_info_set_content_type (info, content_type);
++              g_free (content_type);
++            }
++          (*env)->PopLocalFrame (env, NULL);
++        }
++      g_file_attribute_matcher_unref (matcher);
++
++      return info;
++    }
++
+   JNIEnv *env = gdk_android_get_env();
+   (*env)->PushLocalFrame (env, 2);
+   jobject resolver = (*env)->CallObjectMethod (env, self->context,
+@@ -1629,6 +1726,11 @@ gdk_android_content_file_set_display_name (GFile *file,
+                                            GError **error)
+ {
+   GdkAndroidContentFile *self = (GdkAndroidContentFile *)file;
++  if (!self->is_document)
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED, "Operation not supported");
++      return NULL;
++    }
+ 
+   JNIEnv *env = gdk_android_get_env();
+   (*env)->PushLocalFrame (env, 3);
+@@ -1722,12 +1824,14 @@ gdk_android_content_file_from_uri (jobject uri)
+                                        gdk_android_get_java_cache()->a_documents_contract.is_document,
+                                        self->context, uri))
+     {
++      self->is_document = TRUE;
+       self->uri = (*env)->NewGlobalRef (env, uri);
+     }
+   else if ((*env)->CallStaticBooleanMethod (env, gdk_android_get_java_cache()->a_documents_contract.klass,
+                                             gdk_android_get_java_cache()->a_documents_contract.is_tree,
+                                             uri))
+     {
++      self->is_document = TRUE;
        jstring document_id = (*env)->CallStaticObjectMethod (env, gdk_android_get_java_cache()->a_documents_contract.klass,
                                                              gdk_android_get_java_cache()->a_documents_contract.get_tree_document_id,
-@@ -1738,8 +1732,9 @@ gdk_android_content_file_from_uri (jobject uri)
+                                                             uri);
+@@ -1738,8 +1842,8 @@ gdk_android_content_file_from_uri (jobject uri)
      }
    else
      {
 -      g_object_unref (self);
 -      g_return_val_if_reached (NULL);
-+      /* Document and plain content URIs can be opened
-+       * through ContentResolver directly */
++      self->is_document = FALSE;
 +      self->uri = (*env)->NewGlobalRef (env, uri);
      }
  
    return (GFile *)self;
-diff --git a/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java b/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java
-index 09889b9c5b..be315137f3 100644
---- a/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java
-+++ b/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java
-@@ -23,6 +23,7 @@ import android.annotation.SuppressLint;
- import android.app.Activity;
- import android.app.ActivityManager;
- import android.content.ClipData;
-+import android.content.ContentResolver;
- import android.content.Intent;
- import android.content.pm.ActivityInfo;
- import android.content.res.Configuration;
-@@ -473,13 +474,14 @@ public class ToplevelActivity extends Activity {
- 			GdkContext._set_latest_activity(this);
- 
- 			Intent intent = getIntent();
--			if (intent.getData() != null) {
-+			Uri data = intent.getData();
-+			if (data != null && ContentResolver.SCHEME_CONTENT.equals(data.getScheme())) {
- 				String hint = "";
- 				if (intent.getAction() != null) {
- 					String[] action = intent.getAction().split("\\.");
- 					hint = action[action.length - 1].toLowerCase();
- 				}
--				GdkContext.open(intent.getData(), hint);
-+				GdkContext.open(data, hint);
- 			} else {
- 				GdkContext.activate();
- 			}
+diff --git a/gdk/android/gdkandroidinit.c b/gdk/android/gdkandroidinit.c
+index e2ed7f8faf..b69eef3aec 100644
+--- a/gdk/android/gdkandroidinit.c
++++ b/gdk/android/gdkandroidinit.c
+@@ -87,11 +87,34 @@ _gdk_android_gdk_context_open (JNIEnv *env, jclass this, jobject uri, jstring jh
+   GApplication *app = g_application_get_default ();
+   if (g_application_get_flags (app) & G_APPLICATION_HANDLES_OPEN)
+     {
+-      GFile *file = gdk_android_content_file_from_uri (uri);
++      (*env)->PushLocalFrame (env, 3);
++
++      GFile *file;
++      jstring scheme = (*env)->CallObjectMethod (env, uri,
++                                                 gdk_android_get_java_cache ()->a_uri.get_scheme);
++      jstring content = (*env)->NewStringUTF (env, "content");
++      if (scheme != NULL &&
++          (*env)->CallBooleanMethod (env, scheme,
++                                     gdk_android_get_java_cache ()->j_object.equals,
++                                     content))
++        {
++          file = gdk_android_content_file_from_uri (uri);
++        }
++      else
++        {
++          jstring uri_string = (*env)->CallObjectMethod (env, uri,
++                                                         gdk_android_get_java_cache ()->j_object.to_string);
++          gchar *uri_str = gdk_android_java_to_utf8 (uri_string, NULL);
++          file = g_dummy_file_new (uri_str);
++          g_free (uri_str);
++        }
++
+       gchar *hint = gdk_android_java_to_utf8 (jhint, NULL);
+       g_application_open (app, &file, 1, hint);
+       g_free (hint);
+       g_object_unref (file);
++
++      (*env)->PopLocalFrame (env, NULL);
+     }
+   else
+     {
