@@ -1,5 +1,5 @@
 diff --git a/gdk/android/gdkandroidcontentfile.c b/gdk/android/gdkandroidcontentfile.c
-index 20b76185c2..f22d259a93 100644
+index 20b76185c2..1fcf6d0e08 100644
 --- a/gdk/android/gdkandroidcontentfile.c
 +++ b/gdk/android/gdkandroidcontentfile.c
 @@ -827,6 +827,7 @@ struct _GdkAndroidContentFile
@@ -19,7 +19,7 @@ index 20b76185c2..f22d259a93 100644
      return TRUE;
  
    JNIEnv *env = gdk_android_get_env();
-@@ -1058,29 +1059,51 @@ gdk_android_content_file_copy (GFile *file,
+@@ -1058,34 +1059,56 @@ gdk_android_content_file_copy (GFile *file,
    if (!gdk_android_content_file_make_valid (self, error))
      return FALSE;
  
@@ -87,6 +87,12 @@ index 20b76185c2..f22d259a93 100644
      {
        GFileInputStream *istream = g_file_read (file, cancellable, error);
        if (!istream)
+         return FALSE;
+-      GFileOutputStream *ostream = g_file_replace (file,
++      GFileOutputStream *ostream = g_file_replace (destination,
+                                                    NULL,
+                                                    FALSE,
+                                                    G_FILE_CREATE_REPLACE_DESTINATION,
 @@ -1126,6 +1149,12 @@ gdk_android_content_file_create (GFile *file,
                                   GError **error)
  {
@@ -275,7 +281,7 @@ index 20b76185c2..f22d259a93 100644
  
    return (GFile *)self;
 diff --git a/gdk/android/gdkandroidinit.c b/gdk/android/gdkandroidinit.c
-index e2ed7f8faf..b69eef3aec 100644
+index e2ed7f8faf..34cff7ffe0 100644
 --- a/gdk/android/gdkandroidinit.c
 +++ b/gdk/android/gdkandroidinit.c
 @@ -87,11 +87,34 @@ _gdk_android_gdk_context_open (JNIEnv *env, jclass this, jobject uri, jstring jh
@@ -283,7 +289,7 @@ index e2ed7f8faf..b69eef3aec 100644
    if (g_application_get_flags (app) & G_APPLICATION_HANDLES_OPEN)
      {
 -      GFile *file = gdk_android_content_file_from_uri (uri);
-+      (*env)->PushLocalFrame (env, 3);
++      (*env)->PushLocalFrame (env, 4);
 +
 +      GFile *file;
 +      jstring scheme = (*env)->CallObjectMethod (env, uri,
@@ -301,7 +307,7 @@ index e2ed7f8faf..b69eef3aec 100644
 +          jstring uri_string = (*env)->CallObjectMethod (env, uri,
 +                                                         gdk_android_get_java_cache ()->j_object.to_string);
 +          gchar *uri_str = gdk_android_java_to_utf8 (uri_string, NULL);
-+          file = g_dummy_file_new (uri_str);
++          file = g_file_new_for_uri (uri_str);
 +          g_free (uri_str);
 +        }
 +
