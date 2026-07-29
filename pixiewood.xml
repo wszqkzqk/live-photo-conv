@@ -23,7 +23,6 @@
     <fontconfig/>
     <harfbuzz/>
     <gdk-pixbuf/>
-    <gtk/>
     <libadwaita/>
   </dependencies>
   <build target="live-photo-conv-gtk">

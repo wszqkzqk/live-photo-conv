@@ -1,0 +1,62 @@
+diff --git a/gdk/android/gdkandroidcontentfile.c b/gdk/android/gdkandroidcontentfile.c
+index 20b76185c2..b493910e2b 100644
+--- a/gdk/android/gdkandroidcontentfile.c
++++ b/gdk/android/gdkandroidcontentfile.c
+@@ -1719,14 +1719,8 @@ gdk_android_content_file_from_uri (jobject uri)
+   self->child_name = NULL;
+ 
+   if ((*env)->CallStaticBooleanMethod (env, gdk_android_get_java_cache()->a_documents_contract.klass,
+-                                       gdk_android_get_java_cache()->a_documents_contract.is_document,
+-                                       self->context, uri))
+-    {
+-      self->uri = (*env)->NewGlobalRef (env, uri);
+-    }
+-  else if ((*env)->CallStaticBooleanMethod (env, gdk_android_get_java_cache()->a_documents_contract.klass,
+-                                            gdk_android_get_java_cache()->a_documents_contract.is_tree,
+-                                            uri))
++                                       gdk_android_get_java_cache()->a_documents_contract.is_tree,
++                                       uri))
+     {
+       jstring document_id = (*env)->CallStaticObjectMethod (env, gdk_android_get_java_cache()->a_documents_contract.klass,
+                                                             gdk_android_get_java_cache()->a_documents_contract.get_tree_document_id,
+@@ -1738,8 +1732,9 @@ gdk_android_content_file_from_uri (jobject uri)
+     }
+   else
+     {
+-      g_object_unref (self);
+-      g_return_val_if_reached (NULL);
++      /* Document and plain content URIs can be opened
++       * through ContentResolver directly */
++      self->uri = (*env)->NewGlobalRef (env, uri);
+     }
+ 
+   return (GFile *)self;
+diff --git a/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java b/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java
+index 09889b9c5b..be315137f3 100644
+--- a/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java
++++ b/gdk/android/glue/java/org/gtk/android/ToplevelActivity.java
+@@ -23,6 +23,7 @@ import android.annotation.SuppressLint;
+ import android.app.Activity;
+ import android.app.ActivityManager;
+ import android.content.ClipData;
++import android.content.ContentResolver;
+ import android.content.Intent;
+ import android.content.pm.ActivityInfo;
+ import android.content.res.Configuration;
+@@ -473,13 +474,14 @@ public class ToplevelActivity extends Activity {
+ 			GdkContext._set_latest_activity(this);
+ 
+ 			Intent intent = getIntent();
+-			if (intent.getData() != null) {
++			Uri data = intent.getData();
++			if (data != null && ContentResolver.SCHEME_CONTENT.equals(data.getScheme())) {
+ 				String hint = "";
+ 				if (intent.getAction() != null) {
+ 					String[] action = intent.getAction().split("\\.");
+ 					hint = action[action.length - 1].toLowerCase();
+ 				}
+-				GdkContext.open(intent.getData(), hint);
++				GdkContext.open(data, hint);
+ 			} else {
+ 				GdkContext.activate();
+ 			}

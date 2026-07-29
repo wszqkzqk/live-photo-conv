@@ -1,0 +1,11 @@
+# GTK main plus our content-URI fix (to be dropped once merged upstream).
+# Declaring <gtk/> in pixiewood.xml instead would overwrite this wrap.
+[wrap-git]
+directory = gtk
+url = https://gitlab.gnome.org/GNOME/gtk.git
+revision = main
+depth = 1
+diff_files = gtk/content-uri.patch
+
+[provide]
+dependency_names = gtk4
