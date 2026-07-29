@@ -3,15 +3,15 @@
      system icon theme. Sources: adwaita-icon-theme (see README.md here) -->
 <gresources>
   <gresource prefix="/com/github/wszqkzqk/live-photo-conv/icons">
-    <file alias="symbolic/actions/document-open-symbolic.svg">icons/symbolic/actions/document-open-symbolic.svg</file>
-    <file alias="symbolic/actions/document-properties-symbolic.svg">icons/symbolic/actions/document-properties-symbolic.svg</file>
-    <file alias="symbolic/actions/document-send-symbolic.svg">icons/symbolic/actions/document-send-symbolic.svg</file>
-    <file alias="symbolic/actions/list-add-symbolic.svg">icons/symbolic/actions/list-add-symbolic.svg</file>
-    <file alias="symbolic/actions/open-menu-symbolic.svg">icons/symbolic/actions/open-menu-symbolic.svg</file>
-    <file alias="symbolic/categories/applications-utilities-symbolic.svg">icons/symbolic/categories/applications-utilities-symbolic.svg</file>
-    <file alias="symbolic/devices/camera-photo-symbolic.svg">icons/symbolic/devices/camera-photo-symbolic.svg</file>
-    <file alias="symbolic/places/folder-documents-symbolic.svg">icons/symbolic/places/folder-documents-symbolic.svg</file>
-    <file alias="symbolic/places/folder-pictures-symbolic.svg">icons/symbolic/places/folder-pictures-symbolic.svg</file>
-    <file alias="symbolic/places/folder-videos-symbolic.svg">icons/symbolic/places/folder-videos-symbolic.svg</file>
+    <file alias="scalable/actions/document-open-symbolic.svg">icons/scalable/actions/document-open-symbolic.svg</file>
+    <file alias="scalable/actions/document-properties-symbolic.svg">icons/scalable/actions/document-properties-symbolic.svg</file>
+    <file alias="scalable/actions/document-send-symbolic.svg">icons/scalable/actions/document-send-symbolic.svg</file>
+    <file alias="scalable/actions/list-add-symbolic.svg">icons/scalable/actions/list-add-symbolic.svg</file>
+    <file alias="scalable/actions/open-menu-symbolic.svg">icons/scalable/actions/open-menu-symbolic.svg</file>
+    <file alias="scalable/categories/applications-utilities-symbolic.svg">icons/scalable/categories/applications-utilities-symbolic.svg</file>
+    <file alias="scalable/devices/camera-photo-symbolic.svg">icons/scalable/devices/camera-photo-symbolic.svg</file>
+    <file alias="scalable/places/folder-documents-symbolic.svg">icons/scalable/places/folder-documents-symbolic.svg</file>
+    <file alias="scalable/places/folder-pictures-symbolic.svg">icons/scalable/places/folder-pictures-symbolic.svg</file>
+    <file alias="scalable/places/folder-videos-symbolic.svg">icons/scalable/places/folder-videos-symbolic.svg</file>
   </gresource>
 </gresources>
