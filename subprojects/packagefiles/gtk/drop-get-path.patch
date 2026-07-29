@@ -1,0 +1,58 @@
+diff --git a/gdk/android/gdkandroidcontentfile.c b/gdk/android/gdkandroidcontentfile.c
+index 20b76185c2..bbdef372fa 100644
+--- a/gdk/android/gdkandroidcontentfile.c
++++ b/gdk/android/gdkandroidcontentfile.c
+@@ -1325,21 +1325,6 @@ gdk_android_content_file_get_parent (GFile *file)
+   return NULL;
+ }
+ 
+-static gchar *
+-gdk_android_content_file_get_path (GFile *file)
+-{
+-  GdkAndroidContentFile *self = (GdkAndroidContentFile *)file;
+-  g_return_val_if_fail (gdk_android_content_file_make_valid (self, NULL), NULL);
+-
+-  JNIEnv *env = gdk_android_get_env();
+-  (*env)->PushLocalFrame (env, 1);
+-  jstring path_string = (*env)->CallObjectMethod (env, self->uri,
+-                                                  gdk_android_get_java_cache ()->a_uri.get_path);
+-  gchar *path = gdk_android_java_to_utf8 (path_string, NULL);
+-  (*env)->PopLocalFrame (env, NULL);
+-  return path;
+-}
+-
+ static gchar *
+ gdk_android_content_file_get_uri (GFile *file)
+ {
+@@ -1675,7 +1660,6 @@ gdk_android_content_file_iface_init (GFileIface *iface)
+   iface->get_child_for_display_name = gdk_android_content_file_get_child_for_displayname;
+   iface->get_parse_name = gdk_android_content_file_get_uri;
+   iface->get_parent = gdk_android_content_file_get_parent;
+-  iface->get_path = gdk_android_content_file_get_path;
+   iface->get_uri = gdk_android_content_file_get_uri;
+   iface->get_uri_scheme = gdk_android_content_file_get_uri_scheme;
+   iface->has_uri_scheme = gdk_android_content_file_has_uri_scheme;
+diff --git a/gdk/android/gdkandroidinit-private.h b/gdk/android/gdkandroidinit-private.h
+index e76dfd6f5e..346a855fe5 100644
+--- a/gdk/android/gdkandroidinit-private.h
++++ b/gdk/android/gdkandroidinit-private.h
+@@ -406,7 +406,6 @@ typedef struct
+   struct
+   {
+     jclass klass;
+-    jmethodID get_path;
+     jmethodID get_scheme;
+     jmethodID normalize;
+     jmethodID parse;
+diff --git a/gdk/android/gdkandroidinit.c b/gdk/android/gdkandroidinit.c
+index e2ed7f8faf..96bd2c775d 100644
+--- a/gdk/android/gdkandroidinit.c
++++ b/gdk/android/gdkandroidinit.c
+@@ -555,7 +555,6 @@ gdk_android_initialize (JNIEnv *env, jobject application_classloader, jobject ac
+ 
+   jclass android_uri = (*env)->FindClass (env, "android/net/Uri");
+   gdk_android_java_cache.a_uri.klass = (*env)->NewGlobalRef (env, android_uri);
+-  POPULATE_REFCACHE_METHOD (a_uri, get_path, "getPath", "()Ljava/lang/String;")
+   POPULATE_REFCACHE_METHOD (a_uri, get_scheme, "getScheme", "()Ljava/lang/String;")
+   POPULATE_REFCACHE_METHOD (a_uri, normalize, "normalizeScheme", "()Landroid/net/Uri;")
+   POPULATE_STATIC_REFCACHE_METHOD (a_uri, parse, "parse", "(Ljava/lang/String;)Landroid/net/Uri;")
