@@ -1,14 +1,11 @@
 diff --git a/gdk/android/gdkandroidcontentfile.c b/gdk/android/gdkandroidcontentfile.c
-index 20b76185c2..bbdef372fa 100644
+index 20b76185c2..6327afb978 100644
 --- a/gdk/android/gdkandroidcontentfile.c
 +++ b/gdk/android/gdkandroidcontentfile.c
-@@ -1325,21 +1325,6 @@ gdk_android_content_file_get_parent (GFile *file)
-   return NULL;
- }
- 
--static gchar *
--gdk_android_content_file_get_path (GFile *file)
--{
+@@ -1328,16 +1328,8 @@ gdk_android_content_file_get_parent (GFile *file)
+ static gchar *
+ gdk_android_content_file_get_path (GFile *file)
+ {
 -  GdkAndroidContentFile *self = (GdkAndroidContentFile *)file;
 -  g_return_val_if_fail (gdk_android_content_file_make_valid (self, NULL), NULL);
 -
@@ -19,19 +16,11 @@ index 20b76185c2..bbdef372fa 100644
 -  gchar *path = gdk_android_java_to_utf8 (path_string, NULL);
 -  (*env)->PopLocalFrame (env, NULL);
 -  return path;
--}
--
++  /* Content files are not local files */
++  return NULL;
+ }
+ 
  static gchar *
- gdk_android_content_file_get_uri (GFile *file)
- {
-@@ -1675,7 +1660,6 @@ gdk_android_content_file_iface_init (GFileIface *iface)
-   iface->get_child_for_display_name = gdk_android_content_file_get_child_for_displayname;
-   iface->get_parse_name = gdk_android_content_file_get_uri;
-   iface->get_parent = gdk_android_content_file_get_parent;
--  iface->get_path = gdk_android_content_file_get_path;
-   iface->get_uri = gdk_android_content_file_get_uri;
-   iface->get_uri_scheme = gdk_android_content_file_get_uri_scheme;
-   iface->has_uri_scheme = gdk_android_content_file_has_uri_scheme;
 diff --git a/gdk/android/gdkandroidinit-private.h b/gdk/android/gdkandroidinit-private.h
 index e76dfd6f5e..346a855fe5 100644
 --- a/gdk/android/gdkandroidinit-private.h
