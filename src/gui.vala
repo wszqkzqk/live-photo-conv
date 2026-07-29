@@ -382,12 +382,17 @@ public class LivePhotoConv.Application : Adw.Application {
     // ── Button state helpers ──
 
 #if ANDROID
+    // GdkAndroidContentFile.get_path() returns the URI's path component,
+    // not a real filesystem path, so check the scheme instead
+    private static bool needs_staging (File file) {
+        return !file.has_uri_scheme ("file");
+    }
+
     // content:// files have no filesystem path; stage them in the cache
     // dir for the path-based library and gexiv2
     private static string local_path_for (File file) throws Error {
-        var path = file.get_path ();
-        if (path != null) {
-            return path;
+        if (!needs_staging (file)) {
+            return file.get_path ();
         }
 
         var staging_dir = Path.build_filename (Environment.get_user_cache_dir (), "staging");
@@ -614,10 +619,12 @@ public class LivePhotoConv.Application : Adw.Application {
 #if ANDROID
                 // Let the library write a temp file that is copied back to
                 // the picked destination on success
-                var output_path = output_file.get_path ();
-                bool output_staged = output_path == null;
+                string output_path;
+                bool output_staged = needs_staging (output_file);
                 if (output_staged) {
                     output_path = staging_output_path (output_file.get_basename () ?? "live-photo.jpg");
+                } else {
+                    output_path = output_file.get_path ();
                 }
 #else
                 var output_path = output_file.get_path ();
@@ -652,8 +659,8 @@ public class LivePhotoConv.Application : Adw.Application {
                     }
 #if ANDROID
                     cleanup_staged (output_staged ? output_path : null);
-                    cleanup_staged (video_file.get_path () == null ? video_path : null);
-                    cleanup_staged (image_file != null && image_file.get_path () == null
+                    cleanup_staged (needs_staging (video_file) ? video_path : null);
+                    cleanup_staged (image_file != null && needs_staging (image_file)
                         ? image_path : null);
 #endif
                 });
@@ -872,17 +879,21 @@ public class LivePhotoConv.Application : Adw.Application {
         int total = (int) paths.length;
         int processed = 0;
 
-        string dest_dir = dest_folder.get_path ();
 #if ANDROID
         // SAF-picked folders have no path: extract into a staging dir,
         // then copy the results into the picked folder
+        string? dest_dir = null;
         File? copy_out_folder = null;
-        if (dest_dir == null) {
+        if (needs_staging (dest_folder)) {
             dest_dir = Path.build_filename (
                 Environment.get_user_cache_dir (), "staging", Uuid.string_random ());
             DirUtils.create_with_parents (dest_dir, 0700);
             copy_out_folder = dest_folder;
+        } else {
+            dest_dir = dest_folder.get_path ();
         }
+#else
+        string dest_dir = dest_folder.get_path ();
 #endif
 
         report_progress (button, _("Extracting"), 0, total);
@@ -944,7 +955,7 @@ public class LivePhotoConv.Application : Adw.Application {
             }
         }
         for (int i = 0; i < files.length; i += 1) {
-            if (files[i].get_path () == null)
+            if (needs_staging (files[i]))
                 cleanup_staged (paths[i]);
         }
 #endif
@@ -999,7 +1010,7 @@ public class LivePhotoConv.Application : Adw.Application {
         // original content:// files (not atomic: a crash mid-copy can
         // corrupt the original)
         for (int i = 0; i < files.length; i += 1) {
-            if (succeeded[i] && files[i].get_path () == null) {
+            if (succeeded[i] && needs_staging (files[i])) {
                 try {
                     File.new_for_path (paths[i]).copy (
                         files[i], FileCopyFlags.OVERWRITE, null, null);
@@ -1009,7 +1020,7 @@ public class LivePhotoConv.Application : Adw.Application {
                     error_count += 1;
                 }
             }
-            if (files[i].get_path () == null)
+            if (needs_staging (files[i]))
                 cleanup_staged (paths[i]);
         }
 #endif
