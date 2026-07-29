@@ -1,7 +1,7 @@
 # Live Photo Converter
 
 <div align="center">
-  <img src="assets/logo.png" alt="Live Photo Converter" style="width: 500px; max-width: 100%;" />
+  <img src="assets/logo.svg" alt="Live Photo Converter" style="width: 500px; max-width: 100%;" />
 </div>
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wszqkzqk/live-photo-conv)

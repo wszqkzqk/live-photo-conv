@@ -180,9 +180,9 @@ if with_gui
     install_data('../assets/com.github.wszqkzqk.live-photo-conv.desktop',
       install_dir: get_option('datadir') / 'applications',
     )
-    install_data('../assets/icon.png',
-      install_dir: get_option('datadir') / 'icons' / 'hicolor' / '256x256' / 'apps',
-      rename: 'com.github.wszqkzqk.live-photo-conv.png',
+    install_data('../assets/icon.svg',
+      install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
+      rename: 'com.github.wszqkzqk.live-photo-conv.svg',
     )
   endif
 endif
