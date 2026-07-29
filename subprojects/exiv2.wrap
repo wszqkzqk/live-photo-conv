@@ -1,0 +1,9 @@
+# exiv2, nested dependency of the gexiv2android subproject. Desktop builds
+# get exiv2 from the system and never query this wrap.
+[wrap-git]
+url = https://github.com/Exiv2/exiv2.git
+revision = main
+depth = 1
+
+[provide]
+exiv2 = exiv2_dep

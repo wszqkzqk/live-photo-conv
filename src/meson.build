@@ -55,7 +55,7 @@ if g_ir_compiler.found() and not valadoc.found()
   liblivephototools = shared_library(
     'livephototools', lib_sources,
     vala_gir: lib_gir,
-    vala_args: ['--vapi-comments'],
+    vala_args: ['--vapi-comments'] + android_vala_args,
     dependencies: lib_deps,
     version: meson.project_version(),
     soversion: lib_soversion,
@@ -66,7 +66,7 @@ if g_ir_compiler.found() and not valadoc.found()
 else
   liblivephototools = shared_library(
     'livephototools', lib_sources,
-    vala_args: ['--vapi-comments'],
+    vala_args: ['--vapi-comments'] + android_vala_args,
     dependencies: lib_deps,
     version: meson.project_version(),
     soversion: lib_soversion,
@@ -87,28 +87,33 @@ pkg.generate(
   requires: lib_deps,
 )
 
-# Build only the main executable once
-main_exe_name = 'live-photo-conv'
-main_exe_bin = executable(main_exe_name,
-  ['main.vala'],
-  install: true,
-  link_with: liblivephototools,
-  dependencies: lib_deps,
-  #include_directories: incdir,
-)
+# CLI tools are meaningless on Android
+if not is_android
+  # Build only the main executable once
+  main_exe_name = 'live-photo-conv'
+  main_exe_bin = executable(main_exe_name,
+    ['main.vala'],
+    install: true,
+    link_with: liblivephototools,
+    dependencies: lib_deps,
+    vala_args: android_vala_args,
+    #include_directories: incdir,
+  )
 
-# Sub executable names that should be links/copies of the main binary
-sub_exe_names = ['live-photo-make', 'live-photo-extract', 'live-photo-repair']
+  # Sub executable names that should be links/copies of the main binary
+  sub_exe_names = ['live-photo-make', 'live-photo-extract', 'live-photo-repair']
 
-# Build copy-img-meta separately as it has different sources
-copy_img_meta_name = 'copy-img-meta'
-copy_img_meta_bin = executable(copy_img_meta_name,
-  ['copyimgmeta.vala'],
-  install: true,
-  link_with: liblivephototools,
-  dependencies: lib_deps,
-  #include_directories: incdir,
-)
+  # Build copy-img-meta separately as it has different sources
+  copy_img_meta_name = 'copy-img-meta'
+  copy_img_meta_bin = executable(copy_img_meta_name,
+    ['copyimgmeta.vala'],
+    install: true,
+    link_with: liblivephototools,
+    dependencies: lib_deps,
+    vala_args: android_vala_args,
+    #include_directories: incdir,
+  )
+endif
 
 # Build GTK4/LibAdwaita GUI
 gui_name = 'live-photo-conv-gtk'
@@ -121,6 +126,15 @@ if with_gui
     gui_sources += gnome.compile_resources('live-photo-conv-gtk-resources',
       'icons.gresource.xml',
       source_dir: '..',
+    )
+  endif
+
+  # No system icon theme on Android; bundle the symbolic icons we use
+  if is_android
+    gui_sources += gnome.compile_resources('live-photo-conv-gtk-android-icons',
+      '../android/icons.gresource.xml',
+      c_name: 'icons_android',
+      source_dir: '../android',
     )
   endif
 
@@ -139,13 +153,27 @@ if with_gui
     gui_sources += import('windows').compile_resources(win_rc)
   endif
 
-  executable(gui_name,
-    gui_sources,
-    install: true,
-    link_with: liblivephototools,
-    dependencies: gui_deps,
-    win_subsystem: 'windows',
-  )
+  if is_android
+    # Loaded as a shared library by the GTK Android runtime, which calls
+    # the exported main(). Requires meson >= 1.9.
+    executable(gui_name,
+      gui_sources,
+      android_exe_type: 'application',
+      install: true,
+      link_with: liblivephototools,
+      dependencies: gui_deps,
+      vala_args: android_gui_vala_args,
+    )
+  else
+    executable(gui_name,
+      gui_sources,
+      install: true,
+      link_with: liblivephototools,
+      dependencies: gui_deps,
+      vala_args: android_gui_vala_args,
+      win_subsystem: 'windows',
+    )
+  endif
 
   if is_freedesktop
     # Install desktop file and hicolor icon (freedesktop / Linux)
@@ -160,83 +188,85 @@ if with_gui
 endif
 
 # Create symlinks/copies in build directory and install them
-symlink_script = meson.project_source_root() / 'scripts' / 'create-binary-symlinks.py'
-sub_exe_bins = []
-foreach exe_name : sub_exe_names
-  # Create link/copy in build directory and install it
-  linked_exe = custom_target('link-' + exe_name,
-    output: exe_name + (is_windows ? '.exe' : ''),
-    command: [
-      python,
-      symlink_script,
-      main_exe_bin.full_path(),
-      '@OUTPUT@',
-    ],
-    depends: main_exe_bin,
-    build_by_default: true,
-    install: is_windows, # Workaround for https://github.com/mesonbuild/meson/issues/12710
-    install_dir: get_option('bindir'),
-  )
-  # Workaround for https://github.com/mesonbuild/meson/issues/12710
-  if not is_windows
-    install_symlink(
-      exe_name,
-      pointing_to: main_exe_name,
-      install_dir: get_option('bindir')
+if not is_android
+  symlink_script = meson.project_source_root() / 'scripts' / 'create-binary-symlinks.py'
+  sub_exe_bins = []
+  foreach exe_name : sub_exe_names
+    # Create link/copy in build directory and install it
+    linked_exe = custom_target('link-' + exe_name,
+      output: exe_name + (is_windows ? '.exe' : ''),
+      command: [
+        python,
+        symlink_script,
+        main_exe_bin.full_path(),
+        '@OUTPUT@',
+      ],
+      depends: main_exe_bin,
+      build_by_default: true,
+      install: is_windows, # Workaround for https://github.com/mesonbuild/meson/issues/12710
+      install_dir: get_option('bindir'),
     )
-  endif
+    # Workaround for https://github.com/mesonbuild/meson/issues/12710
+    if not is_windows
+      install_symlink(
+        exe_name,
+        pointing_to: main_exe_name,
+        install_dir: get_option('bindir')
+      )
+    endif
 
-  sub_exe_bins += [linked_exe]
-endforeach
+    sub_exe_bins += [linked_exe]
+  endforeach
 
-if help2man_prog.found()
-  # Generate manpage for main executable
-  custom_target('manpage-' + main_exe_name,
-    output : main_exe_name + '.1',
-    command : [
-      help2man_prog,
-      '-N',
-      '-o',
-      '@OUTPUT@',
-      main_exe_bin,
-      '--no-discard-stderr',
-    ],
-    install : true,
-    install_dir : get_option('mandir') / 'man1',
-  )
-
-  # Generate manpages for linked executables
-  foreach index : range(sub_exe_names.length())
-    custom_target('manpage-' + sub_exe_names[index],
-      output : sub_exe_names[index] + '.1',
+  if help2man_prog.found()
+    # Generate manpage for main executable
+    custom_target('manpage-' + main_exe_name,
+      output : main_exe_name + '.1',
       command : [
         help2man_prog,
         '-N',
         '-o',
         '@OUTPUT@',
-        sub_exe_bins[index].full_path(),
+        main_exe_bin,
         '--no-discard-stderr',
       ],
       install : true,
       install_dir : get_option('mandir') / 'man1',
-      depends : sub_exe_bins[index],
     )
-  endforeach
-  
-  # Generate manpage for copy-img-meta
-  custom_target('manpage-' + copy_img_meta_name,
-    output : copy_img_meta_name + '.1',
-    command : [
-      help2man_prog,
-      '-N',
-      '-o',
-      '@OUTPUT@',
-      copy_img_meta_bin,
-      '--no-discard-stderr',
-    ],
-    install : true,
-    install_dir : get_option('mandir') / 'man1',
-  )
+
+    # Generate manpages for linked executables
+    foreach index : range(sub_exe_names.length())
+      custom_target('manpage-' + sub_exe_names[index],
+        output : sub_exe_names[index] + '.1',
+        command : [
+          help2man_prog,
+          '-N',
+          '-o',
+          '@OUTPUT@',
+          sub_exe_bins[index].full_path(),
+          '--no-discard-stderr',
+        ],
+        install : true,
+        install_dir : get_option('mandir') / 'man1',
+        depends : sub_exe_bins[index],
+      )
+    endforeach
+    
+    # Generate manpage for copy-img-meta
+    custom_target('manpage-' + copy_img_meta_name,
+      output : copy_img_meta_name + '.1',
+      command : [
+        help2man_prog,
+        '-N',
+        '-o',
+        '@OUTPUT@',
+        copy_img_meta_bin,
+        '--no-discard-stderr',
+      ],
+      install : true,
+      install_dir : get_option('mandir') / 'man1',
+    )
+  endif
 endif
 
 # Meson doesn't have buit-in support to use valadoc to generate gir

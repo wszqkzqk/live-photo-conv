@@ -1,0 +1,7 @@
+# gexiv2 for Android builds (explicit fallback only). Deliberately not
+# named "gexiv2" and without [provide], so desktop builds never fall back
+# to this wrap silently.
+[wrap-git]
+url = https://gitlab.gnome.org/GNOME/gexiv2.git
+revision = master
+depth = 1

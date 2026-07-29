@@ -102,6 +102,18 @@ namespace LivePhotoConv.Utils {
             return Path.build_filename (prefix, "share", "locale");
         }
 #endif
+#if ANDROID
+        // No build-time prefix on Android; probe XDG_DATA_DIRS instead.
+        unowned var xdg_data_dirs = Environment.get_variable ("XDG_DATA_DIRS");
+        if (xdg_data_dirs != null) {
+            foreach (unowned var dir in xdg_data_dirs.split (":")) {
+                var candidate = Path.build_filename (dir, "locale");
+                if (FileUtils.test (candidate, FileTest.IS_DIR)) {
+                    return candidate;
+                }
+            }
+        }
+#endif
         return LOCALEDIR;
     }
 }
