@@ -12,3 +12,20 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Android (pixiewood) build artifacts
+.pixiewood/
+.buildconfig
+
+# Android signing keys
+*.keystore
+*.jks
+
+# Meson subprojects downloaded at build time
+subprojects/*/
+!subprojects/packagefiles/
+subprojects/.wraplock
+subprojects/*.tar.xz
+subprojects/*.tar.gz
+subprojects/*.zip
+subprojects/packagecache/
