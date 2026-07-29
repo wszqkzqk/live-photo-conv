@@ -382,10 +382,11 @@ public class LivePhotoConv.Application : Adw.Application {
     // ── Button state helpers ──
 
 #if ANDROID
-    // GdkAndroidContentFile.get_path() returns the URI's path component,
-    // not a real filesystem path, so check the scheme instead
+    // g_file_is_native() is the sanctioned way to tell local files from
+    // content files (GdkAndroidContentFile.get_path() returns the URI's
+    // path component by design, so it cannot be used for this)
     private static bool needs_staging (File file) {
-        return !file.has_uri_scheme ("file");
+        return !file.is_native ();
     }
 
     // content:// files have no filesystem path; stage them in the cache
