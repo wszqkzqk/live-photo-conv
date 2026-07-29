@@ -58,12 +58,12 @@ private class LivePhotoConv.FileDropArea : Adw.Bin {
             } else if (value.length == 1) {
                 file_label.label = value[0].get_basename ();
                 label_stack.visible_child = file_label;
-                icon_image.icon_name = "emblem-documents-symbolic";
+                icon_image.icon_name = "folder-documents-symbolic";
                 icon_image.opacity = 1.0;
             } else {
                 file_label.label = ngettext ("%u file selected", "%u files selected", value.length).printf (value.length);
                 label_stack.visible_child = file_label;
-                icon_image.icon_name = "emblem-documents-symbolic";
+                icon_image.icon_name = "folder-documents-symbolic";
                 icon_image.opacity = 1.0;
             }
             changed ();
@@ -254,6 +254,7 @@ public class LivePhotoConv.Application : Adw.Application {
 
     public override void startup () {
         base.startup ();
+        clear_staging ();
 
         var style_manager = Adw.StyleManager.get_default ();
         string init_scheme;
@@ -379,6 +380,71 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     // ── Button state helpers ──
+
+#if ANDROID
+    // content:// files have no filesystem path; stage them in the cache
+    // dir for the path-based library and gexiv2
+    private static string local_path_for (File file) throws Error {
+        var path = file.get_path ();
+        if (path != null) {
+            return path;
+        }
+
+        var staging_dir = Path.build_filename (Environment.get_user_cache_dir (), "staging");
+        DirUtils.create_with_parents (staging_dir, 0700);
+        var local = Path.build_filename (staging_dir, "%s-%s".printf (
+            Uuid.string_random (), file.get_basename () ?? "unnamed"));
+        file.copy (File.new_for_path (local), FileCopyFlags.OVERWRITE, null, null);
+        return local;
+    }
+
+    private static string staging_output_path (string basename) throws Error {
+        var staging_dir = Path.build_filename (Environment.get_user_cache_dir (), "staging");
+        DirUtils.create_with_parents (staging_dir, 0700);
+        return Path.build_filename (staging_dir, "%s-%s".printf (Uuid.string_random (), basename));
+    }
+
+    private static void cleanup_staged (string? path) {
+        if (path != null) {
+            FileUtils.remove (path);
+        }
+    }
+#endif
+
+#if ANDROID
+    private static void delete_recursively (File dir) {
+        try {
+            var children = dir.enumerate_children (
+                "standard::name,standard::type", FileQueryInfoFlags.NONE);
+            FileInfo info;
+            while ((info = children.next_file ()) != null) {
+                var child = dir.get_child (info.get_name ());
+                if (info.get_file_type () == FileType.DIRECTORY)
+                    delete_recursively (child);
+                else
+                    child.delete ();
+            }
+            dir.delete ();
+        } catch {}
+    }
+#endif
+
+    /** Wipes leftover staging files from a previous run. */
+    private static void clear_staging () {
+#if ANDROID
+        delete_recursively (File.new_for_path (
+            Path.build_filename (Environment.get_user_cache_dir (), "staging")));
+#endif
+    }
+
+    /** Returns a real path for a file, staging it on Android if needed. */
+    private static string path_for (File file) throws Error {
+#if ANDROID
+        return local_path_for (file);
+#else
+        return file.get_path ();
+#endif
+    }
 
     private void start_work (Gtk.Button button, string label) {
         working = true;
@@ -542,10 +608,20 @@ public class LivePhotoConv.Application : Adw.Application {
                 var output_file = dialog.save.end (res);
                 if (output_file == null) return;
 
-                var video_path = video_file.get_path ();
+                var video_path = path_for (video_file);
                 var image_file = make_image_area.file;
-                string? image_path = image_file != null ? image_file.get_path () : null;
+                string? image_path = image_file != null ? path_for (image_file) : null;
+#if ANDROID
+                // Let the library write a temp file that is copied back to
+                // the picked destination on success
                 var output_path = output_file.get_path ();
+                bool output_staged = output_path == null;
+                if (output_staged) {
+                    output_path = staging_output_path (output_file.get_basename () ?? "live-photo.jpg");
+                }
+#else
+                var output_path = output_file.get_path ();
+#endif
                 bool export_metadata = make_export_metadata_check.active;
 
                 start_work (make_button, _("Processing…"));
@@ -562,12 +638,24 @@ public class LivePhotoConv.Application : Adw.Application {
                 maker.export_async.begin ((obj, res2) => {
                     try {
                         maker.export_async.end (res2);
+#if ANDROID
+                        if (output_staged) {
+                            File.new_for_path (output_path).copy (
+                                output_file, FileCopyFlags.OVERWRITE, null, null);
+                        }
+#endif
                         end_work (make_button, _("Make Live Photo"), make_video_area.files.length > 0);
                         show_toast (_("Live photo created"));
                     } catch (Error e) {
                         end_work (make_button, _("Make Live Photo"), make_video_area.files.length > 0);
                         show_error_dialog (_("Error"), e.message);
                     }
+#if ANDROID
+                    cleanup_staged (output_staged ? output_path : null);
+                    cleanup_staged (video_file.get_path () == null ? video_path : null);
+                    cleanup_staged (image_file != null && image_file.get_path () == null
+                        ? image_path : null);
+#endif
                 });
             } catch {}
         });
@@ -624,7 +712,6 @@ public class LivePhotoConv.Application : Adw.Application {
                 var folder = dialog.select_folder.end (res);
                 if (folder == null) return;
 
-                var dest_dir = folder.get_path ();
                 bool do_image = extract_main_image_check.active;
                 bool do_video = extract_video_check.active;
                 bool do_long = extract_long_exposure_check.active;
@@ -632,8 +719,17 @@ public class LivePhotoConv.Application : Adw.Application {
                 string? img_format = extract_img_format_entry.text.strip ();
                 if (img_format == "") img_format = null;
 
+                var paths = new GenericArray<string> ();
+                try {
+                    foreach (unowned var file in files)
+                        paths.add (path_for (file));
+                } catch (Error e) {
+                    show_error_dialog (_("Error"), e.message);
+                    return;
+                }
+
                 start_work (extract_button, _("Extracting…"));
-                extract_batch_async.begin (files, dest_dir,
+                extract_batch_async.begin (files, paths, folder,
                     do_image, do_video, do_long, do_frames, img_format,
                     extract_button,
                     (obj, res2) => {
@@ -735,8 +831,17 @@ public class LivePhotoConv.Application : Adw.Application {
         bool force = repair_force_check.active;
         uint video_size = (uint) repair_video_size_spin.value;
 
+        var paths = new GenericArray<string> ();
+        try {
+            foreach (unowned var file in files)
+                paths.add (path_for (file));
+        } catch (Error e) {
+            show_error_dialog (_("Error"), e.message);
+            return;
+        }
+
         start_work (repair_button, _("Repairing…"));
-        repair_batch_async.begin (files, force, video_size, repair_button, (obj, res) => {
+        repair_batch_async.begin (files, paths, force, video_size, repair_button, (obj, res) => {
             try {
                 repair_batch_async.end (res);
                 end_work (repair_button, _("Repair"), repair_live_photo_area.files.length > 0);
@@ -755,7 +860,8 @@ public class LivePhotoConv.Application : Adw.Application {
         button.label = @"$(verb) $(current)/$(total)…";
     }
 
-    private async void extract_batch_async (GenericArray<File> files, string dest_dir,
+    private async void extract_batch_async (GenericArray<File> files, GenericArray<string> paths,
+                                             File dest_folder,
                                              bool do_image, bool do_video,
                                              bool do_long, bool do_frames,
                                              string? img_format,
@@ -763,14 +869,26 @@ public class LivePhotoConv.Application : Adw.Application {
         SourceFunc callback = extract_batch_async.callback;
         var sb = new StringBuilder ();
         int error_count = 0;
-        int total = (int) files.length;
+        int total = (int) paths.length;
         int processed = 0;
+
+        string dest_dir = dest_folder.get_path ();
+#if ANDROID
+        // SAF-picked folders have no path: extract into a staging dir,
+        // then copy the results into the picked folder
+        File? copy_out_folder = null;
+        if (dest_dir == null) {
+            dest_dir = Path.build_filename (
+                Environment.get_user_cache_dir (), "staging", Uuid.string_random ());
+            DirUtils.create_with_parents (dest_dir, 0700);
+            copy_out_folder = dest_folder;
+        }
+#endif
 
         report_progress (button, _("Extracting"), 0, total);
 
         new Thread<void> ("extract-batch", () => {
-            foreach (unowned var file in files) {
-                var path = file.get_path ();
+            foreach (unowned var path in paths) {
                 try {
 #if ENABLE_GST
                     var live_photo = new LivePhotoGst (path, dest_dir);
@@ -801,6 +919,35 @@ public class LivePhotoConv.Application : Adw.Application {
             Idle.add ((owned) callback);
         });
         yield;
+#if ANDROID
+        if (copy_out_folder != null) {
+            // Deliver staged results to the SAF-picked folder, then clean up
+            try {
+                var staging = File.new_for_path (dest_dir);
+                var children = staging.enumerate_children (
+                    "standard::name", FileQueryInfoFlags.NONE);
+                FileInfo info;
+                while ((info = children.next_file ()) != null) {
+                    staging.get_child (info.get_name ()).copy (
+                        copy_out_folder.get_child (info.get_name ()),
+                        FileCopyFlags.OVERWRITE, null, null);
+                }
+                children = staging.enumerate_children (
+                    "standard::name", FileQueryInfoFlags.NONE);
+                while ((info = children.next_file ()) != null)
+                    staging.get_child (info.get_name ()).delete ();
+                staging.delete ();
+            } catch (Error e) {
+                if (error_count > 0) sb.append_c ('\n');
+                sb.append_printf ("%s: %s", copy_out_folder.get_uri (), e.message);
+                error_count += 1;
+            }
+        }
+        for (int i = 0; i < files.length; i += 1) {
+            if (files[i].get_path () == null)
+                cleanup_staged (paths[i]);
+        }
+#endif
         if (error_count > 0) {
             unowned string detail = sb.str;
             throw new ExportError.FILE_PUSH_ERROR (
@@ -810,20 +957,21 @@ public class LivePhotoConv.Application : Adw.Application {
         }
     }
 
-    private async void repair_batch_async (GenericArray<File> files, bool force,
-                                            uint video_size,
+    private async void repair_batch_async (GenericArray<File> files, GenericArray<string> paths,
+                                            bool force, uint video_size,
                                             Gtk.Button button) throws Error {
         SourceFunc callback = repair_batch_async.callback;
         var sb = new StringBuilder ();
         int error_count = 0;
-        int total = (int) files.length;
+        int total = (int) paths.length;
         int processed = 0;
+        var succeeded = new bool[paths.length];
 
         report_progress (button, _("Repairing"), 0, total);
 
         new Thread<void> ("repair-batch", () => {
-            foreach (unowned var file in files) {
-                var path = file.get_path ();
+            for (int i = 0; i < paths.length; i += 1) {
+                unowned var path = paths[i];
                 try {
 #if ENABLE_GST
                     var live_photo = new LivePhotoGst (path);
@@ -831,6 +979,7 @@ public class LivePhotoConv.Application : Adw.Application {
                     var live_photo = new LivePhotoFFmpeg (path);
 #endif
                     live_photo.repair_live_metadata (force, video_size);
+                    succeeded[i] = true;
                 } catch (Error e) {
                     if (error_count > 0) sb.append_c ('\n');
                     sb.append_printf ("%s: %s", path, e.message);
@@ -845,6 +994,25 @@ public class LivePhotoConv.Application : Adw.Application {
             Idle.add ((owned) callback);
         });
         yield;
+#if ANDROID
+        // Repair works in place: write the staging copies back over the
+        // original content:// files (not atomic: a crash mid-copy can
+        // corrupt the original)
+        for (int i = 0; i < files.length; i += 1) {
+            if (succeeded[i] && files[i].get_path () == null) {
+                try {
+                    File.new_for_path (paths[i]).copy (
+                        files[i], FileCopyFlags.OVERWRITE, null, null);
+                } catch (Error e) {
+                    if (error_count > 0) sb.append_c ('\n');
+                    sb.append_printf ("%s: %s", files[i].get_uri (), e.message);
+                    error_count += 1;
+                }
+            }
+            if (files[i].get_path () == null)
+                cleanup_staged (paths[i]);
+        }
+#endif
         if (error_count > 0) {
             unowned string detail = sb.str;
             throw new ExportError.FILE_PUSH_ERROR (
