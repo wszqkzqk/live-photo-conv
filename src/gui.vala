@@ -382,12 +382,13 @@ public class LivePhotoConv.Application : Adw.Application {
     // ── Button state helpers ──
 
 #if ANDROID
-    // XDG_CACHE_HOME is unset in the GTK runtime and HOME is unusable, so
-    // derive the app-private files dir from XDG_DATA_DIRS (<filesDir>/share)
+    // XDG_CACHE_HOME is unset in the GTK runtime and HOME is unusable.
+    // The runtime sets glib's internal data dirs (not env vars) to
+    // <filesDir>/share, which is app-private and writable
     private static string staging_root () {
-        unowned var dirs = Environment.get_variable ("XDG_DATA_DIRS");
-        if (dirs != null && dirs != "") {
-            return Path.build_filename (Path.get_dirname (dirs.split (":")[0]), "staging");
+        unowned var dirs = Environment.get_system_data_dirs ();
+        if (dirs.length > 0) {
+            return Path.build_filename (Path.get_dirname (dirs[0]), "staging");
         }
         return Path.build_filename (Environment.get_user_cache_dir (), "staging");
     }
