@@ -17,6 +17,29 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+namespace LivePhotoConv {
+
+    /**
+     * Forwards pipeline error and warning messages to stderr.
+     *
+     * @param pipeline The pipeline whose bus is watched.
+     */
+    public void watch_pipeline_bus (Gst.Bin pipeline) {
+        pipeline.get_bus ().set_sync_handler ((bus, message) => {
+            Error err;
+            string debug;
+            if (message.type == Gst.MessageType.ERROR) {
+                message.parse_error (out err, out debug);
+                Reporter.error_puts ("GstError", "%s (%s)".printf (err.message, debug));
+            } else if (message.type == Gst.MessageType.WARNING) {
+                message.parse_warning (out err, out debug);
+                Reporter.warning_puts ("GstWarning", "%s (%s)".printf (err.message, debug));
+            }
+            return Gst.BusSyncReply.PASS;
+        });
+    }
+}
+
 /**
  * Implementation of LivePhoto using GStreamer for video processing.
  */
@@ -41,6 +64,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
 
         // Create a pipeline
         var pipeline = Gst.parse_launch (GST_PIPELINE) as Gst.Bin;
+        watch_pipeline_bus (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
 
@@ -125,6 +149,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         Gst.init (ref args);
 
         var pipeline = Gst.parse_launch (GST_PIPELINE) as Gst.Bin;
+        watch_pipeline_bus (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
 
