@@ -18,8 +18,7 @@ if is_windows
 endif
 if is_android
   add_project_arguments('-D', 'ANDROID', language: 'vala')
-  # No GObject-Introspection in Android cross builds; use the vendored
-  # VAPIs and pass vala package names explicitly (see src/meson.build).
+  # No GObject-Introspection in Android cross builds; use vendored VAPIs
   add_project_arguments('--vapidir', meson.project_source_root() / 'android' / 'vapi', language: 'vala')
   # Make statically linked FFmpeg NEON asm linkable into shared objects
   add_project_link_arguments('-Wl,-Bsymbolic', language: ['c', 'cpp'])

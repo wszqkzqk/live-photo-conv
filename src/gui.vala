@@ -382,26 +382,23 @@ public class LivePhotoConv.Application : Adw.Application {
     // ── Button state helpers ──
 
 #if ANDROID
-    // XDG_CACHE_HOME is unset in the GTK runtime and HOME is unusable.
-    // The runtime sets glib's internal data dirs (not env vars) to
-    // <filesDir>/share, which is app-private and writable
+    // SAF access must stay on the main thread: GTK's content file
+    // vfuncs segfault on other threads
+    // Relies on the runtime pointing glib's data dirs at <filesDir>/share
     private static string staging_root () {
         unowned var dirs = Environment.get_system_data_dirs ();
-        if (dirs.length > 0) {
-            return Path.build_filename (Path.get_dirname (dirs[0]), "staging");
-        }
-        return Path.build_filename (Environment.get_user_cache_dir (), "staging");
+        var parent = dirs.length > 0 ? Path.get_dirname (dirs[0])
+                                     : Environment.get_user_cache_dir ();
+        return Path.build_filename (parent, "staging");
     }
 
-    // g_file_is_native() is the sanctioned way to tell local files from
-    // content files (GdkAndroidContentFile.get_path() returns the URI's
-    // path component by design, so it cannot be used for this)
+    // is_native() is FALSE for content files
     private static bool needs_staging (File file) {
         return !file.is_native ();
     }
 
-    // content:// files have no filesystem path; stage them in the cache
-    // dir for the path-based library and gexiv2
+    // content:// files have no filesystem path; stage them for the
+    // path-based library and gexiv2
     private static string local_path_for (File file) throws Error {
         if (!needs_staging (file)) {
             return file.get_path ();
