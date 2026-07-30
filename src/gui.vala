@@ -382,6 +382,16 @@ public class LivePhotoConv.Application : Adw.Application {
     // ── Button state helpers ──
 
 #if ANDROID
+    // XDG_CACHE_HOME is unset in the GTK runtime and HOME is unusable, so
+    // derive the app-private files dir from XDG_DATA_DIRS (<filesDir>/share)
+    private static string staging_root () {
+        unowned var dirs = Environment.get_variable ("XDG_DATA_DIRS");
+        if (dirs != null && dirs != "") {
+            return Path.build_filename (Path.get_dirname (dirs.split (":")[0]), "staging");
+        }
+        return Path.build_filename (Environment.get_user_cache_dir (), "staging");
+    }
+
     // g_file_is_native() is the sanctioned way to tell local files from
     // content files (GdkAndroidContentFile.get_path() returns the URI's
     // path component by design, so it cannot be used for this)
@@ -396,7 +406,7 @@ public class LivePhotoConv.Application : Adw.Application {
             return file.get_path ();
         }
 
-        var staging_dir = Path.build_filename (Environment.get_user_cache_dir (), "staging");
+        var staging_dir = staging_root ();
         DirUtils.create_with_parents (staging_dir, 0700);
         var local = Path.build_filename (staging_dir, "%s-%s".printf (
             Uuid.string_random (), file.get_basename () ?? "unnamed"));
@@ -405,7 +415,7 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     private static string staging_output_path (string basename) throws Error {
-        var staging_dir = Path.build_filename (Environment.get_user_cache_dir (), "staging");
+        var staging_dir = staging_root ();
         DirUtils.create_with_parents (staging_dir, 0700);
         return Path.build_filename (staging_dir, "%s-%s".printf (Uuid.string_random (), basename));
     }
@@ -438,8 +448,7 @@ public class LivePhotoConv.Application : Adw.Application {
     /** Wipes leftover staging files from a previous run. */
     private static void clear_staging () {
 #if ANDROID
-        delete_recursively (File.new_for_path (
-            Path.build_filename (Environment.get_user_cache_dir (), "staging")));
+        delete_recursively (File.new_for_path (staging_root ()));
 #endif
     }
 
@@ -886,8 +895,7 @@ public class LivePhotoConv.Application : Adw.Application {
         string? dest_dir = null;
         File? copy_out_folder = null;
         if (needs_staging (dest_folder)) {
-            dest_dir = Path.build_filename (
-                Environment.get_user_cache_dir (), "staging", Uuid.string_random ());
+            dest_dir = Path.build_filename (staging_root (), Uuid.string_random ());
             DirUtils.create_with_parents (dest_dir, 0700);
             copy_out_folder = dest_folder;
         } else {
