@@ -17,6 +17,27 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
+#if ANDROID
+namespace LivePhotoConv {
+
+    /**
+     * Returns the pixbuf with an opaque alpha channel, adding one if missing.
+     *
+     * gdk-pixbuf's Android saver hands the pixel buffer to
+     * AndroidBitmap_compress() as RGBA_8888, so saving a pixbuf without
+     * an alpha channel always fails with ANDROID_BITMAP_RESULT_BAD_PARAMETER.
+     * Pixbufs decoded by gdk-pixbuf's Android loader are already RGBA;
+     * only pixbufs built from GStreamer samples need this.
+     *
+     * @param pixbuf The pixbuf to convert.
+     * @return The pixbuf with an alpha channel, or the input itself if it already has one.
+     */
+    public Gdk.Pixbuf pixbuf_with_opaque_alpha (Gdk.Pixbuf pixbuf) {
+        return pixbuf.has_alpha ? pixbuf : pixbuf.add_alpha (false, 0, 0, 0);
+    }
+}
+#endif
+
 /**
  * Represents a class for converting a GStreamer sample to an image file.
 */
@@ -57,6 +78,9 @@ public class LivePhotoConv.Sample2Img {
             height,
             width * 3
         );
+#if ANDROID
+        pixbuf = pixbuf_with_opaque_alpha (pixbuf);
+#endif
     }
 
     /**

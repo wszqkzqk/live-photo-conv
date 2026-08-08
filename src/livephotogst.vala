@@ -239,6 +239,9 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
             width * 3,
             null
         );
+#if ANDROID
+        pixbuf = pixbuf_with_opaque_alpha (pixbuf);
+#endif
 
         string format;
         var last_dot = dest_path.last_index_of_char ('.');
