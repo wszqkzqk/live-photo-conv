@@ -423,9 +423,7 @@ public class LivePhotoConv.Application : Adw.Application {
             FileUtils.remove (path);
         }
     }
-#endif
 
-#if ANDROID
     private static void delete_recursively (File dir) {
         try {
             var children = dir.enumerate_children (
@@ -944,16 +942,16 @@ public class LivePhotoConv.Application : Adw.Application {
                 var staging = File.new_for_path (dest_dir);
                 var children = staging.enumerate_children (
                     "standard::name", FileQueryInfoFlags.NONE);
+                var names = new GenericArray<string> ();
                 FileInfo info;
-                while ((info = children.next_file ()) != null) {
-                    staging.get_child (info.get_name ()).copy (
-                        copy_out_folder.get_child (info.get_name ()),
-                        FileCopyFlags.OVERWRITE, null, null);
-                }
-                children = staging.enumerate_children (
-                    "standard::name", FileQueryInfoFlags.NONE);
                 while ((info = children.next_file ()) != null)
-                    staging.get_child (info.get_name ()).delete ();
+                    names.add (info.get_name ());
+                foreach (unowned var name in names.data) {
+                    var child = staging.get_child (name);
+                    child.copy (copy_out_folder.get_child (name),
+                                FileCopyFlags.OVERWRITE, null, null);
+                    child.delete ();
+                }
                 staging.delete ();
             } catch (Error e) {
                 if (error_count > 0) sb.append_c ('\n');

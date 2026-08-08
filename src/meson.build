@@ -96,7 +96,6 @@ if not is_android
     install: true,
     link_with: liblivephototools,
     dependencies: lib_deps,
-    vala_args: android_vala_args,
     #include_directories: incdir,
   )
 
@@ -110,7 +109,6 @@ if not is_android
     install: true,
     link_with: liblivephototools,
     dependencies: lib_deps,
-    vala_args: android_vala_args,
     #include_directories: incdir,
   )
 endif
@@ -170,7 +168,6 @@ if with_gui
       install: true,
       link_with: liblivephototools,
       dependencies: gui_deps,
-      vala_args: android_gui_vala_args,
       win_subsystem: 'windows',
     )
   endif
