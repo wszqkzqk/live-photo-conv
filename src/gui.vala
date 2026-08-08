@@ -619,22 +619,32 @@ public class LivePhotoConv.Application : Adw.Application {
                 var output_file = dialog.save.end (res);
                 if (output_file == null) return;
 
-                var video_path = path_for (video_file);
                 var image_file = make_image_area.file;
-                string? image_path = image_file != null ? path_for (image_file) : null;
+                string video_path;
+                string? image_path;
 #if ANDROID
-                // Let the library write a temp file that is copied back to
-                // the picked destination on success
                 string output_path;
                 bool output_staged = needs_staging (output_file);
-                if (output_staged) {
-                    output_path = staging_output_path (output_file.get_basename () ?? "live-photo.jpg");
-                } else {
-                    output_path = output_file.get_path ();
-                }
 #else
-                var output_path = output_file.get_path ();
+                string? output_path;
 #endif
+                try {
+                    video_path = path_for (video_file);
+                    image_path = image_file != null ? path_for (image_file) : null;
+#if ANDROID
+                    // Let the library write a temp file that is copied back
+                    if (output_staged) {
+                        output_path = staging_output_path (output_file.get_basename () ?? "live-photo.jpg");
+                    } else {
+                        output_path = output_file.get_path ();
+                    }
+#else
+                    output_path = output_file.get_path ();
+#endif
+                } catch (Error e) {
+                    show_error_dialog (_("Error"), e.message);
+                    return;
+                }
                 bool export_metadata = make_export_metadata_check.active;
 
                 start_work (make_button, _("Processing…"));
