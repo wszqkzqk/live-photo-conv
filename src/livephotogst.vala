@@ -24,7 +24,7 @@ namespace LivePhotoConv {
      *
      * @param pipeline The pipeline whose bus is watched.
      */
-    public void watch_pipeline_bus (Gst.Bin pipeline) {
+    internal void watch_pipeline_bus (Gst.Bin pipeline) {
         pipeline.get_bus ().set_sync_handler ((bus, message) => {
             Error err;
             string debug;

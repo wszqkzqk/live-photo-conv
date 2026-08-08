@@ -32,7 +32,7 @@ namespace LivePhotoConv {
      * @param pixbuf The pixbuf to convert.
      * @return The pixbuf with an alpha channel, or the input itself if it already has one.
      */
-    public Gdk.Pixbuf pixbuf_with_opaque_alpha (Gdk.Pixbuf pixbuf) {
+    internal Gdk.Pixbuf pixbuf_with_opaque_alpha (Gdk.Pixbuf pixbuf) {
         return pixbuf.has_alpha ? pixbuf : pixbuf.add_alpha (false, 0, 0, 0);
     }
 }
