@@ -1,16 +1,3 @@
-vcs_version = meson.project_version()
-git = find_program('git', required: false)
-if git.found()
-  git_desc = run_command('git', 'describe', '--tags', '--abbrev=12', '--dirty', check: false)
-  if git_desc.returncode() == 0
-    raw = git_desc.stdout().strip()
-    if raw.startswith('v')
-      raw = raw.substring(1)
-    endif
-    vcs_version = raw.replace('-', '.')
-  endif
-endif
-
 localedir = join_paths(get_option('prefix'), get_option('localedir'))
 constants_data = configuration_data()
 constants_data.set_quoted('VERSION', vcs_version)

@@ -8,6 +8,19 @@ project('live-photo-conv', ['c', 'vala'],
 lib_api_version = '0.4'  # GIR version / API version
 lib_soversion = '0'      # SONAME version / ABI version
 
+vcs_version = meson.project_version()
+git = find_program('git', required: false)
+if git.found()
+  git_desc = run_command('git', 'describe', '--tags', '--abbrev=12', '--dirty', check: false)
+  if git_desc.returncode() == 0
+    raw = git_desc.stdout().strip()
+    if raw.startswith('v')
+      raw = raw.substring(1)
+    endif
+    vcs_version = raw.replace('-', '.')
+  endif
+endif
+
 # Platform-specific flags
 is_windows = target_machine.system() == 'windows'
 is_darwin = target_machine.system() == 'darwin'
@@ -33,7 +46,7 @@ if is_android
   configure_file(
     input: 'android/app.metainfo.xml.in',
     output: 'app.metainfo.xml',
-    configuration: {'VERSION': meson.project_version()},
+    configuration: {'VERSION': vcs_version},
   )
 endif
 
