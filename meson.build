@@ -17,6 +17,9 @@ if is_windows
   add_project_arguments('-D', 'WINDOWS', language: 'vala')
 endif
 if is_android
+  if not meson.version().version_compare('>= 1.9')
+    error('Android builds require meson >= 1.9, found ' + meson.version())
+  endif
   add_project_arguments('-D', 'ANDROID', language: 'vala')
   # No GObject-Introspection in Android cross builds; use vendored VAPIs
   add_project_arguments('--vapidir', meson.project_source_root() / 'android' / 'vapi', language: 'vala')

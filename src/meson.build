@@ -153,7 +153,7 @@ if with_gui
 
   if is_android
     # Loaded as a shared library by the GTK Android runtime, which calls
-    # the exported main(). Requires meson >= 1.9.
+    # the exported main().
     executable(gui_name,
       gui_sources,
       android_exe_type: 'application',
