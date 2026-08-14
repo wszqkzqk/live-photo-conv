@@ -937,17 +937,28 @@ public class LivePhotoConv.Application : Adw.Application {
                 while ((info = children.next_file ()) != null)
                     names.add (info.get_name ());
                 foreach (unowned var name in names.data) {
+                    // One failed copy must not strand the rest of the batch
                     var child = staging.get_child (name);
-                    child.copy (copy_out_folder.get_child (name),
-                                FileCopyFlags.OVERWRITE, null, null);
-                    child.delete ();
+                    try {
+                        child.copy (copy_out_folder.get_child (name),
+                                    FileCopyFlags.OVERWRITE, null, null);
+                        child.delete ();
+                    } catch (Error e) {
+                        if (error_count > 0) sb.append_c ('\n');
+                        sb.append_printf ("%s: %s",
+                            copy_out_folder.get_child (name).get_uri (), e.message);
+                        error_count += 1;
+                    }
                 }
-                staging.delete ();
             } catch (Error e) {
                 if (error_count > 0) sb.append_c ('\n');
                 sb.append_printf ("%s: %s", copy_out_folder.get_uri (), e.message);
                 error_count += 1;
             }
+            // Leftovers are wiped by clear_staging on next startup
+            try {
+                File.new_for_path (dest_dir).delete ();
+            } catch {}
         }
         for (int i = 0; i < files.length; i += 1) {
             if (needs_staging (files[i]))
