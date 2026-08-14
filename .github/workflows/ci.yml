@@ -148,6 +148,17 @@ jobs:
       with:
         fetch-depth: 0
 
+    # Releases must not ship debug-signed APKs
+    - name: Require signing secrets on tag builds
+      if: github.ref_type == 'tag'
+      env:
+        LPC_KEYSTORE_BASE64: ${{ secrets.LPC_KEYSTORE_BASE64 }}
+      run: |
+        if [ -z "$LPC_KEYSTORE_BASE64" ]; then
+          echo "Tag builds must be signed with the release keystore, but the signing secrets are not set."
+          exit 1
+        fi
+
     - name: Install Build Dependencies
       run: |
         sudo apt-get update
