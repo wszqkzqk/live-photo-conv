@@ -379,27 +379,38 @@ public class LivePhotoConv.Application : Adw.Application {
         };
     }
 
-    // ── Button state helpers ──
+    // ── File staging helpers ──
 
-#if ANDROID
-    // SAF access must stay on the main thread: GTK's content file
-    // vfuncs segfault on other threads
-    // Relies on the runtime pointing glib's data dirs at <filesDir>/share
     private static string staging_root () {
+#if ANDROID
+        // Relies on the runtime pointing glib's data dirs at <filesDir>/share
         unowned var dirs = Environment.get_system_data_dirs ();
         var parent = dirs.length > 0 ? Path.get_dirname (dirs[0])
                                      : Environment.get_user_cache_dir ();
         return Path.build_filename (parent, "staging");
+#else
+        return Path.build_filename (Environment.get_user_cache_dir (),
+                                    "live-photo-conv", "staging");
+#endif
     }
 
-    // is_native() is FALSE for content files
+    /** TRUE for files without a filesystem path (content://, GVfs remotes). */
     private static bool needs_staging (File file) {
         return !file.is_native ();
     }
 
-    // content:// files have no filesystem path; stage them for the
-    // path-based library and gexiv2
-    private static string local_path_for (File file) throws Error {
+    /**
+     * Returns a filesystem path for the file, staging it if needed.
+     *
+     * content:// files have no filesystem path; a local copy is staged
+     * for the path-based library and gexiv2. SAF access must stay on the
+     * main thread: GTK's content file vfuncs segfault on other threads.
+     *
+     * @param file The file to resolve.
+     * @return A real path to the file's contents.
+     * @throws Error If the staging copy fails.
+     */
+    private static string path_for (File file) throws Error {
         if (!needs_staging (file)) {
             return file.get_path ();
         }
@@ -424,6 +435,11 @@ public class LivePhotoConv.Application : Adw.Application {
         }
     }
 
+    /** Wipes leftover staging files from a previous run. */
+    private static void clear_staging () {
+        delete_recursively (File.new_for_path (staging_root ()));
+    }
+
     private static void delete_recursively (File dir) {
         try {
             var children = dir.enumerate_children (
@@ -439,23 +455,8 @@ public class LivePhotoConv.Application : Adw.Application {
             dir.delete ();
         } catch {}
     }
-#endif
 
-    /** Wipes leftover staging files from a previous run. */
-    private static void clear_staging () {
-#if ANDROID
-        delete_recursively (File.new_for_path (staging_root ()));
-#endif
-    }
-
-    /** Returns a real path for a file, staging it on Android if needed. */
-    private static string path_for (File file) throws Error {
-#if ANDROID
-        return local_path_for (file);
-#else
-        return file.get_path ();
-#endif
-    }
+    // ── Button state helpers ──
 
     private void start_work (Gtk.Button button, string label) {
         working = true;
@@ -622,25 +623,15 @@ public class LivePhotoConv.Application : Adw.Application {
                 var image_file = make_image_area.file;
                 string video_path;
                 string? image_path;
-#if ANDROID
                 string output_path;
                 bool output_staged = needs_staging (output_file);
-#else
-                string? output_path;
-#endif
                 try {
                     video_path = path_for (video_file);
                     image_path = image_file != null ? path_for (image_file) : null;
-#if ANDROID
-                    // Let the library write a temp file that is copied back
-                    if (output_staged) {
-                        output_path = staging_output_path (output_file.get_basename () ?? "live-photo.jpg");
-                    } else {
-                        output_path = output_file.get_path ();
-                    }
-#else
-                    output_path = output_file.get_path ();
-#endif
+                    // A staged output is copied back to the picked destination on success
+                    output_path = output_staged
+                        ? staging_output_path (output_file.get_basename () ?? "live-photo.jpg")
+                        : output_file.get_path ();
                 } catch (Error e) {
                     show_error_dialog (_("Error"), e.message);
                     return;
@@ -661,24 +652,20 @@ public class LivePhotoConv.Application : Adw.Application {
                 maker.export_async.begin ((obj, res2) => {
                     try {
                         maker.export_async.end (res2);
-#if ANDROID
                         if (output_staged) {
                             File.new_for_path (output_path).copy (
                                 output_file, FileCopyFlags.OVERWRITE, null, null);
                         }
-#endif
                         end_work (make_button, _("Make Live Photo"), make_video_area.files.length > 0);
                         show_toast (_("Live photo created"));
                     } catch (Error e) {
                         end_work (make_button, _("Make Live Photo"), make_video_area.files.length > 0);
                         show_error_dialog (_("Error"), e.message);
                     }
-#if ANDROID
                     cleanup_staged (output_staged ? output_path : null);
                     cleanup_staged (needs_staging (video_file) ? video_path : null);
                     cleanup_staged (image_file != null && needs_staging (image_file)
                         ? image_path : null);
-#endif
                 });
             } catch {}
         });
@@ -895,21 +882,15 @@ public class LivePhotoConv.Application : Adw.Application {
         int total = (int) paths.length;
         int processed = 0;
 
-#if ANDROID
         // SAF-picked folders have no path: extract into a staging dir,
         // then copy the results into the picked folder
-        string? dest_dir = null;
+        string? dest_dir = dest_folder.get_path ();
         File? copy_out_folder = null;
         if (needs_staging (dest_folder)) {
             dest_dir = Path.build_filename (staging_root (), Uuid.string_random ());
             DirUtils.create_with_parents (dest_dir, 0700);
             copy_out_folder = dest_folder;
-        } else {
-            dest_dir = dest_folder.get_path ();
         }
-#else
-        string dest_dir = dest_folder.get_path ();
-#endif
 
         report_progress (button, _("Extracting"), 0, total);
 
@@ -945,7 +926,6 @@ public class LivePhotoConv.Application : Adw.Application {
             Idle.add ((owned) callback);
         });
         yield;
-#if ANDROID
         if (copy_out_folder != null) {
             // Deliver staged results to the SAF-picked folder, then clean up
             try {
@@ -973,7 +953,6 @@ public class LivePhotoConv.Application : Adw.Application {
             if (needs_staging (files[i]))
                 cleanup_staged (paths[i]);
         }
-#endif
         if (error_count > 0) {
             unowned string detail = sb.str;
             throw new ExportError.FILE_PUSH_ERROR (
@@ -1020,7 +999,6 @@ public class LivePhotoConv.Application : Adw.Application {
             Idle.add ((owned) callback);
         });
         yield;
-#if ANDROID
         // Repair works in place: write the staging copies back over the
         // original content:// files (not atomic: a crash mid-copy can
         // corrupt the original)
@@ -1038,7 +1016,7 @@ public class LivePhotoConv.Application : Adw.Application {
             if (needs_staging (files[i]))
                 cleanup_staged (paths[i]);
         }
-#endif
+
         if (error_count > 0) {
             unowned string detail = sb.str;
             throw new ExportError.FILE_PUSH_ERROR (
