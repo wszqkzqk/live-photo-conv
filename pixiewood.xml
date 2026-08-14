@@ -23,7 +23,12 @@
     <fontconfig/>
     <harfbuzz/>
     <gdk-pixbuf/>
-    <libadwaita/>
+    <!-- Pin to the last main commit before G_GNUC_FLAG_ENUM landed:
+         main now needs a G_GNUC_FLAG_ENUM-aware host glib-mkenums that
+         the build environment lacks, while releases still require the
+         appstream removal that pixiewood's wrap patch only provides for
+         main. -->
+    <libadwaita revision="2d3f160a3514934ac9e3eaf02399734dc005020a"/>
   </dependencies>
   <build target="live-photo-conv-gtk">
     <architectures>
