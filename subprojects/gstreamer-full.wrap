@@ -1,11 +1,10 @@
-# GStreamer monorepo for Android builds (gst-full static linking).
-# Tracks main like our other rolling GTK-stack dependencies; CI is the
-# canary for upstream breakage. [provide] deliberately lists only
-# gstreamer-full-1.0, which desktop builds never query.
+# GStreamer monorepo for Android builds (gst-full static linking), pinned
+# release; bump manually. [provide] names only gstreamer-full-1.0, which
+# desktop builds never query.
 [wrap-git]
 directory = gstreamer-full
 url = https://gitlab.freedesktop.org/gstreamer/gstreamer.git
-revision = main
+revision = 1.28.6
 depth = 1
 diff_files = gstreamer-full/shared-glib.patch
 
