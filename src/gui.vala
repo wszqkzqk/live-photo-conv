@@ -416,7 +416,9 @@ public class LivePhotoConv.Application : Adw.Application {
         }
 
         var staging_dir = staging_root ();
-        DirUtils.create_with_parents (staging_dir, 0700);
+        if (DirUtils.create_with_parents (staging_dir, 0700) != 0) {
+            throw new FileError.FAILED ("Failed to create staging directory: %s", staging_dir);
+        }
         var local = Path.build_filename (staging_dir, "%s-%s".printf (
             Uuid.string_random (), file.get_basename () ?? "unnamed"));
         file.copy (File.new_for_path (local), FileCopyFlags.OVERWRITE, null, null);
@@ -425,7 +427,9 @@ public class LivePhotoConv.Application : Adw.Application {
 
     private static string staging_output_path (string basename) throws Error {
         var staging_dir = staging_root ();
-        DirUtils.create_with_parents (staging_dir, 0700);
+        if (DirUtils.create_with_parents (staging_dir, 0700) != 0) {
+            throw new FileError.FAILED ("Failed to create staging directory: %s", staging_dir);
+        }
         return Path.build_filename (staging_dir, "%s-%s".printf (Uuid.string_random (), basename));
     }
 
@@ -888,7 +892,9 @@ public class LivePhotoConv.Application : Adw.Application {
         File? copy_out_folder = null;
         if (needs_staging (dest_folder)) {
             dest_dir = Path.build_filename (staging_root (), Uuid.string_random ());
-            DirUtils.create_with_parents (dest_dir, 0700);
+            if (DirUtils.create_with_parents (dest_dir, 0700) != 0) {
+                throw new FileError.FAILED ("Failed to create staging directory: %s", dest_dir);
+            }
             copy_out_folder = dest_folder;
         }
 
