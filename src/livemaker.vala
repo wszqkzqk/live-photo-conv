@@ -241,10 +241,8 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             var content_type = file_info.get_content_type ();
             // FIXME: Currently only JPEG is supported as the main image format
             // Google also supports "image/heif" and "image/avif", but GExiv2 does not support them yet
-            if (content_type == "image/jpeg") {
-                return true;
-            }
-            return false;
+            return content_type != null
+                && ContentType.get_mime_type (content_type) == "image/jpeg"; // Normalizes platform type strings to MIME
         } catch (Error e) {
             Reporter.warning ("FormatWarning", "Cannot query file info for `%s': %s", file.get_path (), e.message);
             return false;
