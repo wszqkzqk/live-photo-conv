@@ -40,9 +40,17 @@ class LivePhotoConv.Main {
     static bool frame_to_photo = false;
     static bool minimal_export = false;
     static int threads = 0;
-#if ENABLE_GST
-    static bool use_ffmpeg = false;
-#endif
+    static Backend backend = Backend.AUTO;
+
+    static bool opt_use_ffmpeg (string name, string? val, void* data) throws OptionError {
+        backend = Backend.FFMPEG;
+        return true;
+    }
+
+    static bool opt_use_gst (string name, string? val, void* data) throws OptionError {
+        backend = Backend.GST;
+        return true;
+    }
 
     // Options for live-photo-make mode
     const OptionEntry[] MAKE_OPTIONS = {
@@ -54,10 +62,8 @@ class LivePhotoConv.Main {
         { "output", 'o', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The output live photo file path", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
-#if ENABLE_GST
-        { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
-        { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract instead of FFmpeg (default)", null },
-#endif
+        { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
+        { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to extract instead of FFmpeg", null },
         null
     };
 
@@ -77,10 +83,8 @@ class LivePhotoConv.Main {
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video, defaults to automatic detection", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal export, ignore unspecified exports", null },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto", "NUM" },
-#if ENABLE_GST
-        { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
-        { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract instead of FFmpeg (default)", null },
-#endif
+        { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
+        { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to extract instead of FFmpeg", null },
         null
     };
 
@@ -116,10 +120,8 @@ class LivePhotoConv.Main {
         { "long-exposure", 'l', OptionFlags.NONE, OptionArg.FILENAME, ref long_exposure_path, "Convert the embedded video to a long exposure photo", "PATH" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal export, ignore unspecified exports", null },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
-#if ENABLE_GST
-        { "use-ffmpeg", '\0', OptionFlags.NONE, OptionArg.NONE, ref use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
-        { "use-gst", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref use_ffmpeg, "Use GStreamer to extract instead of FFmpeg (default)", null },
-#endif
+        { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
+        { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to extract instead of FFmpeg", null },
         null
     };
 
@@ -247,22 +249,12 @@ class LivePhotoConv.Main {
     }
 
     static LivePhoto prepare_live_photo_obj () throws Error {
-#if ENABLE_GST
-        var backend = use_ffmpeg ? Backend.FFMPEG : Backend.AUTO;
-#else
-        var backend = Backend.AUTO;
-#endif
         var live_photo = LivePhoto.create (live_photo_path, dest_dir, backend);
         live_photo.export_original_metadata = export_metadata;
         return live_photo;
     }
 
     static void live_photo_make () throws Error {
-#if ENABLE_GST
-        var backend = use_ffmpeg ? Backend.FFMPEG : Backend.AUTO;
-#else
-        var backend = Backend.AUTO;
-#endif
         var live_maker = LiveMaker.create (video_path, main_image_path, live_photo_path, backend);
         live_maker.export_original_metadata = export_metadata;
         live_maker.export ();
