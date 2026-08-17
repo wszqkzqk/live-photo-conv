@@ -42,6 +42,19 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 
 ## 便捷安装
 
+### Android（实验性）
+
+从 [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 下载对应设备 ABI 的 APK 并安装（可能需要允许浏览器或文件管理器"安装未知来源应用"）：
+
+* `*-android-arm64-v8a.apk`
+  * 绝大多数现代手机和平板
+* `*-android-x86_64.apk`
+  * x86 设备和模拟器
+* `*-android-universal.apk`
+  * 通用包，适用于所有支持的 ABI，但体积更大
+
+Android 平台仅提供图形界面，视频处理由静态链接的 GStreamer 后端完成。
+
 ### Windows (MSYS2)
 
 对于 Windows 用户，现在 **[MSYS2](https://www.msys2.org/) 官方仓库**中已经包含了[该软件包](https://packages.msys2.org/base/mingw-w64-live-photo-conv)，确保已经安装并更新了 MSYS2 后，可以直接使用 `pacman` 进行安装（以 UCRT64 环境为例）：

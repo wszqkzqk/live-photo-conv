@@ -42,6 +42,19 @@ This tool can be used for extracting, repairing, editing, and composing such liv
 
 ## Easy Installation
 
+### Android (Experimental)
+
+Download the APK for your device's ABI from [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) and install it (you may need to allow your browser or file manager to install apps from unknown sources):
+
+* `*-android-arm64-v8a.apk`
+  * Most modern phones and tablets
+* `*-android-x86_64.apk`
+  * x86 devices and emulators
+* `*-android-universal.apk`
+  * Works on all supported ABIs, but larger in size
+
+On Android, only the graphical interface is provided, and video processing is handled by a statically linked GStreamer backend.
+
 ### Windows (MSYS2)
 
 For Windows users, [the package](https://packages.msys2.org/base/mingw-w64-live-photo-conv) is already available in the **[MSYS2 official repository](https://www.msys2.org/)**. Make sure you have MSYS2 installed and updated, then you can install it directly with `pacman` (UCRT64 as an example):
