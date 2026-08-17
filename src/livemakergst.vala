@@ -20,7 +20,7 @@
 /**
  * A class for creating live photos using GStreamer.
  */
-public class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
+internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
 
     /**
      * Creates a new LiveMakerGst instance.

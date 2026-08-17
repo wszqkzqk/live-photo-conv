@@ -644,15 +644,8 @@ public class LivePhotoConv.Application : Adw.Application {
 
                 start_work (make_button, _("Processing…"));
 
-#if ENABLE_GST
-                var maker = new LiveMakerGst (video_path, image_path, output_path) {
-                    export_original_metadata = export_metadata,
-                };
-#else
-                var maker = new LiveMakerFFmpeg (video_path, image_path, output_path) {
-                    export_original_metadata = export_metadata,
-                };
-#endif
+                var maker = LiveMaker.create (video_path, image_path, output_path);
+                maker.export_original_metadata = export_metadata;
                 maker.export_async.begin ((obj, res2) => {
                     try {
                         maker.export_async.end (res2);
@@ -903,11 +896,7 @@ public class LivePhotoConv.Application : Adw.Application {
         new Thread<void> ("extract-batch", () => {
             foreach (unowned var path in paths) {
                 try {
-#if ENABLE_GST
-                    var live_photo = new LivePhotoGst (path, dest_dir);
-#else
-                    var live_photo = new LivePhotoFFmpeg (path, dest_dir);
-#endif
+                    var live_photo = LivePhoto.create (path, dest_dir);
                     if (do_image)
                         live_photo.export_main_image ();
                     if (do_video)
@@ -995,11 +984,7 @@ public class LivePhotoConv.Application : Adw.Application {
             for (int i = 0; i < paths.length; i += 1) {
                 unowned var path = paths[i];
                 try {
-#if ENABLE_GST
-                    var live_photo = new LivePhotoGst (path);
-#else
-                    var live_photo = new LivePhotoFFmpeg (path);
-#endif
+                    var live_photo = LivePhoto.create (path);
                     live_photo.repair_live_metadata (force, video_size);
                     succeeded[i] = true;
                 } catch (Error e) {

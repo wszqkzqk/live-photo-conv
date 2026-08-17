@@ -43,8 +43,7 @@ namespace LivePhotoConv {
 /**
  * Represents a class for converting a GStreamer sample to an image file.
 */
-[Compact (opaque = true)]
-public class LivePhotoConv.Sample2Img {
+internal class LivePhotoConv.Sample2Img : Object {
 
     public string output_format {get; set;}
     public string filename {get; set;}

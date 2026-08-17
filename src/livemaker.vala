@@ -94,6 +94,30 @@ public abstract class LivePhotoConv.LiveMaker : Object {
     }
 
     /**
+     * Creates a new instance of LiveMaker with the requested backend.
+     *
+     * The concrete backend class is chosen by the factory; with
+     * {@link Backend.AUTO} GStreamer is preferred when built in.
+     *
+     * @param video_path The path to the video file.
+     * @param main_image_path The path to the main image file (optional).
+     * @param dest The destination path for output (optional).
+     * @param backend The video processing backend to use.
+     * @throws Error if the requested backend is unavailable.
+     * @return The new LiveMaker instance.
+     */
+    public static LiveMaker create (string video_path, string? main_image_path = null,
+                                    string? dest = null, Backend backend = AUTO) throws Error {
+#if ENABLE_GST
+        if (backend != Backend.FFMPEG)
+            return new LiveMakerGst (video_path, main_image_path, dest);
+#endif
+        if (backend == Backend.GST)
+            throw new ExportError.GST_ERROR ("GStreamer backend requested but not built in");
+        return new LiveMakerFFmpeg (video_path, main_image_path, dest);
+    }
+
+    /**
      * Make a live photo.
      *
      * This function creates a live photo by combining an optional main image and a video file.

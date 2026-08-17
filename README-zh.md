@@ -323,7 +323,7 @@ from gi.repository import LivePhotoTools
 
 ```python
 # 加载动态照片
-livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
+livephoto = LivePhotoTools.LivePhoto.create("MVIMG_20241104_164717.jpg")
 # 从动态照片中提取静态图像
 livephoto.export_main_image()
 # 从动态照片中提取视频
@@ -336,7 +336,7 @@ livephoto.generate_long_exposure("long_exposure.jpg")
 
 ```python
 # 创建动态照片
-livemaker=LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
+livemaker=LivePhotoTools.LiveMaker.create('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
 # 导出
 livemaker.export()
 ```

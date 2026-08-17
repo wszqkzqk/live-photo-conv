@@ -20,7 +20,7 @@
 /**
  * Implementation of LiveMaker using FFmpeg.
  */
-public class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
+internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
     const string[] FFMPEG_COMMANDS = {
         "ffmpeg",
         "-loglevel", "error",

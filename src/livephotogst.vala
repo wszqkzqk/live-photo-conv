@@ -43,7 +43,7 @@ namespace LivePhotoConv {
 /**
  * Implementation of LivePhoto using GStreamer for video processing.
  */
-public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
+internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     const string GST_PIPELINE = "appsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
 
     /**

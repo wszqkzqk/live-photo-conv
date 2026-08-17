@@ -116,6 +116,29 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     }
 
     /**
+     * Creates a new instance of LivePhoto with the requested backend.
+     *
+     * The concrete backend class is chosen by the factory; with
+     * {@link Backend.AUTO} GStreamer is preferred when built in.
+     *
+     * @param filename The path to the live photo file.
+     * @param dest_dir The destination directory, or null to use the input file's directory.
+     * @param backend The video processing backend to use.
+     * @throws Error if the requested backend is unavailable or the live photo cannot be parsed.
+     * @return The new LivePhoto instance.
+     */
+    public static LivePhoto create (string filename, string? dest_dir = null,
+                                    Backend backend = AUTO) throws Error {
+#if ENABLE_GST
+        if (backend != Backend.FFMPEG)
+            return new LivePhotoGst (filename, dest_dir);
+#endif
+        if (backend == Backend.GST)
+            throw new ExportError.GST_ERROR ("GStreamer backend requested but not built in");
+        return new LivePhotoFFmpeg (filename, dest_dir);
+    }
+
+    /**
      * Get the offset of the video data in the live photo.
      *
      * The offset can be used to split the video into images.

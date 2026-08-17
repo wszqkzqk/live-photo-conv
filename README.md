@@ -333,7 +333,7 @@ Usage example:
 
 ```python
 # Load a live photo
-livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
+livephoto = LivePhotoTools.LivePhoto.create("MVIMG_20241104_164717.jpg")
 # Extract the static image from the live photo
 livephoto.export_main_image()
 # Extract the video from the live photo
@@ -346,7 +346,7 @@ livephoto.generate_long_exposure("long_exposure.jpg")
 
 ```python
 # Create a live photo
-livemaker = LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
+livemaker = LivePhotoTools.LiveMaker.create('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
 # Export
 livemaker.export()
 ```

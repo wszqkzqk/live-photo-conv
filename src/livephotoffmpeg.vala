@@ -20,7 +20,7 @@
 /**
  * Implementation of LivePhoto using FFmpeg.
 */
-public class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
+internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 
     /**
      * Creates a new instance of the LivePhotoFFmpeg class.

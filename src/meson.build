@@ -10,6 +10,7 @@ constants_file = configure_file(
 )
 
 lib_common_sources = [
+  'backend.vala',
   'errordomains.vala',
   'livemaker.vala',
   'livemakerffmpeg.vala',

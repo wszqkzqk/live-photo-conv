@@ -247,42 +247,24 @@ class LivePhotoConv.Main {
     }
 
     static LivePhoto prepare_live_photo_obj () throws Error {
-        LivePhoto live_photo;
 #if ENABLE_GST
-        if (use_ffmpeg) {
-            live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir) {
-                export_original_metadata = export_metadata,
-            };
-        } else {
-            live_photo = new LivePhotoGst (live_photo_path, dest_dir) {
-                export_original_metadata = export_metadata,
-            };
-        }
+        var backend = use_ffmpeg ? Backend.FFMPEG : Backend.AUTO;
 #else
-        live_photo = new LivePhotoFFmpeg (live_photo_path, dest_dir) {
-            export_original_metadata = export_metadata,
-        };
+        var backend = Backend.AUTO;
 #endif
+        var live_photo = LivePhoto.create (live_photo_path, dest_dir, backend);
+        live_photo.export_original_metadata = export_metadata;
         return live_photo;
     }
 
     static void live_photo_make () throws Error {
 #if ENABLE_GST
-        LiveMaker live_maker;
-        if (use_ffmpeg) {
-            live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path)  {
-                export_original_metadata = export_metadata,
-            };
-        } else {
-            live_maker = new LiveMakerGst (video_path, main_image_path, live_photo_path)  {
-                export_original_metadata = export_metadata,
-            };
-        }
+        var backend = use_ffmpeg ? Backend.FFMPEG : Backend.AUTO;
 #else
-        LiveMaker live_maker = new LiveMakerFFmpeg (video_path, main_image_path, live_photo_path)  {
-            export_original_metadata = export_metadata,
-        };
+        var backend = Backend.AUTO;
 #endif
+        var live_maker = LiveMaker.create (video_path, main_image_path, live_photo_path, backend);
+        live_maker.export_original_metadata = export_metadata;
         live_maker.export ();
     }
 
