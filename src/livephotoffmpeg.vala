@@ -43,8 +43,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 
     public override void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 1) throws Error {
         /* Export the video of the live photo and split the video into images. */
-        string name_to_printf;
-        string dest;
+        string name_base;
 
         var format = output_format ?? this.extension_name;
 
@@ -53,16 +52,14 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         }
 
         if (this.basename.has_prefix ("MVIMG")) {
-            name_to_printf = "IMG" + this.basename_no_ext[5:] + "_%d." + format;
+            name_base = "IMG" + this.basename_no_ext[5:];
         } else {
-            name_to_printf = this.basename_no_ext + "_%d." + format;
+            name_base = this.basename_no_ext;
         }
 
-        if (dest_dir != null) {
-            dest = Path.build_filename (dest_dir, name_to_printf);
-        } else {
-            dest = Path.build_filename (this.dest_dir, name_to_printf);
-        }
+        var out_dir = (dest_dir == null) ? this.dest_dir : dest_dir;
+        // `%` in the basename would be interpreted as a pattern by ffmpeg's image2
+        var dest = Path.build_filename (out_dir, name_base.replace ("%", "%%") + "_%d." + format);
 
         string[] commands;
         if (format.ascii_down () == "webp") {
@@ -71,7 +68,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                 "ffmpeg", "-progress", "-", // Split progress to stdout
                 "-loglevel", "error",
                 "-hwaccel", "auto",
-                "-i", "pipe:0",
+                "-i", "cache:pipe:0",
                 "-f", "image2",
                 "-c:v", "libwebp",
                 "-y", dest, null
@@ -81,7 +78,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                 "ffmpeg", "-progress", "-",
                 "-loglevel", "error",
                 "-hwaccel", "auto",
-                "-i", "pipe:0",
+                "-i", "cache:pipe:0",
                 "-f", "image2",
                 "-y", dest, null
             };
@@ -94,8 +91,15 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 
         Thread<ExportError?> push_thread = push_video_to_subprcs (subprcs);
 
+        // Drain stderr concurrently: a full pipe would block ffmpeg mid-run
+        string? stderr_text = null;
+        var stderr_thread = new Thread<void> ("stderr-drain", () => {
+            try {
+                stderr_text = Utils.get_string_from_file_input_stream (subprcs.get_stderr_pipe ());
+            } catch {}
+        });
+
         var pipe_stdout = subprcs.get_stdout_pipe ();
-        var pipe_stderr = subprcs.get_stderr_pipe ();
 
         var pipe_stdout_dis = new DataInputStream (pipe_stdout);
         var re_frame = /^frame=\s*(\d+)/;
@@ -107,10 +111,8 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             if (re_frame.match (line, 0, out match_info)) {
                 var frame = int64.parse (match_info.fetch (1));
                 for (; frame_processed < frame; frame_processed += 1) {
-                    var image_filename = Path.build_filename (
-                        (dest_dir == null) ? this.dest_dir : dest_dir,
-                        name_to_printf.printf (frame_processed + 1)
-                    );
+                    var image_filename = Path.build_filename (out_dir,
+                        @"$(name_base)_$(frame_processed + 1).$(format)");
                     Reporter.info_puts ("Exported image", image_filename);
 
                     if (export_original_metadata) {
@@ -133,26 +135,16 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             Reporter.error_puts ("FilePushError", push_file_error.message);
         }
         subprcs.wait ();
+        stderr_thread.join ();
 
         var exit_code = subprcs.get_exit_status ();
 
         if (exit_code != 0) {
-            string? subprcs_error = null;
-            try { // Try to get the error message from stderr
-                subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
-            } catch {} // If failed, throw the error without the error message
-
-            if (subprcs_error == null) {
-                throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
-                    "Command `%s' failed with %d",
-                    string.joinv (" ", commands),
-                    exit_code);
-            }
             throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                 "Command `%s' failed with %d - `%s'",
                 string.joinv (" ", commands),
                 exit_code,
-                subprcs_error);
+                stderr_text ?? "Unknown error");
         }
     }
 
@@ -162,10 +154,10 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         string[] commands;
         if (dest_path.down ().has_suffix (".webp")) {
             commands = {
-                "ffmpeg", "-progress", "-",
+                "ffmpeg",
                 "-loglevel", "error",
                 "-hwaccel", "auto",
-                "-i", "pipe:0",
+                "-i", "cache:pipe:0",
                 "-vf", "tmix=frames=" + frame_count.to_string (),
                 "-f", "image2",
                 "-c:v", "libwebp",
@@ -174,10 +166,10 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             };
         } else {
             commands = {
-                "ffmpeg", "-progress", "-",
+                "ffmpeg",
                 "-loglevel", "error",
                 "-hwaccel", "auto",
-                "-i", "pipe:0",
+                "-i", "cache:pipe:0",
                 "-vf", "tmix=frames=" + frame_count.to_string (),
                 "-f", "image2",
                 "-update", "1",
@@ -186,32 +178,35 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         }
 
         var subprcs = new Subprocess.newv (commands,
-            SubprocessFlags.STDOUT_PIPE |
             SubprocessFlags.STDERR_PIPE |
             SubprocessFlags.STDIN_PIPE);
 
         var push_thread = push_video_to_subprcs (subprcs);
+
+        // Drain stderr concurrently: a full pipe would block ffmpeg mid-run
+        string? stderr_text = null;
+        var stderr_thread = new Thread<void> ("stderr-drain", () => {
+            try {
+                stderr_text = Utils.get_string_from_file_input_stream (subprcs.get_stderr_pipe ());
+            } catch {}
+        });
+
         subprcs.wait ();
 
         var push_file_error = push_thread.join ();
         if (push_file_error != null) {
             Reporter.error_puts ("FilePushError", push_file_error.message);
         }
+        stderr_thread.join ();
 
         var exit_code = subprcs.get_exit_status ();
 
         if (exit_code != 0) {
-            string? subprcs_error = null;
-            try { 
-                var pipe_stderr = subprcs.get_stderr_pipe ();
-                subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
-            } catch {}
-
             throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                 "Command `%s' failed with %d - `%s'",
                 string.joinv (" ", commands),
                 exit_code,
-                subprcs_error ?? "Unknown error");
+                stderr_text ?? "Unknown error");
         }
         
         if (export_original_metadata) {
@@ -233,14 +228,22 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             "-count_packets", 
             "-show_entries", "stream=nb_read_packets", 
             "-of", "csv=p=0", 
-            "pipe:0", null
+            "cache:pipe:0", null
         };
 
         var subprcs = new Subprocess.newv (commands,
             SubprocessFlags.STDOUT_PIPE |
+            SubprocessFlags.STDERR_PIPE |
             SubprocessFlags.STDIN_PIPE);
 
         var push_thread = push_video_to_subprcs (subprcs);
+
+        string? stderr_text = null;
+        var stderr_thread = new Thread<void> ("stderr-drain", () => {
+            try {
+                stderr_text = Utils.get_string_from_file_input_stream (subprcs.get_stderr_pipe ());
+            } catch {}
+        });
 
         string output = "";
         try {
@@ -249,11 +252,13 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         } catch {}
 
         subprcs.wait ();
+        stderr_thread.join ();
         var push_error = push_thread.join ();
         if (push_error != null) {
             throw push_error;
         } else if (subprcs.get_exit_status () != 0) {
-            throw new ExportError.FFMPEG_EXIED_WITH_ERROR ("ffprobe failed to count frames");
+            throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
+                "ffprobe failed to count frames: %s", stderr_text ?? "Unknown error");
         }
 
         return uint64.parse (output.strip ());
@@ -261,22 +266,24 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 
     Thread<ExportError?> push_video_to_subprcs (Subprocess subprcs) {
         return new Thread<ExportError?> ("file_pusher-%s".printf (subprcs.get_identifier ()), () => {
+            // `subprcs.get_stdin_pipe ()`'s return value is **unowned**,
+            // so we need to close it **manually**.
+            var pipe_stdin = subprcs.get_stdin_pipe ();
             try {
-                var pipe_stdin = subprcs.get_stdin_pipe ();
                 var file = File.new_for_commandline_arg (this.filename);
                 var input_stream = file.read ();
                 input_stream.seek (this.video_offset, SeekType.SET);
                 Utils.write_stream (input_stream, pipe_stdin);
-
-                // `subprcs.get_stdin_pipe ()`'s return value is **unowned**,
-                // so we need to close it **manually**.
-                // Close the pipe to signal the end of the input stream,
-                // otherwise the process will be **blocked**.
-                pipe_stdin.close ();
-                return null;
             } catch (Error e) {
                 return new ExportError.FILE_PUSH_ERROR ("Pushing to subprocess failed: %s", e.message);
+            } finally {
+                // Close the pipe to signal the end of the input stream,
+                // otherwise the process will be **blocked**.
+                try {
+                    pipe_stdin.close ();
+                } catch {}
             }
+            return null;
         });
     }
 }

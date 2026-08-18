@@ -21,16 +21,6 @@
  * Implementation of LiveMaker using FFmpeg.
  */
 internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
-    const string[] FFMPEG_COMMANDS = {
-        "ffmpeg",
-        "-loglevel", "error",
-        "-hwaccel", "auto",
-        "-i", "pipe:0",
-        "-vf", "select=eq(n\\,0)",
-        "-f", "image2pipe",
-        "-vcodec", "mjpeg",
-        "pipe:1", null, // Need to be null-terminated
-    };
 
     /**
      * Creates a new instance.
@@ -54,47 +44,48 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
 
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
 
-        // Create a subprocess to run FFmpeg
-        var subprcs = new Subprocess.newv (FFMPEG_COMMANDS,
+        // The video path is passed directly so ffmpeg can seek freely
+        string[] commands = {
+            "ffmpeg",
+            "-loglevel", "error",
+            "-hwaccel", "auto",
+            "-i", this.video_path,
+            "-vf", "select=eq(n\\,0)",
+            "-f", "image2pipe",
+            "-vcodec", "mjpeg",
+            "pipe:1", null, // Need to be null-terminated
+        };
+
+        var subprcs = new Subprocess.newv (commands,
             SubprocessFlags.STDOUT_PIPE |
-            SubprocessFlags.STDERR_PIPE |
-            SubprocessFlags.STDIN_PIPE);
-        
-        // Set the video source
-        var pipe_stdin = subprcs.get_stdin_pipe ();
-        var video_stream = video_file.read ();
-        Utils.write_stream (video_stream, pipe_stdin);
-        // Close the pipe to signal the end of the input stream,
-        // otherwise the process will be **blocked**.
-        pipe_stdin.close ();
+            SubprocessFlags.STDERR_PIPE);
+
+        // Drain stderr concurrently: a full pipe would block ffmpeg mid-run
+        string? stderr_text = null;
+        var stderr_thread = new Thread<void> ("stderr-drain", () => {
+            try {
+                stderr_text = Utils.get_string_from_file_input_stream (subprcs.get_stderr_pipe ());
+            } catch {}
+        });
 
         // Read the image from the subprocess's stdout
-        var pipe_stdout = subprcs.get_stdout_pipe ();
         var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
-        Utils.write_stream (pipe_stdout, output_stream);
+        Utils.write_stream (subprcs.get_stdout_pipe (), output_stream);
 
         subprcs.wait ();
+        stderr_thread.join ();
 
         var exit_code = subprcs.get_exit_status ();
         if (exit_code != 0) {
-            var pipe_stderr = subprcs.get_stderr_pipe ();
-            try { // Try to get the error message from stderr
-                var subprcs_error = Utils.get_string_from_file_input_stream (pipe_stderr);
-                throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
-                    "Command `%s' failed with %d - `%s'",
-                    string.joinv (" ", FFMPEG_COMMANDS),
-                    exit_code,
-                    subprcs_error);
-            } catch { // If failed, throw the error without the error message
-                throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
-                    "Command `%s' failed with %d",
-                    string.joinv (" ", FFMPEG_COMMANDS),
-                    exit_code);
-            }
+            throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
+                "Command `%s' failed with %d - `%s'",
+                string.joinv (" ", commands),
+                exit_code,
+                stderr_text ?? "Unknown error");
         }
 
         // Write the video to the live photo
-        video_stream.seek (0, SeekType.SET);
+        var video_stream = video_file.read ();
         Utils.write_stream (video_stream, output_stream);
 
         return video_size;
@@ -115,21 +106,41 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
             var main_input_stream = main_file.read ();
             Utils.write_stream (main_input_stream, output_stream);
         } else {
-            Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             // Convert the main image to supported format
-            var main_file_stream = main_file.read ();
-            var subprcs = new Subprocess.newv (FFMPEG_COMMANDS,
+            Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
+            string[] commands = {
+                "ffmpeg",
+                "-loglevel", "error",
+                "-i", this.main_image_path,
+                "-f", "image2pipe",
+                "-vcodec", "mjpeg",
+                "pipe:1", null,
+            };
+            var subprcs = new Subprocess.newv (commands,
                 SubprocessFlags.STDOUT_PIPE |
-                SubprocessFlags.STDERR_PIPE |
-                SubprocessFlags.STDIN_PIPE);
-            var pipe_stdin = subprcs.get_stdin_pipe ();
-            Utils.write_stream (main_file_stream, pipe_stdin);
-            pipe_stdin.close ();
+                SubprocessFlags.STDERR_PIPE);
 
-            // Read the image from the subprocess's stdout
-            var pipe_stdout = subprcs.get_stdout_pipe ();
+            string? stderr_text = null;
+            var stderr_thread = new Thread<void> ("stderr-drain", () => {
+                try {
+                    stderr_text = Utils.get_string_from_file_input_stream (subprcs.get_stderr_pipe ());
+                } catch {}
+            });
+
             var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
-            Utils.write_stream (pipe_stdout, output_stream);
+            Utils.write_stream (subprcs.get_stdout_pipe (), output_stream);
+
+            subprcs.wait ();
+            stderr_thread.join ();
+
+            var exit_code = subprcs.get_exit_status ();
+            if (exit_code != 0) {
+                throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
+                    "Command `%s' failed with %d - `%s'",
+                    string.joinv (" ", commands),
+                    exit_code,
+                    stderr_text ?? "Unknown error");
+            }
         }
 
         return live_file;
