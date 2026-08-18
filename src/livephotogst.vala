@@ -119,7 +119,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         pipeline.set_state (Gst.State.PLAYING);
 
         // Create a threadpool to process the images
-        if (threads == 0) {
+        if (threads <= 0) {
             threads = (int) get_num_processors ();
         }
         int export_errors = 0;
@@ -274,7 +274,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         string format;
         var last_dot = dest_path.last_index_of_char ('.');
         if (last_dot == -1 || last_dot + 1 >= dest_path.length) {
-            format = this.extension_name;
+            format = this.extension_name.down ();
         } else {
             format = dest_path[(last_dot + 1):].down ();
         }
