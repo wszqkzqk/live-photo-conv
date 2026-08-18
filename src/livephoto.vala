@@ -334,7 +334,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         if (manual_video_size > 0) {
             reverse_offset = manual_video_size;
         } else if (force) {
-            reverse_offset = file_size - this.get_video_offset_fallback ();
+            var offset = this.get_video_offset_fallback ();
+            if (offset < 0) {
+                throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
+            }
+            reverse_offset = file_size - offset;
         } else {
             // Check whether the current video offset is valid
             var file = File.new_for_commandline_arg (this.filename);
@@ -355,7 +359,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 reverse_offset = file_size - this.video_offset;
             } else {
                 Reporter.info_puts ("Info", "Broken video offset detected. Trying to repair...");
-                reverse_offset = file_size - this.get_video_offset_fallback ();
+                var offset = this.get_video_offset_fallback ();
+                if (offset < 0) {
+                    throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
+                }
+                reverse_offset = file_size - offset;
             }
         }
 
@@ -367,7 +375,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         string presentation_timestamp_us_to_write = "0";
         // this.xmp_map contains tags loaded in the constructor
-        var original_motion_photo_ts = this.xmp_map.lookup("Xmp.Camera.MotionPhotoPresentationTimestampUs");
+        var original_motion_photo_ts = this.xmp_map.lookup("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
         var original_gcamera_ts = this.xmp_map.lookup("Xmp.GCamera.MicroVideoPresentationTimestampUs");
 
         if (original_motion_photo_ts != null && original_motion_photo_ts != "") {
@@ -399,8 +407,8 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         } else if (this.extension_name.down () == "avif") {
             image_mime_type = "image/avif";
         }
-        this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Mime", image_mime_type);
-        this.xmp_map.insert ("Xmp.Container.Directory[1]/Item:Semantic", "Primary");
+        this.xmp_map.insert ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", image_mime_type);
+        this.xmp_map.insert ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
         // Item:Padding: For JPEG, optional (can be 0 or omitted). For HEIC/AVIF, must be 8.
         // This example assumes JPEG or doesn't set padding. A more robust solution would check image_mime_type.
         // if (image_mime_type == "image/heic" || image_mime_type == "image/avif") {
@@ -408,9 +416,9 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         // }
 
         // Item 2: Video (assuming MP4)
-        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Mime", "video/mp4");
-        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Semantic", "MotionPhoto");
-        this.xmp_map.insert ("Xmp.Container.Directory[2]/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
+        this.xmp_map.insert ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
+        this.xmp_map.insert ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
+        this.xmp_map.insert ("Xmp.Container.Directory[2]/Container:Item/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
 
         // Restore the XMP metadata for the live photo
         Error? metadata_error = null;
