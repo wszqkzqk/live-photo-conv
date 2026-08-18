@@ -203,7 +203,7 @@ if not is_android
     sub_exe_bins += [linked_exe]
   endforeach
 
-  if help2man_prog.found()
+  if help2man_prog.found() and meson.can_run_host_binaries()
     # Generate manpage for main executable
     custom_target('manpage-' + main_exe_name,
       output : main_exe_name + '.1',
