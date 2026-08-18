@@ -26,8 +26,9 @@ internal class LivePhotoConv.PipelineWatch : Object {
      * Starts watching the pipeline's bus.
      *
      * Errors and warnings are forwarded to stderr; the first error is
-     * recorded in {@link error} and the pipeline is forced to NULL so
-     * that blocking pull_sample () calls wake up instead of hanging.
+     * recorded in {@link error} and the pipeline is asynchronously forced
+     * to NULL so that blocking pull_sample () calls wake up instead of
+     * hanging.
      *
      * @param pipeline The pipeline to watch.
      */
@@ -40,8 +41,12 @@ internal class LivePhotoConv.PipelineWatch : Object {
                 Reporter.error_puts ("GstError", "%s (%s)".printf (err.message, debug));
                 if (this.error == null)
                     this.error = err;
-                // Unblocks pull_sample () with a flush
-                pipeline.set_state (Gst.State.NULL);
+                var top = message.src;
+                while (top != null && top.parent != null)
+                    top = top.parent;
+                (top as Gst.Element)?.call_async ((element) => {
+                    element.set_state (Gst.State.NULL);
+                });
             } else if (message.type == Gst.MessageType.WARNING) {
                 message.parse_warning (out err, out debug);
                 Reporter.warning_puts ("GstWarning", "%s (%s)".printf (err.message, debug));
