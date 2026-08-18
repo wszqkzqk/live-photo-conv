@@ -54,6 +54,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
      * @param dest The destination path for output (optional)
      */
     protected LiveMaker (string video_path, string? main_image_path = null, string? dest = null) {
+        ensure_exiv2_init ();
         this.main_image_path = main_image_path;
         this.video_path = video_path;
 
@@ -133,11 +134,6 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         } else {
             video_size = this.export_with_video_only ();
         }
-
-        // Register XMP namespaces
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
 
         string presentation_timestamp_us_to_write = "-1";
         string? existing_motion_photo_ts = null;

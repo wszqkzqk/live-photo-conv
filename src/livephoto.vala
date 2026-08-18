@@ -74,6 +74,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @throws Error if an error occurs while retrieving the offset.
     */
     protected LivePhoto (string filename, string? dest_dir = null) throws Error {
+        ensure_exiv2_init ();
         this.metadata = new GExiv2.Metadata ();
         this.metadata.open_path (filename);
 
@@ -321,10 +322,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
     */
     public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
-
         var file_size = File.new_for_commandline_arg  (this.filename)
             .query_info ("standard::size", FileQueryInfoFlags.NONE)
             .get_size ();

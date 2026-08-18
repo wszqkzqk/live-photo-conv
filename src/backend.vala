@@ -31,4 +31,17 @@ namespace LivePhotoConv {
         GST,
         FFMPEG
     }
+
+    static size_t exiv2_once = 0;
+
+    /** Thread-safe one-time exiv2/XMP initialization (GOnce-guarded). */
+    internal void ensure_exiv2_init () {
+        if (Once.init_enter (&exiv2_once)) {
+            GExiv2.initialize ();
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
+            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+            Once.init_leave (&exiv2_once, 1);
+        }
+    }
 }
