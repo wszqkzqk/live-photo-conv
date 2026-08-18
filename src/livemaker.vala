@@ -141,11 +141,11 @@ public abstract class LivePhotoConv.LiveMaker : Object {
 
         // this.metadata could be populated from main_image_path if export_original_metadata is true
         try {
-            existing_motion_photo_ts = this.metadata.try_get_tag_string("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+            existing_motion_photo_ts = this.metadata.get_tag_string("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
         } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
 
         try {
-            existing_gcamera_ts = this.metadata.try_get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+            existing_gcamera_ts = this.metadata.get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
         } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
 
         if (existing_motion_photo_ts != null && existing_motion_photo_ts != "") {
@@ -155,28 +155,28 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
 
         // Set MicroVideo (old standard) tags
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideo", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
 
         // Set MotionPhoto (new standard) tags
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
         // Set Container and Item tags for MotionPhoto
-        this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+        this.metadata.set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
         // Item 1: Primary Image (assuming JPEG)
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
         // Item:Padding is optional for JPEG, so we omit it or can set to "0"
-        // this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
+        // this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
         // Item 2: Video (assuming MP4)
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
 
         try {
             this.metadata.save_file (this.dest);

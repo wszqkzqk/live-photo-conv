@@ -38,9 +38,11 @@ namespace LivePhotoConv {
     internal void ensure_exiv2_init () {
         if (Once.init_enter (&exiv2_once)) {
             GExiv2.initialize ();
-            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
-            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
-            GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+            try {
+                GExiv2.Metadata.register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+                GExiv2.Metadata.register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
+                GExiv2.Metadata.register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+            } catch {}
             Once.init_leave (&exiv2_once, 1);
         }
     }

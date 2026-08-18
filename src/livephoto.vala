@@ -82,7 +82,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.xmp_map = new Tree<string?, string?> ((a, b) => {return strcmp (a, b);});
         foreach (unowned var tag in this.metadata.get_xmp_tags ()) {
             try {
-                this.xmp_map.insert (tag, this.metadata.try_get_tag_string (tag));
+                this.xmp_map.insert (tag, this.metadata.get_tag_string (tag));
             } catch (Error e) {
                 Reporter.warning ("XMPWarning", "Cannot get the value of the XMP tag %s: %s", tag, e.message);
             }
@@ -392,9 +392,9 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.xmp_map.insert ("Xmp.GCamera.MotionPhotoVersion", "1");
         this.xmp_map.insert ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
         // Set Container and Item tags for MotionPhoto
-        this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+        this.metadata.set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
 
         // Add Container and Item tags for MotionPhoto
         // Item 1: Primary Image (assuming JPEG based on typical output)
@@ -421,7 +421,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         Error? metadata_error = null;
         this.xmp_map.foreach ((key, value) => {
             try {
-                this.metadata.try_set_tag_string (key, value);
+                this.metadata.set_tag_string (key, value);
                 return false;
             } catch (Error e) {
                 metadata_error = e;
