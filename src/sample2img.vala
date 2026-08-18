@@ -55,8 +55,9 @@ internal class LivePhotoConv.Sample2Img : Object {
      * @param sample The Gst.Sample object to be processed.
      * @param filename The name of the output file.
      * @param output_format The format of the output file.
+     * @throws Error if the sample's caps or buffer cannot be read.
     */
-    public Sample2Img (Gst.Sample sample, string filename, string output_format) {
+    public Sample2Img (Gst.Sample sample, string filename, string output_format) throws Error {
         this.filename = filename;
         this.output_format = output_format;
 
@@ -66,10 +67,13 @@ internal class LivePhotoConv.Sample2Img : Object {
         int width, height;
         info.get_int ("width", out width);
         info.get_int ("height", out height);
-        
-        Gst.MapInfo map;
-        buffer.map (out map, Gst.MapFlags.READ);
 
+        Gst.MapInfo map;
+        if (!buffer.map (out map, Gst.MapFlags.READ)) {
+            throw new ExportError.GST_ERROR ("Cannot map the video frame buffer");
+        }
+
+        // The pixbuf owns a copy of the pixels, so the buffer can be unmapped right away
         pixbuf = new Gdk.Pixbuf.from_data (
             map.data,
             Gdk.Colorspace.RGB,
@@ -79,6 +83,7 @@ internal class LivePhotoConv.Sample2Img : Object {
             height,
             width * 3
         );
+        buffer.unmap (map);
         pixbuf = pixbuf_with_opaque_alpha (pixbuf);
     }
 

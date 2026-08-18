@@ -53,15 +53,21 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
 
         // Create a pipeline
         var pipeline = Gst.parse_launch ("giostreamsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink") as Gst.Bin;
-        watch_pipeline_bus (pipeline);
+        var watch = new PipelineWatch (pipeline);
         var giostreamsrc = pipeline.get_by_name ("src");
         giostreamsrc.set_property ("stream", video_stream);
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
 
         // Only the first frame is needed
         pipeline.set_state (Gst.State.PLAYING);
-        Gst.Sample sample = appsink.pull_sample ();
+        var sample = appsink.pull_sample ();
         pipeline.set_state (Gst.State.NULL);
+        if (watch.error != null) {
+            throw watch.error;
+        }
+        if (sample == null) {
+            throw new ExportError.GST_ERROR ("No video frame decoded");
+        }
 
         var sample2img = new Sample2Img (sample, this.dest, "jpeg");
         var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
