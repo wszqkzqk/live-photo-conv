@@ -907,10 +907,13 @@ public class LivePhotoConv.Application : Adw.Application {
                         live_photo.export_main_image ();
                     if (do_video)
                         live_photo.export_video ();
-                    if (do_long)
+                    if (do_long) {
+                        var basename = Path.get_basename (path);
+                        var last_dot = basename.last_index_of_char ('.');
+                        var stem = last_dot > 0 ? basename[:last_dot] : basename;
                         live_photo.generate_long_exposure (
-                            Path.build_filename (dest_dir,
-                                Path.get_basename (path) + "_long_exposure.jpg"));
+                            Path.build_filename (dest_dir, stem + "_long_exposure.jpg"));
+                    }
                     if (do_frames)
                         live_photo.split_images_from_video (img_format, dest_dir);
                 } catch (Error e) {
