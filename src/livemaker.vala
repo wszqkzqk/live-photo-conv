@@ -47,6 +47,28 @@ public abstract class LivePhotoConv.LiveMaker : Object {
     }
     
     /**
+     * Derives the default destination path: MVIMG_<stem>.jpg next to the source.
+     *
+     * Only JPEG is supported as the main image format for now (Google also
+     * supports "image/heif"/"image/avif", but GExiv2 does not), so the
+     * exported live photo always gets a JPEG extension.
+     *
+     * @param source_path The path of the source image or video.
+     * @param source_prefix The camera prefix of the source name ("IMG"/"VID").
+     */
+    static string default_dest (string source_path, string source_prefix) {
+        var basename = Path.get_basename (source_path);
+        var last_dot = basename.last_index_of_char ('.');
+        var stem = last_dot > 0 ? basename[:last_dot] : basename;
+        if (stem.has_prefix (source_prefix)) {
+            stem = "MVIMG" + stem[source_prefix.length:];
+        } else {
+            stem = "MVIMG" + stem;
+        }
+        return Path.build_filename (Path.get_dirname (source_path), stem + ".jpg");
+    }
+
+    /**
      * Creates a new LiveMaker instance.
      *
      * @param video_path The path to the video file
@@ -61,34 +83,9 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         if (dest != null) {
             this.dest = dest;
         } else if (main_image_path != null) {
-            string dest_name;
-            var main_basename = Path.get_basename (main_image_path);
-            if (main_basename.has_prefix ("IMG")) {
-                dest_name = "MVIMG" + main_basename[3:];
-            } else {
-                dest_name = "MVIMG" + main_basename;
-            }
-            this.dest = Path.build_filename (Path.get_dirname (main_image_path), dest_name);
-            // Currently only JPEG is supported as the main image format
-            // Google also supports "image/heif" and "image/avif", but GExiv2 does not support them yet
-            // So we need to ensure the exported live photo has a JPEG extension
-            var lower_dest = this.dest.down();
-            if (!(lower_dest.has_suffix (".jpg") || lower_dest.has_suffix (".jpeg"))) {
-                this.dest += ".jpg";
-            }
+            this.dest = default_dest (main_image_path, "IMG");
         } else {
-            string dest_name;
-            var video_basename = Path.get_basename (video_path);
-            if (video_basename.has_prefix ("VID")) {
-                dest_name = "MVIMG" + video_basename[3:];
-            } else {
-                dest_name = "MVIMG" + video_basename;
-            }
-
-            this.dest = Path.build_filename (
-                Path.get_dirname (video_path),
-                dest_name + ".jpg"
-            );
+            this.dest = default_dest (video_path, "VID");
         }
 
         this.metadata = new GExiv2.Metadata ();
