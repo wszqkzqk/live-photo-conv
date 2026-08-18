@@ -104,6 +104,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         var pipe_stdout_dis = new DataInputStream (pipe_stdout);
         var re_frame = /^frame=\s*(\d+)/;
         MatchInfo match_info;
+        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
 
         string line;
         int64 frame_processed = 0;
@@ -115,9 +116,9 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                         @"$(name_base)_$(frame_processed + 1).$(format)");
                     Reporter.info_puts ("Exported image", image_filename);
 
-                    if (export_original_metadata) {
+                    if (export_meta != null) {
                         try {
-                            metadata.save_file (image_filename);
+                            export_meta.save_file (image_filename);
                         } catch (Error e) {
                             // DO NOT throw the error, just report it
                             // because the image exporting is not affected
@@ -211,7 +212,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         
         if (export_original_metadata) {
             try {
-                metadata.save_file (dest_path);
+                this.metadata_for_export ().save_file (dest_path);
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
             }

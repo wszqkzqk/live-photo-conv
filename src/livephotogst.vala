@@ -118,13 +118,10 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
             threads = (int) get_num_processors ();
         }
         int export_errors = 0;
+        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
         var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
             try {
-                if (export_original_metadata) {
-                    item.export (this.metadata);
-                } else {
-                    item.export ();
-                }
+                item.export (export_meta);
             } catch (Error e) {
                 AtomicInt.inc (ref export_errors);
                 Reporter.error_puts ("Error", e.message);
@@ -282,7 +279,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         pixbuf.save (dest_path, format);
         if (export_original_metadata) {
             try {
-                metadata.save_file (dest_path);
+                this.metadata_for_export ().save_file (dest_path);
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
             }
