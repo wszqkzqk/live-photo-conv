@@ -633,6 +633,7 @@ public class LivePhotoConv.Application : Adw.Application {
                 string video_path;
                 string? image_path;
                 string output_path;
+                LiveMaker maker;
                 bool output_staged = needs_staging (output_file);
                 try {
                     video_path = path_for (video_file);
@@ -641,16 +642,16 @@ public class LivePhotoConv.Application : Adw.Application {
                     output_path = output_staged
                         ? staging_output_path (output_file.get_basename () ?? "live-photo.jpg")
                         : output_file.get_path ();
+                    maker = LiveMaker.create (video_path, image_path, output_path);
                 } catch (Error e) {
                     show_error_dialog (_("Error"), e.message);
                     return;
                 }
                 bool export_metadata = make_export_metadata_check.active;
+                maker.export_original_metadata = export_metadata;
 
                 start_work (make_button, _("Processing…"));
 
-                var maker = LiveMaker.create (video_path, image_path, output_path);
-                maker.export_original_metadata = export_metadata;
                 maker.export_async.begin ((obj, res2) => {
                     try {
                         maker.export_async.end (res2);
