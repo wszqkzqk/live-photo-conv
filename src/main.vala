@@ -186,6 +186,11 @@ class LivePhotoConv.Main {
             break;
         }
 
+        // Force-repair style flags imply repair mode
+        if (force_repair || repair_with_video_size > 0) {
+            repair_live_photo = true;
+        }
+
         if (show_version) {
             Reporter.info_puts ("Live Photo Converter", VERSION);
             Reporter.info_puts ("Copyright", COPYRIGHT);
