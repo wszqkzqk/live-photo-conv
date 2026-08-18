@@ -58,8 +58,9 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         }
 
         var out_dir = (dest_dir == null) ? this.dest_dir : dest_dir;
-        // `%` in the basename would be interpreted as a pattern by ffmpeg's image2
-        var dest = Path.build_filename (out_dir, name_base.replace ("%", "%%") + "_%d." + format);
+        // `%` would be interpreted as a pattern by ffmpeg's image2
+        var dest = Path.build_filename (out_dir.replace ("%", "%%"),
+            name_base.replace ("%", "%%") + "_%d." + format);
 
         string[] commands;
         if (format.ascii_down () == "webp") {
@@ -69,6 +70,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                 "-loglevel", "error",
                 "-hwaccel", "auto",
                 "-i", "cache:pipe:0",
+                "-fps_mode", "passthrough",
                 "-f", "image2",
                 "-c:v", "libwebp",
                 "-y", dest, null
@@ -79,6 +81,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                 "-loglevel", "error",
                 "-hwaccel", "auto",
                 "-i", "cache:pipe:0",
+                "-fps_mode", "passthrough",
                 "-f", "image2",
                 "-y", dest, null
             };
@@ -255,11 +258,12 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         subprcs.wait ();
         stderr_thread.join ();
         var push_error = push_thread.join ();
-        if (push_error != null) {
-            throw push_error;
-        } else if (subprcs.get_exit_status () != 0) {
+        if (subprcs.get_exit_status () != 0) {
             throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                 "ffprobe failed to count frames: %s", stderr_text ?? "Unknown error");
+        }
+        if (push_error != null) {
+            throw push_error;
         }
 
         return uint64.parse (output.strip ());
