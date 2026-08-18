@@ -291,6 +291,11 @@ public class LivePhotoConv.Application : Adw.Application {
      * and the three-page {@link Adw.ViewStack}.
      */
     public override void activate () {
+        if (active_window != null) {
+            active_window.present ();
+            return;
+        }
+
         var window = new Adw.ApplicationWindow (this) {
             title = "Live Photo Converter",
             default_width = 520,
