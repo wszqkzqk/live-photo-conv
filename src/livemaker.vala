@@ -60,12 +60,11 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         var basename = Path.get_basename (source_path);
         var last_dot = basename.last_index_of_char ('.');
         var stem = last_dot > 0 ? basename[:last_dot] : basename;
-        if (stem.has_prefix (source_prefix)) {
-            stem = "MVIMG" + stem[source_prefix.length:];
-        } else {
-            stem = "MVIMG" + stem;
-        }
-        return Path.build_filename (Path.get_dirname (source_path), stem + ".jpg");
+        if (stem.has_prefix ("MVIMG"))
+            stem = stem[5:];
+        else if (stem.has_prefix (source_prefix))
+            stem = stem[source_prefix.length:];
+        return Path.build_filename (Path.get_dirname (source_path), "MVIMG" + stem + ".jpg");
     }
 
     /**
