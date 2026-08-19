@@ -267,13 +267,19 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         Reporter.info_puts ("Exported main image", main_image_filename);
 
-        if (export_original_metadata) {
-            // Copy the metadata from the live photo to the main image
-            try {
+        // Rewrite the metadata: XMP stripped when exporting, dropped entirely otherwise
+        try {
+            if (export_original_metadata) {
                 this.metadata_for_export ().save_file (main_image_filename);
-            } catch (Error e) {
-                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s", main_image_filename, e.message);
+            } else {
+                // GExiv2 requires a backing image; load then drop everything
+                var meta = new GExiv2.Metadata ();
+                meta.open_path (this.filename);
+                meta.clear ();
+                meta.save_file (main_image_filename);
             }
+        } catch (Error e) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Cannot export the metadata to %s: %s", main_image_filename, e.message);
         }
 
         return (owned) main_image_filename;
