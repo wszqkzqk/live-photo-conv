@@ -150,6 +150,9 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             presentation_timestamp_us_to_write = existing_gcamera_ts;
         }
 
+        // Clear previous XMP metadata to avoid conflicts
+        this.metadata.clear_xmp ();
+
         // Set MicroVideo (old standard) tags
         this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
         this.metadata.set_tag_string ("Xmp.GCamera.MicroVideo", "1");
