@@ -39,19 +39,47 @@ internal class LivePhotoConv.PipelineWatch : Object {
             if (message.type == Gst.MessageType.ERROR) {
                 message.parse_error (out err, out debug);
                 Reporter.error_puts ("GstError", "%s (%s)".printf (err.message, debug));
-                if (this.error == null)
-                    this.error = err;
-                var top = message.src;
-                while (top != null && top.parent != null)
-                    top = top.parent;
-                (top as Gst.Element)?.call_async ((element) => {
-                    element.set_state (Gst.State.NULL);
-                });
+                fail (err, message.src);
             } else if (message.type == Gst.MessageType.WARNING) {
                 message.parse_warning (out err, out debug);
                 Reporter.warning_puts ("GstWarning", "%s (%s)".printf (err.message, debug));
             }
             return Gst.BusSyncReply.PASS;
+        });
+
+        // No linked decodebin src pad means no consumable stream, which never errors; fail to unblock pull_sample ()
+        var dec = pipeline.get_by_name ("dec");
+        if (dec != null) {
+            dec.no_more_pads.connect ((d) => {
+                bool any_linked = false;
+                foreach (unowned var pad in d.srcpads) {
+                    if (pad.is_linked ()) {
+                        any_linked = true;
+                        break;
+                    }
+                }
+                if (!any_linked) {
+                    fail (new ExportError.GST_ERROR ("No video stream in the input"), d);
+                }
+            });
+        }
+    }
+
+    /**
+     * Records the first failure and asynchronously forces the pipeline to
+     * NULL, waking any blocking pull_sample ().
+     *
+     * @param err The error to record
+     * @param src An object in the pipeline, used to locate the top-level element
+     */
+    void fail (Error err, Gst.Object? src) {
+        if (this.error == null)
+            this.error = err;
+        var top = src;
+        while (top != null && top.parent != null)
+            top = top.parent;
+        (top as Gst.Element)?.call_async ((element) => {
+            element.set_state (Gst.State.NULL);
         });
     }
 }
@@ -60,7 +88,7 @@ internal class LivePhotoConv.PipelineWatch : Object {
  * Implementation of LivePhoto using GStreamer for video processing.
  */
 internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
-    const string GST_PIPELINE = "appsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
+    const string GST_PIPELINE = "appsrc name=src ! decodebin name=dec ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
 
     /**
      * Creates a new instance.
