@@ -62,8 +62,8 @@ class LivePhotoConv.Main {
         { "output", 'o', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The output live photo file path", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
-        { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
-        { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to extract instead of FFmpeg", null },
+        { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to make instead of GStreamer", null },
+        { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to make instead of FFmpeg", null },
         null
     };
 

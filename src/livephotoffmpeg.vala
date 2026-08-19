@@ -45,9 +45,9 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         /* Export the video of the live photo and split the video into images. */
         string name_base;
 
-        var format = output_format ?? this.extension_name;
+        var format = (output_format ?? this.extension_name).down ();
 
-        if (threads != 0 && threads != 1) {
+        if (threads > 1) {
             Reporter.warning_puts ("NotImplementedWarning", "The `threads` parameter of FFmpeg mode is not implemented.");
         }
 
