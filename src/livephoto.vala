@@ -410,11 +410,35 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         // Set Container and Item tags for MotionPhoto. Only create missing
         // nodes: re-declaring an existing struct wipes its children.
-        if (this.metadata.has_tag ("Xmp.Container.Directory")
-            && this.metadata.get_tag_string ("Xmp.Container.Directory") != "type=\"Seq\"") {
-            // A wrong-typed node blocks rebuilding; drop it first
-            this.metadata.clear_tag ("Xmp.Container.Directory");
+        this.write_container_tags (offset_string);
+
+        // save_file returns false on encode/write failure
+        if (!this.metadata.save_file (this.filename)) {
+            throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", this.filename);
         }
+        // exiv2 silently skips a failed XMP encode; verify the key landed
+        if (!this.container_length_present ()) {
+            this.rebuild_container_tree (offset_string);
+            if (!this.metadata.save_file (this.filename)) {
+                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", this.filename);
+            }
+            if (!this.container_length_present ()) {
+                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", this.filename);
+            }
+        }
+
+        // Refresh the video_offset field; the metadata rewrite may change the file size
+        file_size = File.new_for_commandline_arg (this.filename)
+            .query_info ("standard::size", FileQueryInfoFlags.NONE)
+            .get_size ();
+        this.video_offset = file_size - reverse_offset;
+
+        Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
+    }
+
+    // Writes the Container.Directory structure and its members, creating
+    // only missing nodes (re-declaring an existing struct wipes its children)
+    void write_container_tags (string offset_string) throws Error {
         if (!this.metadata.has_tag ("Xmp.Container.Directory")) {
             this.metadata.set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
         }
@@ -445,19 +469,26 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
+    }
 
-        // save_file returns false on encode/write failure
-        if (!this.metadata.save_file (this.filename)) {
-            throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", this.filename);
+    // Reads back the file and checks whether the video length key landed
+    bool container_length_present () throws Error {
+        var check = new GExiv2.Metadata ();
+        check.open_path (this.filename);
+        return check.has_tag ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
+    }
+
+    // Wipes the Container tree and writes it fresh, for nodes whose wrong
+    // type blocks the surgical writes
+    void rebuild_container_tree (string offset_string) throws Error {
+        foreach (unowned var tag in this.metadata.get_xmp_tags ()) {
+            if (tag.has_prefix ("Xmp.Container.")) {
+                try {
+                    this.metadata.clear_tag (tag);
+                } catch {}
+            }
         }
-
-        // Refresh the video_offset field; the metadata rewrite may change the file size
-        file_size = File.new_for_commandline_arg (this.filename)
-            .query_info ("standard::size", FileQueryInfoFlags.NONE)
-            .get_size ();
-        this.video_offset = file_size - reverse_offset;
-
-        Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
+        this.write_container_tags (offset_string);
     }
 
     /**
