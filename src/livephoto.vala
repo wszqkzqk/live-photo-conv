@@ -410,6 +410,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
 
         // Set Container and Item tags for MotionPhoto. Only create missing
         // nodes: re-declaring an existing struct wipes its children.
+        if (this.metadata.has_tag ("Xmp.Container.Directory")
+            && this.metadata.get_tag_string ("Xmp.Container.Directory") != "type=\"Seq\"") {
+            // A wrong-typed node blocks rebuilding; drop it first
+            this.metadata.clear_tag ("Xmp.Container.Directory");
+        }
         if (!this.metadata.has_tag ("Xmp.Container.Directory")) {
             this.metadata.set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
         }
