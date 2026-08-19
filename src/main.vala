@@ -82,7 +82,7 @@ class LivePhotoConv.Main {
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of the video as photos", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video, defaults to automatic detection", "FORMAT" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal export, ignore unspecified exports", null },
-        { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto", "NUM" },
+        { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
         { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
         { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to extract instead of FFmpeg", null },
         null
@@ -120,8 +120,8 @@ class LivePhotoConv.Main {
         { "long-exposure", 'l', OptionFlags.NONE, OptionArg.FILENAME, ref long_exposure_path, "Convert the embedded video to a long exposure photo", "PATH" },
         { "minimal", '\0', OptionFlags.NONE, OptionArg.NONE, ref minimal_export, "Minimal export, ignore unspecified exports", null },
         { "threads", 'T', OptionFlags.NONE, OptionArg.INT, ref threads, "Number of threads to use for extracting, 0 for auto (not work in FFmpeg mode)", "NUM" },
-        { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to extract instead of GStreamer", null },
-        { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to extract instead of FFmpeg", null },
+        { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg instead of GStreamer", null },
+        { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer instead of FFmpeg", null },
         null
     };
 
