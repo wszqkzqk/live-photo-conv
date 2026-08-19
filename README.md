@@ -165,6 +165,9 @@ Meson build options:
 * `docs`
   * Whether to generate documentation
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
+* `manpages`
+  * Whether to generate manpages
+  * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 
 First, you need to clone the project and navigate to the top-level directory of the project. The following reference commands should be executed in the **top-level directory of the project**:
 
