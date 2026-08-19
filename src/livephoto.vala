@@ -98,7 +98,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         }
 
         this.video_offset = this.get_video_offset ();
-        if (this.video_offset < 0) {
+        if (this.video_offset <= 0) {
             throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
         }
     }
