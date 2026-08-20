@@ -261,6 +261,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             main_image_filename = Path.build_filename (this.dest_dir, this.basename_no_ext + "_0." + this.extension_name);
         }
 
+        if (Utils.same_file (this.filename, main_image_filename))
+            throw new ExportError.FILE_SAVE_ERROR (
+                "`%s' and `%s' are the same file", this.filename, main_image_filename);
+
         var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes before `video_offset` to the main image file
         Utils.write_stream_before (input_stream, output_stream, this.video_offset);
@@ -313,6 +317,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         } else {
             video_filename = Path.build_filename (this.dest_dir, "VID_" + this.basename_no_ext + ".mp4");
         }
+
+        if (Utils.same_file (this.filename, video_filename))
+            throw new ExportError.FILE_SAVE_ERROR (
+                "`%s' and `%s' are the same file", this.filename, video_filename);
 
         var output_stream = File.new_for_commandline_arg (video_filename).replace (null, make_backup, file_create_flags);
         // Write the bytes after `video_offset` to the video file

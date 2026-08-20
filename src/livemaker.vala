@@ -118,7 +118,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
 
         // The default dest of an MVIMG-named main image is the image itself
-        if (main_image_path != null && maker.dest == main_image_path)
+        if (main_image_path != null && Utils.same_file (main_image_path, maker.dest))
             throw new ExportError.FILE_SAVE_ERROR (
                 "`%s' and `%s' are the same file", main_image_path, maker.dest);
         return maker;

@@ -89,6 +89,20 @@ namespace LivePhotoConv.Utils {
     }
 
     /**
+     * Checks whether two paths name the same file.
+     *
+     * Compares the canonicalized paths; hard links to the same file are
+     * not considered the same.
+     *
+     * @param path_a The first path.
+     * @param path_b The second path.
+     * @return Whether the two paths name the same file.
+     */
+    public bool same_file (string path_a, string path_b) {
+        return Filename.canonicalize (path_a) == Filename.canonicalize (path_b);
+    }
+
+    /**
      * Returns the effective locale directory at runtime.
      */
     public string get_localedir () {
