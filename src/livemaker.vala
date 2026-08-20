@@ -105,13 +105,23 @@ public abstract class LivePhotoConv.LiveMaker : Object {
      */
     public static LiveMaker create (string video_path, string? main_image_path = null,
                                     string? dest = null, Backend backend = AUTO) throws Error {
+        LiveMaker maker;
 #if ENABLE_GST
         if (backend != Backend.FFMPEG)
-            return new LiveMakerGst (video_path, main_image_path, dest);
+            maker = new LiveMakerGst (video_path, main_image_path, dest);
+        else
 #endif
-        if (backend == Backend.GST)
-            throw new ExportError.GST_ERROR ("GStreamer backend requested but not built in");
-        return new LiveMakerFFmpeg (video_path, main_image_path, dest);
+        {
+            if (backend == Backend.GST)
+                throw new ExportError.GST_ERROR ("GStreamer backend requested but not built in");
+            maker = new LiveMakerFFmpeg (video_path, main_image_path, dest);
+        }
+
+        // The default dest of an MVIMG-named main image is the image itself
+        if (main_image_path != null && maker.dest == main_image_path)
+            throw new ExportError.FILE_SAVE_ERROR (
+                "`%s' and `%s' are the same file", main_image_path, maker.dest);
+        return maker;
     }
 
     /**
