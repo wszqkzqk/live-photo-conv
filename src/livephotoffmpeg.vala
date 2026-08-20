@@ -260,7 +260,10 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         var push_error = push_thread.join ();
         if (subprcs.get_exit_status () != 0) {
             throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
-                "ffprobe failed to count frames: %s", stderr_text ?? "Unknown error");
+                "Command `%s' failed with %d - `%s'",
+                string.joinv (" ", commands),
+                subprcs.get_exit_status (),
+                stderr_text ?? "Unknown error");
         }
         if (push_error != null) {
             throw push_error;
