@@ -100,7 +100,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
      * @param main_image_path The path to the main image file (optional).
      * @param dest The destination path for output (optional).
      * @param backend The video processing backend to use.
-     * @throws Error if the requested backend is unavailable.
+     * @throws Error if the requested backend is unavailable, or the destination is an input file.
      * @return The new LiveMaker instance.
      */
     public static LiveMaker create (string video_path, string? main_image_path = null,

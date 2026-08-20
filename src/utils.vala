@@ -92,7 +92,7 @@ namespace LivePhotoConv.Utils {
      * Checks whether two paths name the same file.
      *
      * Compares the canonicalized paths; hard links to the same file are
-     * not considered the same.
+     * not considered the same. Symbolic links and URIs are not resolved.
      *
      * @param path_a The first path.
      * @param path_b The second path.
