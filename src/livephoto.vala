@@ -265,9 +265,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             throw new ExportError.FILE_SAVE_ERROR (
                 "`%s' and `%s' are the same file", this.filename, main_image_filename);
 
-        var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
-        // Write the bytes before `video_offset` to the main image file
-        Utils.write_stream_before (input_stream, output_stream, this.video_offset);
+        // Write the bytes before `video_offset`
+        {
+            var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
+            Utils.write_stream_before (input_stream, output_stream, this.video_offset);
+        } // Close the stream (renaming into place) before the metadata rewrite
 
         Reporter.info_puts ("Exported main image", main_image_filename);
 
