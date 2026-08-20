@@ -50,6 +50,7 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
             "-loglevel", "error",
             "-hwaccel", "auto",
             "-i", this.video_path,
+            "-frames:v", "1",
             "-vf", "select=eq(n\\,0)",
             "-f", "image2pipe",
             "-vcodec", "mjpeg",
