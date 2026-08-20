@@ -199,6 +199,9 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     }
 
     public override void generate_long_exposure (string dest_path) throws Error {
+        if (Utils.same_file (this.filename, dest_path))
+            throw new ExportError.FILE_SAVE_ERROR ("`%s' and `%s' are the same file", this.filename, dest_path);
+
         unowned string[] args = null;
         Gst.init (ref args);
 
