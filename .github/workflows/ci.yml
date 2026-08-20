@@ -143,6 +143,10 @@ jobs:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDKVER: "36.1.0"
       ANDROID_NDKVER: "29.0.14206865"
+      LPC_KEYSTORE_BASE64: ${{ secrets.LPC_KEYSTORE_BASE64 }}
+      LPC_KEYSTORE_PASSWORD: ${{ secrets.LPC_KEYSTORE_PASSWORD }}
+      LPC_KEY_ALIAS: ${{ secrets.LPC_KEY_ALIAS }}
+      LPC_KEY_PASSWORD: ${{ secrets.LPC_KEY_PASSWORD }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -151,10 +155,8 @@ jobs:
     # Releases must not ship debug-signed APKs
     - name: Require signing secrets on tag builds
       if: github.ref_type == 'tag'
-      env:
-        LPC_KEYSTORE_BASE64: ${{ secrets.LPC_KEYSTORE_BASE64 }}
       run: |
-        if [ -z "$LPC_KEYSTORE_BASE64" ]; then
+        if [ -z "$LPC_KEYSTORE_BASE64" ] || [ -z "$LPC_KEYSTORE_PASSWORD" ] || [ -z "$LPC_KEY_ALIAS" ] || [ -z "$LPC_KEY_PASSWORD" ]; then
           echo "Tag builds must be signed with the release keystore, but the signing secrets are not set."
           exit 1
         fi
@@ -199,11 +201,6 @@ jobs:
       run: ./pixiewood-tool/pixiewood build
 
     - name: Prepare signing keystore
-      env:
-        LPC_KEYSTORE_BASE64: ${{ secrets.LPC_KEYSTORE_BASE64 }}
-        LPC_KEYSTORE_PASSWORD: ${{ secrets.LPC_KEYSTORE_PASSWORD }}
-        LPC_KEY_ALIAS: ${{ secrets.LPC_KEY_ALIAS }}
-        LPC_KEY_PASSWORD: ${{ secrets.LPC_KEY_PASSWORD }}
       run: |
         # Fall back to a debug key when the release secrets are not set
         if [ -n "$LPC_KEYSTORE_BASE64" ] && [ -n "$LPC_KEYSTORE_PASSWORD" ] && [ -n "$LPC_KEY_ALIAS" ] && [ -n "$LPC_KEY_PASSWORD" ]; then
