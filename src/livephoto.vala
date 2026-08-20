@@ -397,13 +397,21 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         string presentation_timestamp_us_to_write = "0";
         if (this.metadata.has_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs")) {
             var ts = this.metadata.get_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
-            if (ts != null && ts != "")
+            if (ts != null && int64.try_parse (ts))
                 presentation_timestamp_us_to_write = ts;
         } else if (this.metadata.has_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs")) {
             var ts = this.metadata.get_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
-            if (ts != null && ts != "")
+            if (ts != null && int64.try_parse (ts))
                 presentation_timestamp_us_to_write = ts;
         }
+
+        // Clear the timestamp nodes first: set_tag_string appends to a wrong-typed node
+        try {
+            this.metadata.clear_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+        } catch {}
+        try {
+            this.metadata.clear_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+        } catch {}
 
         // Set GCamera (old standard) tags
         this.metadata.set_tag_string ("Xmp.GCamera.MicroVideo", "1");

@@ -154,9 +154,9 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             existing_gcamera_ts = this.metadata.get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
         } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
 
-        if (existing_motion_photo_ts != null && existing_motion_photo_ts != "") {
+        if (existing_motion_photo_ts != null && int64.try_parse (existing_motion_photo_ts)) {
             presentation_timestamp_us_to_write = existing_motion_photo_ts;
-        } else if (existing_gcamera_ts != null && existing_gcamera_ts != "") {
+        } else if (existing_gcamera_ts != null && int64.try_parse (existing_gcamera_ts)) {
             presentation_timestamp_us_to_write = existing_gcamera_ts;
         }
 
