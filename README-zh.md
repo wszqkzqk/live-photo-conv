@@ -53,7 +53,7 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 * `*-android-universal.apk`
   * 通用包，适用于所有支持的 ABI，但体积更大
 
-Android 平台仅提供图形界面，视频处理由静态链接的 GStreamer 后端完成。
+Android 平台仅提供图形界面，视频处理由静态链接的 GStreamer 后端完成。需要 Android 12 及以上版本。
 
 ### Windows (MSYS2)
 
@@ -121,7 +121,7 @@ HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install --HEAD wszqkzqk/live-photo-conv/liv
   * GTK4、LibAdwaita（GUI 需要）
   * GStreamer（`gstreamer`, `gst-plugins-base-libs`, `gst-plugins-good`, `gst-plugins-bad`）— GStreamer 构建时需要；`gst-plugin-va` 可选，用于硬件加速
   * gdk-pixbuf2 — GStreamer 构建时需要；可选格式加载器：`libavif` (.avif)、`libheif` (.heif/.heic/.avif)、`libjxl` (.jxl)、`webp-pixbuf-loader` (.webp)
-  * FFmpeg — 可选，未使用 GStreamer 构建时从视频导出图片需要
+  * FFmpeg（5.1 及以上）— 可选，未使用 GStreamer 构建时从视频导出图片需要
 
 例如，在Arch Linux上安装依赖：
 
