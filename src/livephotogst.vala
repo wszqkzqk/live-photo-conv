@@ -47,7 +47,7 @@ internal class LivePhotoConv.PipelineWatch : Object {
             return Gst.BusSyncReply.PASS;
         });
 
-        // No linked decodebin src pad means no consumable stream, which never errors; fail to unblock pull_sample ()
+        // No linked decodebin src pad means no consumable stream, which does not reliably error; fail to unblock pull_sample ()
         var dec = pipeline.get_by_name ("dec");
         if (dec != null) {
             dec.no_more_pads.connect ((d) => {
