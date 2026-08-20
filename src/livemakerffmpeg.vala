@@ -112,6 +112,7 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
                 "ffmpeg",
                 "-loglevel", "error",
                 "-i", this.main_image_path,
+                "-frames:v", "1",
                 "-f", "image2pipe",
                 "-vcodec", "mjpeg",
                 "pipe:1", null,
