@@ -155,18 +155,38 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                     .query_info ("standard::size", FileQueryInfoFlags.NONE)
                     .get_size ();
                 var offset = file_size - reverse_offset;
-                if (offset > 0) {
+                if (offset > 0 && video_header_at (offset)) {
                     return offset;
                 }
-                // An XMP offset beyond the file size is garbage; fall through to the scan
+                // A garbage XMP offset falls through to the scan
             }
         }
 
         // If the XMP metadata does not contain the video offset, search for the video tag in the live photo
         Reporter.warning_puts ("XMPOffsetNotFoundWarning",
-        "The XMP metadata does not contain the video offset. Searching for the video tag in the live photo.");
+        "The XMP metadata does not contain a valid video offset. Searching for the video tag in the live photo.");
 
         return this.get_video_offset_fallback ();
+    }
+
+    /**
+     * Checks whether the MP4 header pattern is present at the given offset.
+     *
+     * @param offset The offset of the video data in the live photo.
+     * @throws Error if there is an issue reading the file.
+     * @return Whether the MP4 header pattern is present at the offset.
+     */
+    bool video_header_at (int64 offset) throws Error {
+        var input_stream = File.new_for_commandline_arg (this.filename).read ();
+        input_stream.seek (offset + LENGTH_BEFORE_FTYP, SeekType.SET);
+        uint8[] header = new uint8[PATTERN_LENGTH];
+        if (input_stream.read (header, null) != PATTERN_LENGTH)
+            return false;
+        for (int i = 0; i < PATTERN_LENGTH; i += 1) {
+            if (header[i] != MP4_VIDEO_HEADER[i])
+                return false;
+        }
+        return true;
     }
 
     /**
@@ -361,32 +381,15 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
             }
             reverse_offset = file_size - offset;
+        } else if (video_header_at (this.video_offset)) {
+            reverse_offset = file_size - this.video_offset;
         } else {
-            // Check whether the current video offset is valid
-            var file = File.new_for_commandline_arg (this.filename);
-            var input_stream = file.read ();
-            input_stream.seek (this.video_offset + LENGTH_BEFORE_FTYP, SeekType.SET);
-            uint8[] header = new uint8[PATTERN_LENGTH];
-            ssize_t read_bytes = input_stream.read (header, null);
-            bool header_valid = (read_bytes == PATTERN_LENGTH);
-            if (header_valid) {
-                for (int i = 0; i < PATTERN_LENGTH; i += 1) {
-                    if (header[i] != MP4_VIDEO_HEADER[i]) {
-                        header_valid = false;
-                        break;
-                    }
-                }
+            Reporter.info_puts ("Info", "Broken video offset detected. Trying to repair...");
+            var offset = this.get_video_offset_fallback ();
+            if (offset < 0) {
+                throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
             }
-            if (header_valid) {
-                reverse_offset = file_size - this.video_offset;
-            } else {
-                Reporter.info_puts ("Info", "Broken video offset detected. Trying to repair...");
-                var offset = this.get_video_offset_fallback ();
-                if (offset < 0) {
-                    throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
-                }
-                reverse_offset = file_size - offset;
-            }
+            reverse_offset = file_size - offset;
         }
 
         if (reverse_offset < 0) {
