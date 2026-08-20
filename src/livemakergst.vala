@@ -52,7 +52,7 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
         var video_stream = video_file.read ();
 
         // Create a pipeline
-        var pipeline = Gst.parse_launch ("giostreamsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink") as Gst.Bin;
+        var pipeline = Gst.parse_launch ("giostreamsrc name=src ! decodebin name=dec ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink") as Gst.Bin;
         var watch = new PipelineWatch (pipeline);
         var giostreamsrc = pipeline.get_by_name ("src");
         giostreamsrc.set_property ("stream", video_stream);
