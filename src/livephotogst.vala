@@ -288,14 +288,13 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         }
 
         var pixbuf = new Gdk.Pixbuf.from_data (
-            pixel_data,
+            (owned) pixel_data,
             Gdk.Colorspace.RGB,
             false,
             8,
             width,
             height,
-            width * 3,
-            null
+            width * 3
         );
         pixbuf = pixbuf_with_opaque_alpha (pixbuf);
 
