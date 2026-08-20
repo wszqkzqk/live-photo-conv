@@ -148,11 +148,14 @@ public abstract class LivePhotoConv.LiveMaker : Object {
 
         // this.metadata could be populated from main_image_path if export_original_metadata is true
         try {
-            existing_motion_photo_ts = this.metadata.get_tag_string("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+            // has_tag guards an empty-valued node, whose get_tag_string returns the next node's value
+            if (this.metadata.has_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs"))
+                existing_motion_photo_ts = this.metadata.get_tag_string("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
         } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
 
         try {
-            existing_gcamera_ts = this.metadata.get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+            if (this.metadata.has_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs"))
+                existing_gcamera_ts = this.metadata.get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
         } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
 
         if (existing_motion_photo_ts != null && int64.try_parse (existing_motion_photo_ts)) {
