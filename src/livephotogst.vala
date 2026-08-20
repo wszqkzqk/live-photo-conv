@@ -59,7 +59,7 @@ internal class LivePhotoConv.PipelineWatch : Object {
                     }
                 }
                 if (!any_linked) {
-                    fail (new ExportError.GST_ERROR ("No video stream in the input"), d);
+                    fail (new ExportError.NO_VIDEO_STREAM_ERROR ("No video stream in the input"), d);
                 }
             });
         }

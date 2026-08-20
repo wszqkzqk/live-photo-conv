@@ -269,7 +269,11 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             throw push_error;
         }
 
-        return uint64.parse (output.strip ());
+        var frame_count = uint64.parse (output.strip ());
+        if (frame_count == 0) {
+            throw new ExportError.NO_VIDEO_STREAM_ERROR ("No video stream in the input");
+        }
+        return frame_count;
     }
 
     Thread<ExportError?> push_video_to_subprcs (Subprocess subprcs) {
