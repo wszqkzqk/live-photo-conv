@@ -52,7 +52,7 @@ endif
 
 # Dependencies
 basic_deps = [
-  dependency('glib-2.0'),
+  dependency('glib-2.0', version: '>= 2.58'), # Filename.canonicalize
   dependency('gobject-2.0'),
   dependency('gio-2.0'),
   dependency('gmodule-2.0'),
