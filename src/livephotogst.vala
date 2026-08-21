@@ -111,6 +111,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
+        appsink.sync = false; // Run at max speed, not at the clip's frame rate
         appsink.max_buffers = 2;
         // Back-pressure when the pipeline is busy, so compressed data cannot pile up either
         appsrc.max_bytes = 8 << 20;
@@ -225,6 +226,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
+        appsink.sync = false;
 
         Thread<ExportError?> push_thread = new Thread<ExportError?> ("file_pusher", () => {
             try {
