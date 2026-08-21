@@ -88,7 +88,7 @@ internal class LivePhotoConv.PipelineWatch : Object {
  * Implementation of LivePhoto using GStreamer for video processing.
  */
 internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
-    const string GST_PIPELINE = "appsrc name=src ! decodebin name=dec ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
+    const string GST_PIPELINE = "appsrc name=src ! decodebin name=dec ! videoflip method=automatic ! queue ! videoconvert n-threads=%d ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
 
     /**
      * Creates a new instance.
@@ -107,7 +107,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         Gst.init (ref args);
 
         // Create a pipeline
-        var pipeline = Gst.parse_launch (GST_PIPELINE) as Gst.Bin;
+        var pipeline = Gst.parse_launch (GST_PIPELINE.printf (threads)) as Gst.Bin;
         var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
@@ -222,7 +222,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         unowned string[] args = null;
         Gst.init (ref args);
 
-        var pipeline = Gst.parse_launch (GST_PIPELINE) as Gst.Bin;
+        var pipeline = Gst.parse_launch (GST_PIPELINE.printf ((int) get_num_processors ())) as Gst.Bin;
         var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
