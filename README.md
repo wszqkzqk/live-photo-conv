@@ -328,7 +328,7 @@ For example, in Python, make sure the `python-gobject` package has been installe
 
 ```python
 import gi
-gi.require_version('LivePhotoTools', '0.4') # Adjust according to the actual version number
+gi.require_version('LivePhotoTools', '0.5') # Adjust according to the actual version number
 from gi.repository import LivePhotoTools
 ```
 

@@ -1,11 +1,11 @@
 project('live-photo-conv', ['c', 'vala'],
-          version: '0.40.4',
+          version: '0.50.0',
           license: 'LGPL-2.1-or-later',
     meson_version: '>= 1.4',
 )
 
 # Library versioning
-lib_api_version = '0.4'  # GIR version / API version
+lib_api_version = '0.5'  # GIR version / API version
 lib_soversion = '0'      # SONAME version / ABI version
 
 vcs_version = meson.project_version()
