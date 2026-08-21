@@ -30,7 +30,7 @@ makedepends=(
     "${MINGW_PACKAGE_PREFIX}-gobject-introspection"
 )
 optdepends=(
-    "${MINGW_PACKAGE_PREFIX}-ffmpeg: FFmpeg backend to convert internal video of a live photo to static pictures"
+    "${MINGW_PACKAGE_PREFIX}-ffmpeg>=5.1: FFmpeg backend to convert internal video of a live photo to static pictures"
     "${MINGW_PACKAGE_PREFIX}-libavif: Support to save as .avif with GStreamer and GdkPixbuf backend"
     "${MINGW_PACKAGE_PREFIX}-libheif: Support to save photos as .heif, .heic, and .avif with GStreamer and GdkPixbuf backend"
     "${MINGW_PACKAGE_PREFIX}-libjxl: Support to save photos as .jxl with GStreamer and GdkPixbuf backend"
