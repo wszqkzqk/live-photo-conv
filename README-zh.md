@@ -352,12 +352,9 @@ livemaker.export()
 
 ### 由嵌入视频导出图片：用 FFmpeg 还是用 GStreamer？
 
-如果在构建时启用了GStreamer支持，那么默认将使用GStreamer来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建FFmpeg子进程来导出图片。在启用了GStreamer支持的情况下，也可以通过`--use-ffmpeg`选项来使用FFmpeg。
+如果在构建时启用了 GStreamer 支持，那么默认将使用 GStreamer 来从嵌入视频中导出图片。否则，程序将直接尝试通过命令的方式创建 FFmpeg 子进程来导出图片。在启用了 GStreamer 支持的情况下，也可以通过 `--use-ffmpeg` 选项来使用 FFmpeg。
 
-使用GStreamer与FFmpeg导出谁更快往往并不一定。笔者构建的GStreamer视频导出图片工具的编码是并行的，可以通过调整`-T`/`--threads`选项来控制线程数。但是目前笔者没有将GStreamer的解码部分优化得很好，每次得到帧都进行了强制的颜色空间转化（[`gdk-pixbuf2`的限制](https://docs.gtk.org/gdk-pixbuf/property.Pixbuf.colorspace.html)），这也可能会引入性能损耗。因此，目前综合来看：
-
-* 所选的图片编码较慢时，GStreamer导出图片更快
-* 所选的图片编码较快时，FFmpeg导出图片更快
+一般情况下，默认的 GStreamer 后端可提供高速的编码，仅在导出 PNG 时建议使用 `--use-ffmpeg`（FFmpeg 的 PNG 编码明显更快）。`-T`/`--threads` 选项只对 GStreamer 路径有效。
 
 ### Windows 下的路径编码：无法向包含非 ASCII 字符的路径读取或写入元数据
 
