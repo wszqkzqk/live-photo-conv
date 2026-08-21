@@ -88,7 +88,8 @@ internal class LivePhotoConv.PipelineWatch : Object {
  * Implementation of LivePhoto using GStreamer for video processing.
  */
 internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
-    const string GST_PIPELINE = "appsrc name=src ! decodebin name=dec ! videoflip method=automatic ! queue ! videoconvert n-threads=%d ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
+    // Shared by frame splitting and long exposure; sync=false is for full-speed processing and the max-bytes/max-buffers limits bound in-flight memory
+    const string GST_PIPELINE = "appsrc name=src max-bytes=8388608 block=true ! decodebin name=dec ! videoflip method=automatic ! queue ! videoconvert n-threads=%d ! video/x-raw,format=RGB,depth=8 ! appsink name=sink sync=false max-buffers=2";
 
     /**
      * Creates a new instance.
@@ -115,11 +116,6 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
-        appsink.sync = false; // Run at max speed, not at the clip's frame rate
-        appsink.max_buffers = 2;
-        // Back-pressure when the pipeline is busy, so compressed data cannot pile up either
-        appsrc.max_bytes = 8 << 20;
-        appsrc.block = true;
 
         // Create a threadpool to process the images
         int export_errors = 0;
@@ -227,8 +223,6 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
-        appsink.sync = false;
-
         Thread<ExportError?> push_thread = new Thread<ExportError?> ("file_pusher", () => {
             try {
                 var file = File.new_for_commandline_arg (this.filename);
