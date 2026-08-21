@@ -1,0 +1,13 @@
+# expat, nested dependency of exiv2 (XMP). Pinned on purpose: expat has no
+# upstream meson build, and the hand-written build definition in
+# packagefiles/ lists source files explicitly, so it cannot track a moving
+# branch safely. Bump manually when needed.
+[wrap-file]
+directory = expat-2.7.5
+source_url = https://github.com/libexpat/libexpat/releases/download/R_2_7_5/expat-2.7.5.tar.xz
+source_filename = expat-2.7.5.tar.xz
+source_hash = 1032dfef4ff17f70464827daa28369b20f6584d108bc36f17ab1676e1edd2f91
+patch_directory = expat
+
+[provide]
+expat = expat_dep

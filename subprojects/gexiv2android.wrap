@@ -1,0 +1,7 @@
+# gexiv2 for Android builds, pinned release; bump manually. Deliberately
+# not named "gexiv2" and without [provide], so desktop builds never fall
+# back to it silently.
+[wrap-git]
+url = https://gitlab.gnome.org/GNOME/gexiv2.git
+revision = 0.16.2
+depth = 1

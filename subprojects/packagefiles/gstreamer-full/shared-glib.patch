@@ -1,0 +1,18 @@
+diff --git a/meson.build b/meson.build
+index edb842e..c1446ce 100644
+--- a/meson.build
++++ b/meson.build
+@@ -495,8 +495,11 @@ if building_full
+   gobject_dep = dependency('gobject-2.0')
+   if gobject_dep.type_name() == 'internal'
+     glib_subproject = subproject('glib')
+-    exposed_libs += glib_subproject.get_variable('libglib')
+-    exposed_libs += glib_subproject.get_variable('libgobject')
++    # link_whole requires static libraries, but the glib subproject may be
++    # built shared (e.g. pixiewood Android builds). Link against it
++    # normally instead of embedding it; its symbols are resolved when the
++    # final application/shared library is linked.
++    glib_deps = [glib_dep, gobject_dep]
+     incdir_deps += [
+       glib_dep.partial_dependency(includes: true),
+       gobject_dep.partial_dependency(includes: true),

@@ -17,11 +17,78 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+/** Watches a pipeline's bus for errors and warnings. */
+internal class LivePhotoConv.PipelineWatch : Object {
+    /** The first bus error received, if any. */
+    public Error? error = null;
+
+    /**
+     * Starts watching the pipeline's bus.
+     *
+     * Errors and warnings are forwarded to stderr; the first error is
+     * recorded in {@link error} and the pipeline is asynchronously forced
+     * to NULL so that blocking pull_sample () calls wake up instead of
+     * hanging.
+     *
+     * @param pipeline The pipeline to watch.
+     */
+    internal PipelineWatch (Gst.Bin pipeline) {
+        pipeline.get_bus ().set_sync_handler ((bus, message) => {
+            Error err;
+            string debug;
+            if (message.type == Gst.MessageType.ERROR) {
+                message.parse_error (out err, out debug);
+                Reporter.error_puts ("GstError", "%s (%s)".printf (err.message, debug));
+                fail (err, message.src);
+            } else if (message.type == Gst.MessageType.WARNING) {
+                message.parse_warning (out err, out debug);
+                Reporter.warning_puts ("GstWarning", "%s (%s)".printf (err.message, debug));
+            }
+            return Gst.BusSyncReply.PASS;
+        });
+
+        // No linked decodebin src pad means no consumable stream, which does not reliably error; fail to unblock pull_sample ()
+        var dec = pipeline.get_by_name ("dec");
+        if (dec != null) {
+            dec.no_more_pads.connect ((d) => {
+                bool any_linked = false;
+                foreach (unowned var pad in d.srcpads) {
+                    if (pad.is_linked ()) {
+                        any_linked = true;
+                        break;
+                    }
+                }
+                if (!any_linked) {
+                    fail (new ExportError.NO_VIDEO_STREAM_ERROR ("No video stream in the input"), d);
+                }
+            });
+        }
+    }
+
+    /**
+     * Records the first failure and asynchronously forces the pipeline to
+     * NULL, waking any blocking pull_sample ().
+     *
+     * @param err The error to record
+     * @param src An object in the pipeline, used to locate the top-level element
+     */
+    void fail (Error err, Gst.Object? src) {
+        if (this.error == null)
+            this.error = err;
+        var top = src;
+        while (top != null && top.parent != null)
+            top = top.parent;
+        (top as Gst.Element)?.call_async ((element) => {
+            element.set_state (Gst.State.NULL);
+        });
+    }
+}
+
 /**
  * Implementation of LivePhoto using GStreamer for video processing.
  */
-public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
-    const string GST_PIPELINE = "appsrc name=src ! decodebin ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
+internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
+    const string GST_PIPELINE = "appsrc name=src ! decodebin name=dec ! videoflip method=automatic ! queue ! videoconvert ! video/x-raw,format=RGB,depth=8 ! appsink name=sink";
 
     /**
      * Creates a new instance.
@@ -41,8 +108,34 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
 
         // Create a pipeline
         var pipeline = Gst.parse_launch (GST_PIPELINE) as Gst.Bin;
+        var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
+        appsink.max_buffers = 2;
+        // Back-pressure when the pipeline is busy, so compressed data cannot pile up either
+        appsrc.max_bytes = 8 << 20;
+        appsrc.block = true;
+
+        // Create a threadpool to process the images
+        if (threads <= 0) {
+            threads = (int) get_num_processors ();
+        }
+        int export_errors = 0;
+        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
+        // Bound the in-flight frame backlog with token slots
+        var slots = new AsyncQueue<ulong> ();
+        for (int i = 0; i < 2 * threads; i += 1) {
+            slots.push (1); // g_async_queue_push rejects null data, need to be non-zero
+        }
+        var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
+            try {
+                item.export (export_meta);
+            } catch (Error e) {
+                AtomicInt.inc (ref export_errors);
+                Reporter.error_puts ("Error", e.message);
+            }
+            slots.push (1);
+        }, threads, false);
 
         // NOTE: `giostreamsrc` does not support `seek` and will read from the beginning of the file,
         // so use `appsrc` instead.
@@ -78,22 +171,6 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         });
         pipeline.set_state (Gst.State.PLAYING);
 
-        // Create a threadpool to process the images
-        if (threads == 0) {
-            threads = (int) get_num_processors ();
-        }
-        var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
-            try {
-                if (export_original_metadata) {
-                    item.export (this.metadata);
-                } else {
-                    item.export ();
-                }
-            } catch (Error e) {
-                Reporter.error_puts ("Error", e.message);
-            }
-        }, threads, false);
-
         Gst.Sample sample;
         uint index = 1;
         string filename_no_index_ext = Path.build_filename (
@@ -102,29 +179,50 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                 "IMG" + this.basename_no_ext[5:] :
                 this.basename_no_ext)
         );
-        unowned var extension = output_format ?? this.extension_name;
+        var extension = (output_format ?? this.extension_name).down ();
         // for jpg, pixbuf requires the format to be "jpeg"
-        unowned var format = (extension == "jpg") ? "jpeg" : extension;
+        var format = (extension == "jpg") ? "jpeg" : extension;
         while ((sample = appsink.pull_sample ()) != null) {
             string filename = filename_no_index_ext + "_%u.".printf (index) + extension;
-            var item = new Sample2Img (sample, filename, format);
-            pool.add ((owned) item);
+            try {
+                var item = new Sample2Img (sample, filename, format);
+                slots.pop ();
+                try {
+                    pool.add ((owned) item);
+                } catch (Error e) {
+                    slots.push (1);
+                    throw e;
+                }
+            } catch (Error e) {
+                AtomicInt.inc (ref export_errors);
+                Reporter.error_puts ("Error", e.message);
+            }
             index += 1;
         }
 
         var push_file_error = push_thread.join ();
+        pipeline.set_state (Gst.State.NULL);
+        ThreadPool.free ((owned) pool, false, true);
+        if (watch.error != null) {
+            throw watch.error;
+        }
         if (push_file_error != null) {
             throw push_file_error;
         }
-        ThreadPool.free ((owned) pool, false, true);
-        pipeline.set_state (Gst.State.NULL);
+        if (export_errors > 0) {
+            throw new ExportError.GST_ERROR ("Failed to export %d frame(s)", export_errors);
+        }
     }
 
     public override void generate_long_exposure (string dest_path) throws Error {
+        if (Utils.same_file (this.filename, dest_path))
+            throw new ExportError.FILE_SAVE_ERROR ("`%s' and `%s' are the same file", this.filename, dest_path);
+
         unowned string[] args = null;
         Gst.init (ref args);
 
         var pipeline = Gst.parse_launch (GST_PIPELINE) as Gst.Bin;
+        var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
 
@@ -193,9 +291,13 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
 
         pipeline.set_state (Gst.State.NULL);
         var push_error = push_thread.join ();
+        if (watch.error != null) {
+            throw watch.error;
+        }
         if (push_error != null) {
             throw push_error;
-        } else if (frames == 0 || accumulator == null) {
+        }
+        if (frames == 0 || accumulator == null) {
             throw new ExportError.GST_ERROR ("No frames decoded");
         }
 
@@ -205,20 +307,20 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         }
 
         var pixbuf = new Gdk.Pixbuf.from_data (
-            pixel_data,
+            (owned) pixel_data,
             Gdk.Colorspace.RGB,
             false,
             8,
             width,
             height,
-            width * 3,
-            null
+            width * 3
         );
+        pixbuf = pixbuf_with_opaque_alpha (pixbuf);
 
         string format;
         var last_dot = dest_path.last_index_of_char ('.');
         if (last_dot == -1 || last_dot + 1 >= dest_path.length) {
-            format = this.extension_name;
+            format = this.extension_name.down ();
         } else {
             format = dest_path[(last_dot + 1):].down ();
         }
@@ -228,7 +330,7 @@ public class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         pixbuf.save (dest_path, format);
         if (export_original_metadata) {
             try {
-                metadata.save_file (dest_path);
+                this.metadata_for_export ().save_file (dest_path);
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
             }

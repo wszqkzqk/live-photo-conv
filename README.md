@@ -1,7 +1,7 @@
 # Live Photo Converter
 
 <div align="center">
-  <img src="assets/logo.png" alt="Live Photo Converter" style="width: 500px; max-width: 100%;" />
+  <img src="assets/logo.svg" alt="Live Photo Converter" style="width: 500px; max-width: 100%;" />
 </div>
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wszqkzqk/live-photo-conv)
@@ -41,6 +41,19 @@ Essentially, an Android live photo appends a video file directly to the end of a
 This tool can be used for extracting, repairing, editing, and composing such live photos.
 
 ## Easy Installation
+
+### Android (Experimental)
+
+Download the APK for your device's ABI from [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) and install it (you may need to allow your browser or file manager to install apps from unknown sources):
+
+* `*-android-arm64-v8a.apk`
+  * Most modern phones and tablets
+* `*-android-x86_64.apk`
+  * x86 devices and emulators
+* `*-android-universal.apk`
+  * Works on all supported ABIs, but larger in size
+
+On Android, only the graphical interface is provided, and video processing is handled by a statically linked GStreamer backend. Android 12 or later is required.
 
 ### Windows (MSYS2)
 
@@ -108,12 +121,12 @@ HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install --HEAD wszqkzqk/live-photo-conv/liv
   * GTK4, LibAdwaita (required by the GUI)
   * GStreamer (`gstreamer`, `gst-plugins-base-libs`, `gst-plugins-good`, `gst-plugins-bad`) — required when built with GStreamer; `gst-plugin-va` optional, for hardware acceleration
   * gdk-pixbuf2 — required when built with GStreamer; optional format loaders: `libavif` (.avif), `libheif` (.heif/.heic/.avif), `libjxl` (.jxl), `webp-pixbuf-loader` (.webp)
-  * FFmpeg — optional, required when not built with GStreamer and need to export images from videos
+  * FFmpeg (5.1 or later) — optional, required when not built with GStreamer and need to export images from videos
 
 For example, to install dependencies on Arch Linux:
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gtk4 libadwaita gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
+sudo pacman -S --needed glib2 gexiv2 meson vala gtk4 libadwaita gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
 To install dependencies on Debian/Ubuntu:
@@ -151,6 +164,9 @@ Meson build options:
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 * `docs`
   * Whether to generate documentation
+  * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
+* `manpages`
+  * Whether to generate manpages
   * Possible values are `auto`, `enabled`, `disabled`. Default is `auto`.
 
 First, you need to clone the project and navigate to the top-level directory of the project. The following reference commands should be executed in the **top-level directory of the project**:
@@ -320,7 +336,7 @@ Usage example:
 
 ```python
 # Load a live photo
-livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
+livephoto = LivePhotoTools.LivePhoto.create("MVIMG_20241104_164717.jpg", None, LivePhotoTools.Backend.AUTO)
 # Extract the static image from the live photo
 livephoto.export_main_image()
 # Extract the video from the live photo
@@ -333,7 +349,7 @@ livephoto.generate_long_exposure("long_exposure.jpg")
 
 ```python
 # Create a live photo
-livemaker = LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
+livemaker = LivePhotoTools.LiveMaker.create('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg', None, LivePhotoTools.Backend.AUTO)
 # Export
 livemaker.export()
 ```

@@ -1,0 +1,10 @@
+# exiv2 main, pinned to the commit that dropped the CMake config emission
+# (pixiewood's build environment has no cmake binary); bump manually. Only
+# built as a nested dependency of gexiv2android; desktop builds use the
+# system exiv2. exiv2's nested deps (fmt, zlib) resolve via its own wraps.
+[wrap-git]
+url = https://github.com/Exiv2/exiv2.git
+revision = 76d684c0e84ee0d16dc2f4f9c0045b7c1361a391
+
+[provide]
+exiv2 = exiv2_dep

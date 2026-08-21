@@ -32,21 +32,17 @@ namespace LivePhotoConv.Utils {
      * @return The string read from the input stream.
     */
     public string get_string_from_file_input_stream (InputStream input_stream) throws IOError {
-        StringBuilder? builder = null;
+        var builder = new StringBuilder ();
         uint8[] buffer = new uint8[BUFFER_SIZE + 1]; // allocate one more byte for the null terminator
         buffer.length = BUFFER_SIZE; // Set the length of the buffer to BUFFER_SIZE
         ssize_t bytes_read;
 
         while ((bytes_read = input_stream.read (buffer)) > 0) {
             buffer[bytes_read] = '\0'; // Add a null terminator to the end of the string
-            if (builder == null) {
-                builder = new StringBuilder.from_buffer ((char[]) buffer);
-            } else {
-                (!) builder.append ((string) buffer);
-            }
+            builder.append ((string) buffer);
         }
 
-        return (builder == null) ? "" : (owned) ((!) builder).str;
+        return (owned) builder.str;
     }
 
     /**
@@ -62,7 +58,7 @@ namespace LivePhotoConv.Utils {
         ssize_t bytes_read;
         while ((bytes_read = input_stream.read (buffer)) > 0) {
             buffer.length = (int) bytes_read;
-            output_stream.write (buffer);
+            output_stream.write_all (buffer, null);
             buffer.length = BUFFER_SIZE;
         }
     }
@@ -86,10 +82,24 @@ namespace LivePhotoConv.Utils {
             } else {
                 buffer.length = (int) bytes_read;
             }
-            output_stream.write (buffer);
+            output_stream.write_all (buffer, null);
             buffer.length = BUFFER_SIZE;
             bytes_to_write -= bytes_read;
         }
+    }
+
+    /**
+     * Checks whether two paths name the same file.
+     *
+     * Compares the canonicalized paths; hard links to the same file are
+     * not considered the same. Symbolic links and URIs are not resolved.
+     *
+     * @param path_a The first path.
+     * @param path_b The second path.
+     * @return Whether the two paths name the same file.
+     */
+    public bool same_file (string path_a, string path_b) {
+        return Filename.canonicalize (path_a) == Filename.canonicalize (path_b);
     }
 
     /**

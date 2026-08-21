@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pixiewood app manifest. Pixiewood (sp1ritCS/gtk-android-builder) is
+     what GTK/libadwaita CI uses to build their Android APKs. -->
+<app xmlns="https://sp1rit.arpa/pixiewood/" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <metainfo vercalc="sem121010">
+    <xi:include href="build://aarch64/app.metainfo.xml" parse="xml"/>
+  </metainfo>
+  <style>
+    <theme name="adw"/>
+    <icon type="generate">
+      <drawable target="foreground" scale=".5" type="svg"
+                path="src://assets/icon.svg"/>
+      <color target="background">#FFFFFF</color>
+    </icon>
+  </style>
+  <!-- gexiv2/exiv2 and GStreamer (gst-full) come from this repo's
+       subprojects/ instead of pixiewood's wrap set. -->
+  <dependencies>
+    <glib>
+      <patch>hack</patch>
+    </glib>
+    <cairo/>
+    <fontconfig/>
+    <harfbuzz/>
+    <gdk-pixbuf/>
+    <!-- Pin to the last main commit before G_GNUC_FLAG_ENUM landed:
+         main now needs a G_GNUC_FLAG_ENUM-aware host glib-mkenums that
+         the build environment lacks, while releases still require the
+         appstream removal that pixiewood's wrap patch only provides for
+         main. -->
+    <libadwaita revision="2d3f160a3514934ac9e3eaf02399734dc005020a"/>
+  </dependencies>
+  <build target="live-photo-conv-gtk">
+    <architectures>
+      <arch>aarch64</arch>
+      <arch>x86_64</arch>
+    </architectures>
+    <configure-options>
+      <option>-Dgui=enabled</option>
+      <option>-Dgst=enabled</option>
+      <option>-Dgir=disabled</option>
+      <option>-Dmanpages=disabled</option>
+      <option>-Ddocs=disabled</option>
+      <option>-Dgdk-pixbuf:man=false</option>
+      <option>-Dgexiv2android:introspection=false</option>
+      <option>-Dgexiv2android:vapi=false</option>
+      <option>-Dgexiv2android:gtk_doc=false</option>
+      <option>-Dgexiv2android:python3=false</option>
+      <option>-Dgexiv2android:tools=false</option>
+      <option>-Dgexiv2android:tests=false</option>
+      <option>-Dexiv2:xmp=enabled</option>
+      <option>-Dexiv2:png=enabled</option>
+      <option>-Dexiv2:bmff=true</option>
+      <option>-Dexiv2:iconv=disabled</option>
+      <option>-Dexiv2:inih=disabled</option>
+      <option>-Dexiv2:brotli=disabled</option>
+      <option>-Dexiv2:curl=disabled</option>
+      <option>-Dexiv2:nls=disabled</option>
+      <option>-Dexiv2:webready=false</option>
+      <option>-Dexiv2:video=false</option>
+      <option>-Dexiv2:unitTests=disabled</option>
+      <!-- Static gst-full. Do NOT use gst-full-plugins with an explicit
+           list (name check broken upstream); select plugins via build
+           options. default_library does not cascade to nested
+           subprojects. -->
+      <option>-Dgstreamer-full:default_library=static</option>
+      <option>-Dgstreamer:default_library=static</option>
+      <option>-Dgst-plugins-base:default_library=static</option>
+      <option>-Dgst-plugins-good:default_library=static</option>
+      <option>-Dgst-plugins-bad:default_library=static</option>
+      <option>-Dgst-libav:default_library=static</option>
+      <option>-DFFmpeg:default_library=static</option>
+      <option>-Dgstreamer-full:gst-full=enabled</option>
+      <option>-Dgstreamer-full:gst-full-target-type=static_library</option>
+      <option>-Dgstreamer-full:gst-full-libraries=gstreamer-app-1.0</option>
+      <!-- Per-subproject auto_features is a no-op in meson; disable
+           unneeded monorepo features one by one. -->
+      <option>-Dgstreamer-full:ugly=disabled</option>
+      <option>-Dgstreamer-full:devtools=disabled</option>
+      <option>-Dgstreamer-full:ges=disabled</option>
+      <option>-Dgstreamer-full:rtsp_server=disabled</option>
+      <option>-Dgstreamer-full:gst-examples=disabled</option>
+      <option>-Dgstreamer-full:webrtc=disabled</option>
+      <option>-Dgstreamer-full:libnice=disabled</option>
+      <option>-Dgstreamer-full:python=disabled</option>
+      <option>-Dgstreamer-full:orc=disabled</option>
+      <option>-Dgstreamer-full:tools=disabled</option>
+      <option>-Dgstreamer-full:tests=disabled</option>
+      <option>-Dgstreamer-full:introspection=disabled</option>
+      <option>-Dgstreamer-full:nls=disabled</option>
+      <option>-Dgstreamer-full:tls=disabled</option>
+      <option>-Dgstreamer-full:libav=enabled</option>
+      <option>-Dgst-plugins-base:playback=enabled</option>
+      <option>-Dgst-plugins-base:app=enabled</option>
+      <option>-Dgst-plugins-base:videoconvertscale=enabled</option>
+      <option>-Dgst-plugins-base:audioconvert=enabled</option>
+      <option>-Dgst-plugins-base:audioresample=enabled</option>
+      <option>-Dgst-plugins-base:typefind=enabled</option>
+      <option>-Dgst-plugins-base:gio=enabled</option>
+      <option>-Dgst-plugins-base:gl=disabled</option>
+      <option>-Dgst-plugins-good:isomp4=enabled</option>
+      <option>-Dgst-plugins-good:audioparsers=enabled</option>
+      <option>-Dgst-plugins-bad:videoparsers=enabled</option>
+      <option>-Dgst-plugins-bad:gl=disabled</option>
+      <option>-Dgst-plugins-bad:androidmedia=disabled</option>
+      <!-- Redundant with gst-libav's decoders (and fdkaac has licensing
+           issues) -->
+      <option>-Dgst-plugins-bad:fdkaac=disabled</option>
+      <option>-Dgst-plugins-bad:openh264=disabled</option>
+    </configure-options>
+  </build>
+</app>

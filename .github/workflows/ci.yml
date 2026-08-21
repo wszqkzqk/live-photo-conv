@@ -134,10 +134,114 @@ jobs:
         brew install --HEAD wszqkzqk/live-photo-conv/live-photo-conv
         brew test wszqkzqk/live-photo-conv/live-photo-conv
 
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      # GitHub-hosted runners ship the Android SDK with sdkmanager here
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDKVER: "36.1.0"
+      ANDROID_NDKVER: "29.0.14206865"
+      LPC_KEYSTORE_BASE64: ${{ secrets.LPC_KEYSTORE_BASE64 }}
+      LPC_KEYSTORE_PASSWORD: ${{ secrets.LPC_KEYSTORE_PASSWORD }}
+      LPC_KEY_ALIAS: ${{ secrets.LPC_KEY_ALIAS }}
+      LPC_KEY_PASSWORD: ${{ secrets.LPC_KEY_PASSWORD }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    # Releases must not ship debug-signed APKs
+    - name: Require signing secrets on tag builds
+      if: github.ref_type == 'tag'
+      run: |
+        if [ -z "$LPC_KEYSTORE_BASE64" ] || [ -z "$LPC_KEYSTORE_PASSWORD" ] || [ -z "$LPC_KEY_ALIAS" ] || [ -z "$LPC_KEY_PASSWORD" ]; then
+          echo "Tag builds must be signed with the release keystore, but the signing secrets are not set."
+          exit 1
+        fi
+
+    - name: Install Build Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          bison ccache cmake flex gettext gir1.2-appstream-1.0 glslc gperf \
+          libglib-perl libglib-object-introspection-perl libglib2.0-dev-bin \
+          libipc-run-perl libjson-perl libset-scalar-perl libxml-libxml-perl \
+          libxml-libxslt-perl nasm ninja-build openjdk-17-jdk pkg-config \
+          python3-pip sassc unzip valac wget xz-utils
+        pip3 install --break-system-packages meson
+
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: android
+        max-size: 2G
+
+    - name: Install Android SDK Components
+      run: bash build-aux/android-sdk.sh
+
+    - name: Clone pixiewood and mini-studio
+      run: |
+        git clone https://github.com/sp1ritCS/gtk-android-builder.git --branch android36 pixiewood-tool
+        git clone --depth 1 https://github.com/sp1ritCS/mini-studio.git
+
+    - name: pixiewood prepare
+      run: |
+        ./pixiewood-tool/pixiewood prepare --release \
+          -s "${ANDROID_HOME}" \
+          -t "${ANDROID_HOME}/ndk/${ANDROID_NDKVER}" \
+          -a ./mini-studio \
+          pixiewood.xml
+
+    - name: pixiewood generate
+      run: ./pixiewood-tool/pixiewood generate
+
+    - name: pixiewood build
+      run: ./pixiewood-tool/pixiewood build
+
+    - name: Prepare signing keystore
+      run: |
+        # Fall back to a debug key when the release secrets are not set
+        if [ -n "$LPC_KEYSTORE_BASE64" ] && [ -n "$LPC_KEYSTORE_PASSWORD" ] && [ -n "$LPC_KEY_ALIAS" ] && [ -n "$LPC_KEY_PASSWORD" ]; then
+          echo "$LPC_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/ks"
+          echo "KS_PASS=$LPC_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "KS_ALIAS=$LPC_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "KS_ALIAS_PASS=$LPC_KEY_PASSWORD" >> "$GITHUB_ENV"
+        else
+          keytool -genkeypair -keystore "$RUNNER_TEMP/ks" -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 365 \
+            -storepass android -keypass android -dname "CN=Android Debug"
+          echo "KS_PASS=android" >> "$GITHUB_ENV"
+          echo "KS_ALIAS=androiddebugkey" >> "$GITHUB_ENV"
+          echo "KS_ALIAS_PASS=android" >> "$GITHUB_ENV"
+        fi
+        echo "KS=$RUNNER_TEMP/ks" >> "$GITHUB_ENV"
+
+    - name: Sign and rename APKs
+      run: |
+        set -euo pipefail
+        find .pixiewood/android/app/build/outputs -name '*.apk' | sort
+        VERSION="$(git describe --tags --abbrev=12 | sed 's/^v//;s/-/./g')"
+        for ABI in arm64-v8a x86_64 universal; do
+          APK_IN="$(find .pixiewood/android/app/build/outputs/apk -path "*${ABI}*" -name '*.apk' | head -1)"
+          "${ANDROID_HOME}/build-tools/${ANDROID_SDKVER}/apksigner" sign \
+            --ks "$KS" --ks-pass "pass:$KS_PASS" \
+            --ks-key-alias "$KS_ALIAS" --key-pass "pass:$KS_ALIAS_PASS" \
+            --out "live-photo-conv-${VERSION}-android-${ABI}.apk" \
+            "$APK_IN"
+        done
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v7
+      with:
+        name: android-apk
+        path: live-photo-conv-*-android-*.apk
+
   release:
     name: Release
     if: github.ref_type == 'tag'
-    needs: [build-archlinux, build-flatpak, build-windows, build-macos]
+    needs: [build-archlinux, build-flatpak, build-windows, build-macos, build-android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -151,6 +255,12 @@ jobs:
     - uses: actions/download-artifact@v8
       with:
         name: flatpak-bundle
+        merge-multiple: true
+        path: dist
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: android-apk
         merge-multiple: true
         path: dist
 

@@ -265,7 +265,6 @@ public class LivePhotoConv.Reporter {
         string title;
         char fill_char = '#';
         char empty_char = '-';
-        Mutex mutex;
         int _total_steps = 0;
         int _current_step = 0;
 
@@ -273,17 +272,8 @@ public class LivePhotoConv.Reporter {
          * The total number of steps for the progress bar.
          */
         public int total_steps {
-            get {
-                mutex.lock ();
-                var result = _total_steps;
-                mutex.unlock ();
-                return result;
-            }
-            set {
-                mutex.lock ();
-                _total_steps = value;
-                mutex.unlock ();
-            }
+            get { return AtomicInt.get (ref _total_steps); }
+            set { AtomicInt.set (ref _total_steps, value); }
         }
 
         /**
@@ -291,16 +281,11 @@ public class LivePhotoConv.Reporter {
          */
         public int current_step {
             get {
-                mutex.lock ();
-                var result = _current_step;
-                mutex.unlock ();
-                return result;
+                var current = AtomicInt.get (ref _current_step);
+                var total = AtomicInt.get (ref _total_steps);
+                return (current > total) ? total : current;
             }
-            set {
-                mutex.lock ();
-                _current_step = value;
-                mutex.unlock ();
-            }
+            set { AtomicInt.set (ref _current_step, value); }
         }
 
         /**
@@ -319,7 +304,6 @@ public class LivePhotoConv.Reporter {
             this._total_steps = total_steps;
             this.fill_char = fill_char;
             this.empty_char = empty_char;
-            this.mutex = Mutex ();
         }
 
         /**
@@ -330,13 +314,11 @@ public class LivePhotoConv.Reporter {
          * @return The current step number.
          */
         public int update (uint success_count, uint failure_count) {
-            mutex.lock ();
-            _current_step += 1;
-            _current_step = (_current_step > _total_steps) ? _total_steps : _current_step;
+            // AtomicInt.add returns the value before the increment
+            var current = AtomicInt.add (ref _current_step, 1) + 1;
+            var total = AtomicInt.get (ref _total_steps);
             print_progress (success_count, failure_count);
-            var current = _current_step;
-            mutex.unlock ();
-            return current;
+            return (current > total) ? total : current;
         }
 
         /**
@@ -346,10 +328,11 @@ public class LivePhotoConv.Reporter {
          * @param failure_count The number of failures.
          */
         public void print_progress (uint success_count, uint failure_count) {
-            mutex.lock ();
-            var current = _current_step;
-            var total = _total_steps;
-            mutex.unlock ();
+            var current = AtomicInt.get (ref _current_step);
+            var total = AtomicInt.get (ref _total_steps);
+            if (current > total) {
+                current = total;
+            }
 
             if (total == 0) {
                 return;

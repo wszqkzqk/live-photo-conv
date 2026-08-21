@@ -1,7 +1,7 @@
 # Live Photo Converter
 
 <div align="center">
-  <img src="assets/logo.png" alt="Live Photo Converter" style="width: 500px; max-width: 100%;" />
+  <img src="assets/logo.svg" alt="Live Photo Converter" style="width: 500px; max-width: 100%;" />
 </div>
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/wszqkzqk/live-photo-conv)
@@ -41,6 +41,19 @@ Android 动态照片本质上是在静态图片的末尾直接附加了一个视
 本工具可以用于这种动态照片的提取、修复、编辑与合成等操作。
 
 ## 便捷安装
+
+### Android（实验性）
+
+从 [GitHub Releases](https://github.com/wszqkzqk/live-photo-conv/releases) 下载对应设备 ABI 的 APK 并安装（可能需要允许浏览器或文件管理器"安装未知来源应用"）：
+
+* `*-android-arm64-v8a.apk`
+  * 绝大多数现代手机和平板
+* `*-android-x86_64.apk`
+  * x86 设备和模拟器
+* `*-android-universal.apk`
+  * 通用包，适用于所有支持的 ABI，但体积更大
+
+Android 平台仅提供图形界面，视频处理由静态链接的 GStreamer 后端完成。需要 Android 12 及以上版本。
 
 ### Windows (MSYS2)
 
@@ -108,12 +121,12 @@ HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install --HEAD wszqkzqk/live-photo-conv/liv
   * GTK4、LibAdwaita（GUI 需要）
   * GStreamer（`gstreamer`, `gst-plugins-base-libs`, `gst-plugins-good`, `gst-plugins-bad`）— GStreamer 构建时需要；`gst-plugin-va` 可选，用于硬件加速
   * gdk-pixbuf2 — GStreamer 构建时需要；可选格式加载器：`libavif` (.avif)、`libheif` (.heif/.heic/.avif)、`libjxl` (.jxl)、`webp-pixbuf-loader` (.webp)
-  * FFmpeg — 可选，未使用 GStreamer 构建时从视频导出图片需要
+  * FFmpeg（5.1 及以上）— 可选，未使用 GStreamer 构建时从视频导出图片需要
 
 例如，在Arch Linux上安装依赖：
 
 ```bash
-sudo pacman -S --needed glib2 libgexiv2 meson vala gtk4 libadwaita gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
+sudo pacman -S --needed glib2 gexiv2 meson vala gtk4 libadwaita gstreamer gst-plugins-base-libs gdk-pixbuf2 gobject-introspection gst-plugins-good gst-plugins-bad gst-plugin-va
 ```
 
 在Debian/Ubuntu上安装依赖：
@@ -151,6 +164,9 @@ Meson 构建选项：
   * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
 * `docs`
   * 是否在 GObject Introspection 信息中生成文档
+  * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
+* `manpages`
+  * 是否生成 man 手册
   * 可选值为 `auto`、`enabled`、`disabled`，默认为 `auto`
 
 首先需要克隆项目并进入项目顶级目录，后续给出的参考命令均需要在**项目顶级目录**下执行：
@@ -310,7 +326,7 @@ from gi.repository import LivePhotoTools
 
 ```python
 # 加载动态照片
-livephoto = LivePhotoTools.LivePhotoGst.new("MVIMG_20241104_164717.jpg")
+livephoto = LivePhotoTools.LivePhoto.create("MVIMG_20241104_164717.jpg", None, LivePhotoTools.Backend.AUTO)
 # 从动态照片中提取静态图像
 livephoto.export_main_image()
 # 从动态照片中提取视频
@@ -323,7 +339,7 @@ livephoto.generate_long_exposure("long_exposure.jpg")
 
 ```python
 # 创建动态照片
-livemaker=LivePhotoTools.LiveMakerGst.new('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg')
+livemaker=LivePhotoTools.LiveMaker.create('VID_20241104_164717.mp4', 'IMG_20241104_164717.jpg', None, LivePhotoTools.Backend.AUTO)
 # 导出
 livemaker.export()
 ```

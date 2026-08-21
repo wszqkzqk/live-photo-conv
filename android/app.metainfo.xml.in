@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Appstream metainfo consumed by pixiewood.xml via a build:// include.
+     The id must be a valid Android applicationId (no dashes). -->
+<component type="desktop-application" xmlns="https://specifications.freedesktop.org/metainfo/1.0">
+  <id>com.github.wszqkzqk.live_photo_conv</id>
+  <name>Live Photo Converter</name>
+  <summary>Create, extract and repair Android Live Photos</summary>
+  <releases>
+    <release version="@VERSION@"/>
+  </releases>
+</component>

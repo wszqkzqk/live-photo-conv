@@ -28,5 +28,7 @@ namespace LivePhotoConv {
         METADATA_EXPORT_ERROR, // Failed to export the metadata.
         FILE_PUSH_ERROR, // Failed to push data
         GST_ERROR, // GStreamer related error.
+        FILE_SAVE_ERROR, // The destination path is invalid or unwritable.
+        NO_VIDEO_STREAM_ERROR, // The input contains no decodable video stream.
     }
 }

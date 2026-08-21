@@ -47,6 +47,27 @@ public abstract class LivePhotoConv.LiveMaker : Object {
     }
     
     /**
+     * Derives the default destination path: MVIMG_<stem>.jpg next to the source.
+     *
+     * Only JPEG is supported as the main image format for now (Google also
+     * supports "image/heif"/"image/avif", but GExiv2 does not), so the
+     * exported live photo always gets a JPEG extension.
+     *
+     * @param source_path The path of the source image or video.
+     * @param source_prefix The camera prefix of the source name ("IMG"/"VID").
+     */
+    static string default_dest (string source_path, string source_prefix) {
+        var basename = Path.get_basename (source_path);
+        var last_dot = basename.last_index_of_char ('.');
+        var stem = last_dot > 0 ? basename[:last_dot] : basename;
+        if (stem.has_prefix ("MVIMG"))
+            stem = stem[5:];
+        else if (stem.has_prefix (source_prefix))
+            stem = stem[source_prefix.length:];
+        return Path.build_filename (Path.get_dirname (source_path), "MVIMG" + stem + ".jpg");
+    }
+
+    /**
      * Creates a new LiveMaker instance.
      *
      * @param video_path The path to the video file
@@ -54,43 +75,54 @@ public abstract class LivePhotoConv.LiveMaker : Object {
      * @param dest The destination path for output (optional)
      */
     protected LiveMaker (string video_path, string? main_image_path = null, string? dest = null) {
+        ensure_exiv2_init ();
         this.main_image_path = main_image_path;
         this.video_path = video_path;
 
         if (dest != null) {
             this.dest = dest;
         } else if (main_image_path != null) {
-            string dest_name;
-            var main_basename = Path.get_basename (main_image_path);
-            if (main_basename.has_prefix ("IMG")) {
-                dest_name = "MVIMG" + main_basename[3:];
-            } else {
-                dest_name = "MVIMG" + main_basename;
-            }
-            this.dest = Path.build_filename (Path.get_dirname (main_image_path), dest_name);
-            // Currently only JPEG is supported as the main image format
-            // Google also supports "image/heif" and "image/avif", but GExiv2 does not support them yet
-            // So we need to ensure the exported live photo has a JPEG extension
-            var lower_dest = this.dest.down();
-            if (!(lower_dest.has_suffix (".jpg") || lower_dest.has_suffix (".jpeg"))) {
-                this.dest += ".jpg";
-            }
+            this.dest = default_dest (main_image_path, "IMG");
         } else {
-            string dest_name;
-            var video_basename = Path.get_basename (video_path);
-            if (video_basename.has_prefix ("VID")) {
-                dest_name = "MVIMG" + video_basename[3:];
-            } else {
-                dest_name = "MVIMG" + video_basename;
-            }
-
-            this.dest = Path.build_filename (
-                Path.get_dirname (video_path),
-                dest_name + ".jpg"
-            );
+            this.dest = default_dest (video_path, "VID");
         }
 
         this.metadata = new GExiv2.Metadata ();
+    }
+
+    /**
+     * Creates a new instance of LiveMaker with the requested backend.
+     *
+     * The concrete backend class is chosen by the factory; with
+     * {@link Backend.AUTO} GStreamer is preferred when built in.
+     *
+     * @param video_path The path to the video file.
+     * @param main_image_path The path to the main image file (optional).
+     * @param dest The destination path for output (optional).
+     * @param backend The video processing backend to use.
+     * @throws Error if the requested backend is unavailable, or the destination is an input file.
+     * @return The new LiveMaker instance.
+     */
+    public static LiveMaker create (string video_path, string? main_image_path = null,
+                                    string? dest = null, Backend backend = AUTO) throws Error {
+        LiveMaker maker;
+#if ENABLE_GST
+        if (backend != Backend.FFMPEG)
+            maker = new LiveMakerGst (video_path, main_image_path, dest);
+        else
+#endif
+        {
+            if (backend == Backend.GST)
+                throw new ExportError.GST_ERROR ("GStreamer backend requested but not built in");
+            maker = new LiveMakerFFmpeg (video_path, main_image_path, dest);
+        }
+
+        // The default dest of an MVIMG-named main image is the image itself
+        if (main_image_path != null && Utils.same_file (main_image_path, maker.dest))
+            throw new ExportError.FILE_SAVE_ERROR ("`%s' and `%s' are the same file", main_image_path, maker.dest);
+        if (Utils.same_file (video_path, maker.dest))
+            throw new ExportError.FILE_SAVE_ERROR ("`%s' and `%s' are the same file", video_path, maker.dest);
+        return maker;
     }
 
     /**
@@ -110,53 +142,54 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             video_size = this.export_with_video_only ();
         }
 
-        // Register XMP namespaces
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
-        GExiv2.Metadata.try_register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
-
         string presentation_timestamp_us_to_write = "-1";
         string? existing_motion_photo_ts = null;
         string? existing_gcamera_ts = null;
 
         // this.metadata could be populated from main_image_path if export_original_metadata is true
         try {
-            existing_motion_photo_ts = this.metadata.try_get_tag_string("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+            // has_tag guards an empty-valued node, whose get_tag_string returns the next node's value
+            if (this.metadata.has_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs"))
+                existing_motion_photo_ts = this.metadata.get_tag_string("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
         } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
 
         try {
-            existing_gcamera_ts = this.metadata.try_get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+            if (this.metadata.has_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs"))
+                existing_gcamera_ts = this.metadata.get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
         } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
 
-        if (existing_motion_photo_ts != null && existing_motion_photo_ts != "") {
+        if (existing_motion_photo_ts != null && int64.try_parse (existing_motion_photo_ts)) {
             presentation_timestamp_us_to_write = existing_motion_photo_ts;
-        } else if (existing_gcamera_ts != null && existing_gcamera_ts != "") {
+        } else if (existing_gcamera_ts != null && int64.try_parse (existing_gcamera_ts)) {
             presentation_timestamp_us_to_write = existing_gcamera_ts;
         }
 
+        // Clear previous XMP metadata to avoid conflicts
+        this.metadata.clear_xmp ();
+
         // Set MicroVideo (old standard) tags
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideo", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideo", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoOffset", video_size.to_string ());
+        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
 
         // Set MotionPhoto (new standard) tags
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
-        this.metadata.try_set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
+        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
+        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
         // Set Container and Item tags for MotionPhoto
-        this.metadata.try_set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+        this.metadata.set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
         // Item 1: Primary Image (assuming JPEG)
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
         // Item:Padding is optional for JPEG, so we omit it or can set to "0"
-        // this.metadata.try_set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
+        // this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "0");
         // Item 2: Video (assuming MP4)
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
-        this.metadata.try_set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
+        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
 
         try {
             this.metadata.save_file (this.dest);
@@ -217,10 +250,8 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             var content_type = file_info.get_content_type ();
             // FIXME: Currently only JPEG is supported as the main image format
             // Google also supports "image/heif" and "image/avif", but GExiv2 does not support them yet
-            if (content_type == "image/jpeg") {
-                return true;
-            }
-            return false;
+            return content_type != null
+                && ContentType.get_mime_type (content_type) == "image/jpeg"; // Normalizes platform type strings to MIME
         } catch (Error e) {
             Reporter.warning ("FormatWarning", "Cannot query file info for `%s': %s", file.get_path (), e.message);
             return false;

@@ -17,11 +17,33 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
+namespace LivePhotoConv {
+
+    /**
+     * Returns the pixbuf with an opaque alpha channel, adding one if missing.
+     *
+     * gdk-pixbuf's Android saver hands the pixel buffer to
+     * AndroidBitmap_compress() as RGBA_8888, so saving a pixbuf without
+     * an alpha channel always fails with ANDROID_BITMAP_RESULT_BAD_PARAMETER.
+     * Pixbufs decoded by gdk-pixbuf's Android loader are already RGBA, and
+     * other platforms' savers accept RGB: a no-op in both cases.
+     *
+     * @param pixbuf The pixbuf to convert.
+     * @return The pixbuf with an alpha channel, or the input itself if it already has one.
+     */
+    internal Gdk.Pixbuf pixbuf_with_opaque_alpha (Gdk.Pixbuf pixbuf) {
+#if ANDROID
+        return pixbuf.has_alpha ? pixbuf : pixbuf.add_alpha (false, 0, 0, 0);
+#else
+        return pixbuf;
+#endif
+    }
+}
+
 /**
  * Represents a class for converting a GStreamer sample to an image file.
 */
-[Compact (opaque = true)]
-public class LivePhotoConv.Sample2Img {
+internal class LivePhotoConv.Sample2Img : Object {
 
     public string output_format {get; set;}
     public string filename {get; set;}
@@ -33,8 +55,9 @@ public class LivePhotoConv.Sample2Img {
      * @param sample The Gst.Sample object to be processed.
      * @param filename The name of the output file.
      * @param output_format The format of the output file.
+     * @throws Error if the sample's caps or buffer cannot be read.
     */
-    public Sample2Img (Gst.Sample sample, string filename, string output_format) {
+    public Sample2Img (Gst.Sample sample, string filename, string output_format) throws Error {
         this.filename = filename;
         this.output_format = output_format;
 
@@ -44,10 +67,13 @@ public class LivePhotoConv.Sample2Img {
         int width, height;
         info.get_int ("width", out width);
         info.get_int ("height", out height);
-        
-        Gst.MapInfo map;
-        buffer.map (out map, Gst.MapFlags.READ);
 
+        Gst.MapInfo map;
+        if (!buffer.map (out map, Gst.MapFlags.READ)) {
+            throw new ExportError.GST_ERROR ("Cannot map the video frame buffer");
+        }
+
+        // The pixbuf owns a copy of the pixels, so the buffer can be unmapped right away
         pixbuf = new Gdk.Pixbuf.from_data (
             map.data,
             Gdk.Colorspace.RGB,
@@ -57,6 +83,8 @@ public class LivePhotoConv.Sample2Img {
             height,
             width * 3
         );
+        buffer.unmap (map);
+        pixbuf = pixbuf_with_opaque_alpha (pixbuf);
     }
 
     /**

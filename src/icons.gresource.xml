@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/wszqkzqk/live-photo-conv/icons">
-    <file alias="256x256/apps/com.github.wszqkzqk.live-photo-conv.png">../assets/icon.png</file>
+    <file alias="scalable/apps/com.github.wszqkzqk.live-photo-conv.svg">../assets/icon.svg</file>
   </gresource>
 </gresources>
