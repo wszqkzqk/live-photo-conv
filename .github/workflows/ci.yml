@@ -273,3 +273,87 @@ jobs:
         name: ${{ github.ref_name }}
         files: dist/*
         generate_release_notes: true
+
+  aur-publish:
+    name: Publish to AUR
+    if: github.ref_type == 'tag'
+    needs: release
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+    env:
+      AUR_PACKAGE: live-photo-conv
+    steps:
+    - name: Install dependencies
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm git openssh
+
+    - name: Create build user
+      run: |
+        useradd -m builder
+        echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Configure SSH for AUR
+      run: |
+        mkdir -p /root/.ssh
+        echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > /root/.ssh/aur
+        chmod 600 /root/.ssh/aur
+        cat > /root/.ssh/config << 'EOF'
+        Host aur.archlinux.org
+          IdentityFile /root/.ssh/aur
+          User aur
+          StrictHostKeyChecking accept-new
+        EOF
+        chmod 600 /root/.ssh/config
+
+    - name: Update PKGBUILD version and checksums
+      run: |
+        git config --global --add safe.directory '*'
+        mkdir -p /tmp/aur-build
+        cp distros/archlinux/PKGBUILD-AUR /tmp/aur-build/PKGBUILD
+        TAG_VERSION="${{ github.ref_name }}"
+        PKGVER="${TAG_VERSION#v}"
+        sed -i "s/^pkgver=.*/pkgver=${PKGVER}/" /tmp/aur-build/PKGBUILD
+        echo "Updated pkgver to ${PKGVER}"
+
+        GIT_CHECKSUM=$(git -c core.abbrev=no archive --format tar "${TAG_VERSION}" | sha256sum | cut -d' ' -f1)
+        echo "Computed git archive checksum: ${GIT_CHECKSUM}"
+        sed -i "s/@SHA256SUM@/${GIT_CHECKSUM}/" /tmp/aur-build/PKGBUILD
+        echo "Updated sha256sums"
+
+        chown -R builder:builder /tmp/aur-build
+
+    - name: Generate .SRCINFO
+      run: |
+        su builder -c 'cd /tmp/aur-build && makepkg --printsrcinfo' > /tmp/aur-build/.SRCINFO
+        cat /tmp/aur-build/.SRCINFO
+
+    - name: Push to AUR
+      run: |
+        git config --global user.name "${{ secrets.AUR_USERNAME }}"
+        git config --global user.email "${{ secrets.AUR_EMAIL }}"
+
+        git clone ssh://aur@aur.archlinux.org/${AUR_PACKAGE}.git /tmp/aur-repo || {
+          mkdir -p /tmp/aur-repo
+          cd /tmp/aur-repo
+          git init
+          git remote add origin ssh://aur@aur.archlinux.org/${AUR_PACKAGE}.git
+        }
+
+        cd /tmp/aur-repo
+
+        cp /tmp/aur-build/PKGBUILD .
+        cp /tmp/aur-build/.SRCINFO .
+
+        git add PKGBUILD .SRCINFO
+        if git diff --cached --quiet; then
+          echo "No changes to push"
+        else
+          git commit -m "Update to ${{ github.ref_name }}"
+          git push origin master
+        fi

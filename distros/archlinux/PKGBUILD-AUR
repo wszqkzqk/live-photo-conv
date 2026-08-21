@@ -34,13 +34,8 @@ optdepends=(
     "libjxl: Support to save photos as .jxl with GStreamer and GdkPixbuf backend"
     "webp-pixbuf-loader: Support to save photos as .webp with GStreamer and GdkPixbuf backend"
 )
-source=("${pkgname}::git+file://${startdir}/../..")
-sha256sums=('SKIP')
-
-pkgver() {
-    cd "${pkgname}"
-    git describe --tags --abbrev=12 | sed 's/^v//;s/-/./g'
-}
+source=("git+https://github.com/wszqkzqk/${pkgname}.git#tag=${pkgver}")
+sha256sums=('@SHA256SUM@')
 
 build() {
     arch-meson "${pkgname}" build

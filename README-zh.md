@@ -318,7 +318,7 @@ copy-img-meta --exclude-xmp --exclude-iptc /path/to/source.jpg /path/to/dest.web
 
 ```python
 import gi
-gi.require_version('LivePhotoTools', '0.4') # 请根据实际版本号调整
+gi.require_version('LivePhotoTools', '0.5') # 请根据实际版本号调整
 from gi.repository import LivePhotoTools
 ```
 

@@ -5,7 +5,7 @@ Cross-platform script to create symlinks/copies of the main binary with differen
 On Windows: creates copies
 On Unix-like systems: creates symbolic links
 
-Copyright 2024-2025 Zhou Qiankang <wszqkzqk@qq.com>
+Copyright 2024-2026 Zhou Qiankang <wszqkzqk@qq.com>
 """
 
 import sys
