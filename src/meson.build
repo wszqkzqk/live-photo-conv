@@ -236,7 +236,7 @@ if not is_android
         depends : sub_exe_bins[index],
       )
     endforeach
-    
+
     # Generate manpage for copy-img-meta
     custom_target('manpage-' + copy_img_meta_name,
       output : copy_img_meta_name + '.1',
