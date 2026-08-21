@@ -116,6 +116,27 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         appsrc.max_bytes = 8 << 20;
         appsrc.block = true;
 
+        // Create a threadpool to process the images
+        if (threads <= 0) {
+            threads = (int) get_num_processors ();
+        }
+        int export_errors = 0;
+        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
+        // Bound the in-flight frame backlog with token slots
+        var slots = new AsyncQueue<ulong> ();
+        for (int i = 0; i < 2 * threads; i += 1) {
+            slots.push (1); // g_async_queue_push rejects null data, need to be non-zero
+        }
+        var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
+            try {
+                item.export (export_meta);
+            } catch (Error e) {
+                AtomicInt.inc (ref export_errors);
+                Reporter.error_puts ("Error", e.message);
+            }
+            slots.push (1);
+        }, threads, false);
+
         // NOTE: `giostreamsrc` does not support `seek` and will read from the beginning of the file,
         // so use `appsrc` instead.
         // Create a new thread to push data
@@ -150,27 +171,6 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         });
         pipeline.set_state (Gst.State.PLAYING);
 
-        // Create a threadpool to process the images
-        if (threads <= 0) {
-            threads = (int) get_num_processors ();
-        }
-        int export_errors = 0;
-        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
-        // Bound the in-flight frame backlog with token slots
-        var slots = new AsyncQueue<ulong> ();
-        for (int i = 0; i < 2 * threads; i += 1) {
-            slots.push (1); // g_async_queue_push rejects null data, need to be non-zero
-        }
-        var pool = new ThreadPool<Sample2Img>.with_owned_data ((item) => {
-            try {
-                item.export (export_meta);
-            } catch (Error e) {
-                AtomicInt.inc (ref export_errors);
-                Reporter.error_puts ("Error", e.message);
-            }
-            slots.push (1);
-        }, threads, false);
-
         Gst.Sample sample;
         uint index = 1;
         string filename_no_index_ext = Path.build_filename (
@@ -187,7 +187,12 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
             try {
                 var item = new Sample2Img (sample, filename, format);
                 slots.pop ();
-                pool.add ((owned) item);
+                try {
+                    pool.add ((owned) item);
+                } catch (Error e) {
+                    slots.push (1);
+                    throw e;
+                }
             } catch (Error e) {
                 AtomicInt.inc (ref export_errors);
                 Reporter.error_puts ("Error", e.message);

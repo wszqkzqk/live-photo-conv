@@ -87,6 +87,8 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             };
         }
 
+        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
+
         var subprcs = new Subprocess.newv (commands,
             SubprocessFlags.STDOUT_PIPE |
             SubprocessFlags.STDERR_PIPE |
@@ -107,7 +109,6 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         var pipe_stdout_dis = new DataInputStream (pipe_stdout);
         var re_frame = /^frame=\s*(\d+)/;
         MatchInfo match_info;
-        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
 
         string line;
         int64 frame_processed = 0;
