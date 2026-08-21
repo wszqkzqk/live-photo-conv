@@ -27,7 +27,7 @@ makedepends=(
     python
 )
 optdepends=(
-    "ffmpeg: FFmpeg backend to convert internal video of a live photo to static pictures"
+    "ffmpeg>=5.1: FFmpeg backend to convert internal video of a live photo to static pictures"
     "gst-plugin-va: Hardware accelerated video decoding with GStreamer backend"
     "libavif: Support to save as .avif with GStreamer and GdkPixbuf backend"
     "libheif: Support to save photos as .heif, .heic, and .avif with GStreamer and GdkPixbuf backend"
