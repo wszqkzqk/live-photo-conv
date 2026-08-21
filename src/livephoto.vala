@@ -410,12 +410,15 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 presentation_timestamp_us_to_write = ts;
         }
 
-        // Clear the timestamp nodes first: set_tag_string appends to a wrong-typed node
+        // Clear these nodes first: set_tag_string appends to a wrong-typed node
         try {
             this.metadata.clear_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
         } catch {}
         try {
             this.metadata.clear_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+        } catch {}
+        try {
+            this.metadata.clear_tag ("Xmp.GCamera.MicroVideoOffset");
         } catch {}
 
         // Set GCamera (old standard) tags
@@ -489,6 +492,9 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         // Item 2: Video (assuming MP4)
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
+        try {
+            this.metadata.clear_tag ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
+        } catch {}
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
     }
 
