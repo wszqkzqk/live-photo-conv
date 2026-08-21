@@ -106,6 +106,10 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         unowned string[] args = null;
         Gst.init (ref args);
 
+        if (threads <= 0) {
+            threads = (int) get_num_processors ();
+        }
+
         // Create a pipeline
         var pipeline = Gst.parse_launch (GST_PIPELINE.printf (threads)) as Gst.Bin;
         var watch = new PipelineWatch (pipeline);
@@ -118,9 +122,6 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         appsrc.block = true;
 
         // Create a threadpool to process the images
-        if (threads <= 0) {
-            threads = (int) get_num_processors ();
-        }
         int export_errors = 0;
         var export_meta = export_original_metadata ? this.metadata_for_export () : null;
         // Bound the in-flight frame backlog with token slots
