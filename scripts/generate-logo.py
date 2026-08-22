@@ -10,8 +10,9 @@ on Arch Linux: pacman -S python-fonttools python-pillow librsvg.
 during package builds, it downloads the font on first use.)
 
 Outputs (all derived from the commented master assets/icon-master.svg):
-  - assets/icon.svg  MINIFIED master copy (comments/blank lines stripped);
-                     this is what programs embed (GResource, Android, ...)
+  - assets/icon.svg  MINIFIED master copy (comments and inter-tag
+                     whitespace stripped); this is what programs embed
+                     (GResource, Android, ...)
   - assets/logo.svg  banner (icon + wordmark), also minified
   - assets/icon.png  256x256 render
   - assets/icon.ico  Windows icon, 256..16 px, largest first
@@ -198,9 +199,10 @@ def scale_dot(contours, xheight, factor):
 # --------------------------------------------------------------- wordmark
 
 def minify_svg(src):
-    """Strip XML comments and blank lines (used for the embedded icon)."""
+    """Strip XML comments and inter-tag whitespace into a single line."""
     src = re.sub(r'<!--.*?-->', '', src, flags=re.S)
-    return '\n'.join(ln for ln in src.splitlines() if ln.strip())
+    src = re.sub(r'>\s+<', '><', src)
+    return src.strip()
 
 
 def derive_icons():

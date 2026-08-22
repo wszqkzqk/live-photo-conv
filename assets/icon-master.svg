@@ -56,11 +56,6 @@
       <stop offset="0" stop-color="#00877d"/>
       <stop offset="1" stop-color="#38a084"/>
     </linearGradient>
-    <!-- play triangle -->
-    <linearGradient id="gTri" gradientUnits="userSpaceOnUse" x1="166.3" y1="111" x2="111.3" y2="161">
-      <stop offset="0" stop-color="#e0dcf0"/>
-      <stop offset="1" stop-color="#aca6cf"/>
-    </linearGradient>
   </defs>
 
   <!-- ===== aperture blades (true-circle ring, center 128,128) ===== -->
@@ -98,5 +93,5 @@
   <path fill="#ffffff" d="M26.5,93.5 A12,12 0 1 1 26.5,117.5 A12,12 0 1 1 26.5,93.5 Z"/>
 
   <!-- play triangle (centroid at ring center 128,128): white body, thin gray outline -->
-  <path fill="url(#gTri)" stroke="#555555" stroke-width="1.5" d="M112.15,97.58 L164.45,125.42 Q169.3,128 164.45,130.58 L112.15,158.42 Q107.3,161 107.3,155.5 L107.3,100.5 Q107.3,95 112.15,97.58 Z"/>
+  <path fill="#ffffff" stroke="#5a5a5a" stroke-width="3" d="M112.15,97.58 L164.45,125.42 Q169.3,128 164.45,130.58 L112.15,158.42 Q107.3,161 107.3,155.5 L107.3,100.5 Q107.3,95 112.15,97.58 Z"/>
 </svg>
