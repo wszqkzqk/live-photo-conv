@@ -364,10 +364,7 @@ This project is licensed under the LGPL-2.1-or-later license. For more details, 
 
 If GStreamer support is enabled during the build, GStreamer will be used by default to export images from embedded videos. Otherwise, the program will attempt to create an FFmpeg subprocess via command to export images. Even with GStreamer support enabled, you can use the `--use-ffmpeg` option to use FFmpeg.
 
-The speed of exporting images using GStreamer versus FFmpeg is not always consistent. The GStreamer-based video export tool built by me encodes in parallel, and the number of threads can be controlled by adjusting the `-T`/`--threads` option. However, I has not optimized the decoding part of GStreamer very well; each frame undergoes a forced color space conversion (due to the [limitation of `gdk-pixbuf2`](https://docs.gtk.org/gdk-pixbuf/property.Pixbuf.colorspace.html)), which may introduce performance overhead. Therefore, in summary:
-
-* When the selected image encoding is slow, GStreamer exports images faster.
-* When the selected image encoding is fast, FFmpeg exports images faster.
+In general, the default GStreamer backend provides high-speed encoding; only when exporting to PNG is it recommended to add `--use-ffmpeg` (FFmpeg's PNG encoding is noticeably faster). The `-T`/`--threads` option only affects the GStreamer path.
 
 ### Path Encoding on Windows: Unable to Read/Write Metadata for Paths Containing Non-ASCII Characters
 
