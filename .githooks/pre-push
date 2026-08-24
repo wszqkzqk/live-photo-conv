@@ -12,7 +12,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     fi
 
     # Read meson.build from the commit the tag points to, not the working tree
-    PROJECT_VERSION=$(git show "$local_sha:meson.build" 2>/dev/null | grep -oP "version:\s*'\K[^']+" | head -1)
+    PROJECT_VERSION=$(git show "$local_sha:meson.build" 2>/dev/null | awk -F"'" '/version:/ {print $2; exit}')
 
     if [ -z "$PROJECT_VERSION" ]; then
         echo "ERROR: Could not extract version from meson.build at $local_sha" >&2
