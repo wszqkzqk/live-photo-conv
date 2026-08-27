@@ -37,6 +37,12 @@ jobs:
         chown -R builder:builder .
         git config --global --add safe.directory "$PWD"
 
+    - name: Validate Desktop Integration Files
+      run: |
+        pacman -S --noconfirm desktop-file-utils appstream
+        desktop-file-validate assets/com.github.wszqkzqk.live-photo-conv.desktop
+        appstreamcli validate --pedantic assets/com.github.wszqkzqk.live-photo-conv.metainfo.xml
+
     - name: Build Package
       run: |
         su builder -c "cd $PWD/distros/archlinux && makepkg --noconfirm -s"
