@@ -257,7 +257,9 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         try {
             var pipe_stdout = subprcs.get_stdout_pipe ();
             output = Utils.get_string_from_file_input_stream (pipe_stdout);
-        } catch {}
+        } catch (Error e) {
+            throw new ExportError.NO_VIDEO_STREAM_ERROR ("Failed to read ffprobe output: %s", e.message);
+        }
 
         subprcs.wait ();
         stderr_thread.join ();
