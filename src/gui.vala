@@ -921,9 +921,10 @@ public class LivePhotoConv.Application : Adw.Application {
                     sb.append_printf ("%s: %s", path, e.message);
                     error_count += 1;
                 }
-                processed += 1;
+                AtomicInt.inc (ref processed);
+                var current = AtomicInt.get (ref processed);
                 Idle.add (() => {
-                    report_progress (button, _("Extracting"), processed, total);
+                    report_progress (button, _("Extracting"), current, total);
                     return false;
                 });
             }
@@ -1001,9 +1002,10 @@ public class LivePhotoConv.Application : Adw.Application {
                     sb.append_printf ("%s: %s", path, e.message);
                     error_count += 1;
                 }
-                processed += 1;
+                AtomicInt.inc (ref processed);
+                var current = AtomicInt.get (ref processed);
                 Idle.add (() => {
-                    report_progress (button, _("Repairing"), processed, total);
+                    report_progress (button, _("Repairing"), current, total);
                     return false;
                 });
             }

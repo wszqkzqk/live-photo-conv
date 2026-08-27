@@ -45,6 +45,9 @@ namespace LivePhotoConv {
 */
 internal class LivePhotoConv.Sample2Img : Object {
 
+    // GExiv2 handles are not thread-safe
+    private static Mutex export_mutex;
+
     public string output_format {get; set;}
     public string filename {get; set;}
     public Gdk.Pixbuf pixbuf {get; private set;}
@@ -99,10 +102,13 @@ internal class LivePhotoConv.Sample2Img : Object {
         Reporter.info_puts ("Exported image", filename);
 
         if (metadata != null) {
+            export_mutex.lock ();
             try {
                 metadata.save_file (filename);
             } catch (Error e) {
                 throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", filename, e.message);
+            } finally {
+                export_mutex.unlock ();
             }
         }
     }
