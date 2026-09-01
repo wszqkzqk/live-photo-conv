@@ -921,8 +921,7 @@ public class LivePhotoConv.Application : Adw.Application {
                     sb.append_printf ("%s: %s", path, e.message);
                     error_count += 1;
                 }
-                AtomicInt.inc (ref processed);
-                var current = AtomicInt.get (ref processed);
+                var current = AtomicInt.add (ref processed, 1) + 1;
                 Idle.add (() => {
                     report_progress (button, _("Extracting"), current, total);
                     return false;
@@ -1002,8 +1001,7 @@ public class LivePhotoConv.Application : Adw.Application {
                     sb.append_printf ("%s: %s", path, e.message);
                     error_count += 1;
                 }
-                AtomicInt.inc (ref processed);
-                var current = AtomicInt.get (ref processed);
+                var current = AtomicInt.add (ref processed, 1) + 1;
                 Idle.add (() => {
                     report_progress (button, _("Repairing"), current, total);
                     return false;
