@@ -1,11 +1,9 @@
-# GTK main (pinned; bump manually) plus the copy-foreign-source patch,
-# pending upstream merge. Declaring <gtk/> in pixiewood.xml would
-# overwrite this wrap. A pinned commit cannot be shallow-cloned.
+# GTK main (pinned; bump manually). Declaring <gtk/> in pixiewood.xml
+# would overwrite this wrap. A pinned commit cannot be shallow-cloned.
 [wrap-git]
 directory = gtk
 url = https://gitlab.gnome.org/GNOME/gtk.git
-revision = f4781e2bcb14a9bbb57afa50619e28ed326570ed
-diff_files = gtk/copy-foreign-source.patch
+revision = d1872a0b1f4da7fe132d41722fa7f1bf692beb92
 
 [provide]
 dependency_names = gtk4
