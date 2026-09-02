@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.github.wszqkzqk.live-photo-conv</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LGPL-2.1-or-later</project_license>
+  <name>Live Photo Converter</name>
+  <summary>Create, extract, convert and repair Android Live Photos</summary>
+  <developer id="com.github.wszqkzqk">
+    <name>Zhou Qiankang</name>
+  </developer>
+  <description>
+    <p>Live Photo Converter creates Android Motion Photos (MVIMG) from a static image and a video file, and extracts or repairs them:</p>
+    <ul>
+      <li>Make a live photo from a static image and a video.</li>
+      <li>Extract the main image, the embedded video, a long exposure photo or every frame of the video.</li>
+      <li>Repair live photos with missing or corrupted video offset metadata.</li>
+    </ul>
+    <p>Both a GTK4/LibAdwaita graphical interface and command line tools are provided, with FFmpeg and GStreamer backends.</p>
+  </description>
+  <launchable type="desktop-id">com.github.wszqkzqk.live-photo-conv.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/wszqkzqk/live-photo-conv/main/screenshots/make-ui.webp</image>
+      <caption>Creating a live photo from an image and a video</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/wszqkzqk/live-photo-conv/main/screenshots/extract-ui.webp</image>
+      <caption>Extracting images and videos from live photos</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/wszqkzqk/live-photo-conv/main/screenshots/repair-ui.webp</image>
+      <caption>Repairing corrupted live photo metadata</caption>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/wszqkzqk/live-photo-conv</url>
+  <url type="bugtracker">https://github.com/wszqkzqk/live-photo-conv/issues</url>
+  <content_rating type="oars-1.1"/>
+</component>

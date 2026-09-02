@@ -254,14 +254,19 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         });
 
         string output = "";
+        Error? read_error = null;
         try {
-            var pipe_stdout = subprcs.get_stdout_pipe ();
-            output = Utils.get_string_from_file_input_stream (pipe_stdout);
-        } catch {}
+            output = Utils.get_string_from_file_input_stream (subprcs.get_stdout_pipe ());
+        } catch (Error e) {
+            read_error = e;
+        }
 
         subprcs.wait ();
         stderr_thread.join ();
         var push_error = push_thread.join ();
+        if (read_error != null) {
+            throw read_error;
+        }
         if (subprcs.get_exit_status () != 0) {
             throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
                 "Command `%s' failed with %d - `%s'",

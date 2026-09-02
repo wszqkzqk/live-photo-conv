@@ -165,6 +165,9 @@ if with_gui
     install_data('../assets/com.github.wszqkzqk.live-photo-conv.desktop',
       install_dir: get_option('datadir') / 'applications',
     )
+    install_data('../assets/com.github.wszqkzqk.live-photo-conv.metainfo.xml',
+      install_dir: get_option('datadir') / 'metainfo',
+    )
     install_data('../assets/icon.svg',
       install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
       rename: 'com.github.wszqkzqk.live-photo-conv.svg',
