@@ -530,10 +530,13 @@ public class LivePhotoConv.Application : Adw.Application {
 
         var row = new Adw.ActionRow () {
             title = title,
-            activatable = false,
+            activatable = true,
             tooltip_text = tooltip,
         };
         row.add_suffix (check);
+        row.activated.connect (() => {
+            check.active = !check.active;
+        });
         return row;
     }
 
