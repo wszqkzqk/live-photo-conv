@@ -16,6 +16,7 @@ lib_common_sources = [
   'livemakerffmpeg.vala',
   'livephoto.vala',
   'livephotoffmpeg.vala',
+  'oppometadata.vala',
   'platformbindings.c',
   'reporter.vala',
   'utils.vala',

@@ -246,7 +246,7 @@ live-photo-make -i /path/to/image.jpg -m /path/to/video.mp4 -o /path/to/output.j
 live-photo-make -m /path/to/video.mp4 -o /path/to/output.jpg
 ```
 
-主要选项：`-i`（图片）、`-m`（视频，必需）、`-o`（输出）、`--drop-metadata`、`--use-ffmpeg` / `--use-gst`。
+主要选项：`-i`（图片）、`-m`（视频，必需）、`-o`（输出）、`--drop-metadata`、`--oppo-compatible`、`--use-ffmpeg` / `--use-gst`。
 
 #### `live-photo-extract`
 
@@ -280,7 +280,7 @@ live-photo-repair -p /path/to/live_photo.jpg
 live-photo-repair -p /path/to/live_photo.jpg -f
 ```
 
-主要选项：`-p`（动态照片，必需）、`-f`（强制）、`-s`（手动指定视频大小）。
+主要选项：`-p`（动态照片，必需）、`-f`（强制）、`-s`（手动指定视频大小）、`--oppo-compatible`。
 
 #### `live-photo-conv`（通用命令）
 
@@ -291,6 +291,17 @@ live-photo-conv --make -i /path/to/image.jpg -m /path/to/video.mp4 -p /path/to/o
 live-photo-conv --extract -p /path/to/live_photo.jpg -d /path/to/dest
 live-photo-conv --repair -p /path/to/live_photo.jpg
 ```
+
+#### OPPO 兼容模式
+
+为 OPPO 设备制作或修复动态照片时，可使用 `--oppo-compatible`：
+
+```bash
+live-photo-make --oppo-compatible -i /path/to/image.jpg -m /path/to/video.mp4 -o /path/to/output.jpg
+live-photo-repair --oppo-compatible -p /path/to/live_photo.jpg
+```
+
+OPPO 修复目前仅支持单图、无填充且无厂商扩展尾部的 JPEG + MP4 文件；不支持的文件不会被修改。实际兼容性请在目标设备上验证。
 
 #### `copy-img-meta`
 
