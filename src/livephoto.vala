@@ -51,6 +51,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         set;
         default = true;
     }
+    public bool oppo_compatible {
+        get;
+        set;
+        default = false;
+    }
     public FileCreateFlags file_create_flags {
         get;
         set;
@@ -141,16 +146,22 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         // Get the offset of the video data from the XMP metadata
         string? tag_value = null;
         try {
-            if (this.metadata.has_tag ("Xmp.Container.Directory[2]/Container:Item/Item:Length")) {
-                tag_value = this.metadata.get_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
+            var motion_index = find_container_item (this.metadata, "MotionPhoto");
+            string? length_tag = null;
+            if (motion_index > 0) {
+                length_tag = "Xmp.Container.Directory[%d]/Container:Item/Item:Length".printf (motion_index);
+            } else if (motion_index == 0 && legacy_second_container_item (this.metadata)) {
+                length_tag = "Xmp.Container.Directory[2]/Container:Item/Item:Length";
+            }
+            if (length_tag != null && this.metadata.has_tag (length_tag)) {
+                tag_value = this.metadata.get_tag_string (length_tag);
             } else if (this.metadata.has_tag ("Xmp.GCamera.MicroVideoOffset")) {
-                // Fallback to the old standard
                 tag_value = this.metadata.get_tag_string ("Xmp.GCamera.MicroVideoOffset");
             }
-        } catch {} // An unreadable tag is treated as absent: fall through to the scan
+        } catch {}
         if (tag_value != null) {
-            int64 reverse_offset = int64.parse (tag_value);
-            if (reverse_offset > 0) {
+            int64 reverse_offset;
+            if (int64.try_parse (tag_value, out reverse_offset) && reverse_offset > 0) {
                 var file_size = File.new_for_commandline_arg  (this.filename)
                     .query_info ("standard::size", FileQueryInfoFlags.NONE)
                     .get_size ();
@@ -169,15 +180,58 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         return this.get_video_offset_fallback ();
     }
 
+    static int find_container_item (GExiv2.Metadata metadata, string semantic) {
+        var found = 0;
+        for (var index = 1; ; index += 1) {
+            var item = "Xmp.Container.Directory[%d]/Container:Item".printf (index);
+            try {
+                if (!metadata.has_tag (item))
+                    break;
+                var semantic_tag = item + "/Item:Semantic";
+                if (metadata.has_tag (semantic_tag) && metadata.get_tag_string (semantic_tag) == semantic) {
+                    if (found > 0)
+                        return -1;
+                    found = index;
+                }
+            } catch {}
+        }
+        return found;
+    }
+
+    static int container_item_count (GExiv2.Metadata metadata) {
+        var count = 0;
+        while (true) {
+            try {
+                if (!metadata.has_tag ("Xmp.Container.Directory[%d]/Container:Item".printf (count + 1)))
+                    break;
+            } catch {
+                break;
+            }
+            count += 1;
+        }
+        return count;
+    }
+
+    static bool legacy_second_container_item (GExiv2.Metadata metadata) {
+        const string semantic_tag = "Xmp.Container.Directory[2]/Container:Item/Item:Semantic";
+        try {
+            return metadata.has_tag ("Xmp.Container.Directory[2]/Container:Item")
+                && !metadata.has_tag (semantic_tag);
+        } catch {
+            return false;
+        }
+    }
+
     /**
      * Checks whether the MP4 header pattern is present at the given offset.
      *
      * @param offset The offset of the video data in the live photo.
+     * @param filename An optional alternative file to inspect.
      * @throws Error if there is an issue reading the file.
      * @return Whether the MP4 header pattern is present at the offset.
      */
-    bool video_header_at (int64 offset) throws Error {
-        var input_stream = File.new_for_commandline_arg (this.filename).read ();
+    bool video_header_at (int64 offset, string? filename = null) throws Error {
+        var input_stream = File.new_for_commandline_arg (filename ?? this.filename).read ();
         input_stream.seek (offset + LENGTH_BEFORE_FTYP, SeekType.SET);
         uint8[] header = new uint8[PATTERN_LENGTH];
         if (input_stream.read (header, null) != PATTERN_LENGTH)
@@ -195,12 +249,13 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * This method searches for the `ftyp` tag in the MP4 header to determine the offset of the video data.
      * It reads the file in chunks and checks for the tag, handling boundary crossing between chunks.
      *
+     * @param filename An optional alternative file to inspect.
      * @return The offset of the video data in the live photo.
      * @throws Error if there is an issue reading the file.
     */
-    inline int64 get_video_offset_fallback () throws Error {
+    inline int64 get_video_offset_fallback (string? filename = null) throws Error {
         int64 offset = -1; // Record the offset of the video data in the live photo
-        var file = File.new_for_commandline_arg (this.filename);
+        var file = File.new_for_commandline_arg (filename ?? this.filename);
         var input_stream = file.read ();
         ssize_t bytes_read;
         int64 global_pos = 0; // Global byte position
@@ -367,155 +422,207 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
     */
     public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
-        var file_size = File.new_for_commandline_arg  (this.filename)
-            .query_info ("standard::size", FileQueryInfoFlags.NONE)
-            .get_size ();
+        if (!this.oppo_compatible) {
+            this.video_offset = repair_metadata_file (
+                this.filename, this.metadata, this.video_offset, force, manual_video_size);
+            report_repaired (this.filename, this.video_offset);
+            return;
+        }
+        if (manual_video_size > 0) {
+            throw new ExportError.METADATA_EXPORT_ERROR (
+                "`--video-size' cannot be combined with OPPO compatibility repair");
+        }
 
+        var item_count = container_item_count (this.metadata);
+        var motion_index = find_container_item (this.metadata, "MotionPhoto");
+        if (item_count > 2 || motion_index < 0 || motion_index == 1
+            || (motion_index == 0 && item_count >= 2 && !legacy_second_container_item (this.metadata))) {
+            throw new ExportError.METADATA_EXPORT_ERROR (
+                "OPPO repair only supports Primary/MotionPhoto Container metadata");
+        }
+
+        var original = File.new_for_commandline_arg (this.filename);
+        var parent = original.get_parent ();
+        if (parent == null)
+            throw new ExportError.FILE_SAVE_ERROR ("Cannot create an OPPO repair temporary file");
+        var temporary = parent.get_child (
+            "." + original.get_basename () + ".oppo-repair-" + Uuid.string_random () + ".tmp");
+        var temporary_path = temporary.get_path ();
+        if (temporary_path == null)
+            throw new ExportError.FILE_SAVE_ERROR ("OPPO repair requires a local file path");
+
+        var committed = false;
+        try {
+            original.copy (temporary, FileCopyFlags.ALL_METADATA, null);
+            var metadata = new GExiv2.Metadata ();
+            metadata.open_path (temporary_path);
+            var repaired_offset = repair_metadata_file (
+                temporary_path, metadata, this.video_offset, force, 0);
+            temporary.move (original, FileCopyFlags.OVERWRITE, null);
+            committed = true;
+            this.video_offset = repaired_offset;
+            this.metadata.open_path (this.filename);
+        } finally {
+            if (!committed) {
+                try {
+                    temporary.delete ();
+                } catch {}
+            }
+        }
+        report_repaired (this.filename, this.video_offset);
+        Reporter.info ("Repaired", "OPPO compatibility metadata and MPF are up to date");
+    }
+
+    int64 repair_metadata_file (string filename, GExiv2.Metadata metadata,
+                                int64 initial_video_offset, bool force,
+                                uint manual_video_size) throws Error {
+        var file_size = File.new_for_commandline_arg (filename)
+            .query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
         int64 reverse_offset;
-
         if (manual_video_size > 0) {
             reverse_offset = manual_video_size;
         } else if (force) {
-            var offset = this.get_video_offset_fallback ();
-            if (offset < 0) {
-                throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
-            }
-            reverse_offset = file_size - offset;
-        } else if (video_header_at (this.video_offset)) {
-            reverse_offset = file_size - this.video_offset;
+            reverse_offset = fallback_reverse_offset (file_size, filename);
+        } else if (video_header_at (initial_video_offset, filename)) {
+            reverse_offset = file_size - initial_video_offset;
         } else {
             Reporter.info_puts ("Info", "Broken video offset detected. Trying to repair...");
-            var offset = this.get_video_offset_fallback ();
-            if (offset < 0) {
-                throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
-            }
-            reverse_offset = file_size - offset;
+            reverse_offset = fallback_reverse_offset (file_size, filename);
         }
-
-        if (reverse_offset < 0) {
+        if (reverse_offset <= 0)
             throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
+
+        if (this.oppo_compatible) {
+            reverse_offset = OppoMetadata.validate_live_photo (filename, file_size - reverse_offset);
+            string? declared = null;
+            try {
+                if (metadata.has_tag ("Xmp.OpCamera.VideoLength"))
+                    declared = metadata.get_tag_string ("Xmp.OpCamera.VideoLength");
+            } catch (Error e) {
+                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot read OpCamera.VideoLength: %s", e.message);
+            }
+            if (declared != null) {
+                int64 declared_size;
+                if (!int64.try_parse (declared, out declared_size) || declared_size != reverse_offset) {
+                    throw new ExportError.METADATA_EXPORT_ERROR (
+                        "OpCamera.VideoLength does not match the complete MP4; vendor trailers are not supported");
+                }
+            }
         }
 
+        string? timestamp = null;
+        if (this.oppo_compatible)
+            timestamp = Utils.get_int64_tag_string (metadata, "Xmp.OpCamera.MotionPhotoPrimaryPresentationTimestampUs");
+        if (timestamp == null)
+            timestamp = Utils.get_int64_tag_string (metadata, "Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+        if (timestamp == null)
+            timestamp = Utils.get_int64_tag_string (metadata, "Xmp.GCamera.MicroVideoPresentationTimestampUs");
+        var timestamp_to_write = timestamp ?? "0";
         var offset_string = reverse_offset.to_string ();
 
-        // Preserve an existing presentation timestamp if there is one
-        string presentation_timestamp_us_to_write = "0";
-        if (this.metadata.has_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs")) {
-            var ts = this.metadata.get_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
-            if (ts != null && int64.try_parse (ts))
-                presentation_timestamp_us_to_write = ts;
-        } else if (this.metadata.has_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs")) {
-            var ts = this.metadata.get_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
-            if (ts != null && int64.try_parse (ts))
-                presentation_timestamp_us_to_write = ts;
-        }
-
-        // Clear these nodes first: set_tag_string appends to a wrong-typed node
         try {
-            this.metadata.clear_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+            metadata.clear_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
         } catch {}
         try {
-            this.metadata.clear_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
+            metadata.clear_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs");
         } catch {}
         try {
-            this.metadata.clear_tag ("Xmp.GCamera.MicroVideoOffset");
+            metadata.clear_tag ("Xmp.GCamera.MicroVideoOffset");
         } catch {}
+        metadata.set_tag_string ("Xmp.GCamera.MicroVideo", "1");
+        metadata.set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
+        metadata.set_tag_string ("Xmp.GCamera.MicroVideoOffset", offset_string);
+        metadata.set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", timestamp_to_write);
+        metadata.set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
+        metadata.set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
+        metadata.set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", timestamp_to_write);
+        write_container_tags (metadata, offset_string);
+        if (this.oppo_compatible)
+            OppoMetadata.write_tags (metadata, reverse_offset, timestamp_to_write);
 
-        // Set GCamera (old standard) tags
-        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideo", "1");
-        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoVersion", "1");
-        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoOffset", offset_string);
-        this.metadata.set_tag_string ("Xmp.GCamera.MicroVideoPresentationTimestampUs", presentation_timestamp_us_to_write);
-
-        // Set MotionPhoto (new standard) tags
-        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhoto", "1");
-        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhotoVersion", "1");
-        this.metadata.set_tag_string ("Xmp.GCamera.MotionPhotoPresentationTimestampUs", presentation_timestamp_us_to_write);
-
-        // Set Container and Item tags for MotionPhoto. Only create missing
-        // nodes: re-declaring an existing struct wipes its children.
-        this.write_container_tags (offset_string);
-
-        // save_file returns false on encode/write failure
-        if (!this.metadata.save_file (this.filename)) {
-            throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", this.filename);
-        }
-        // exiv2 silently skips a failed XMP encode; verify the key landed
-        if (!this.container_length_present ()) {
-            this.rebuild_container_tree (offset_string);
-            if (!this.metadata.save_file (this.filename)) {
-                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", this.filename);
-            }
-            if (!this.container_length_present ()) {
-                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", this.filename);
-            }
+        if (!metadata.save_file (filename))
+            throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", filename);
+        if (!container_length_present (filename)) {
+            rebuild_container_tree (metadata, offset_string);
+            if (!metadata.save_file (filename) || !container_length_present (filename))
+                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save the metadata to %s", filename);
         }
 
-        // Refresh the video_offset field; the metadata rewrite may change the file size
-        file_size = File.new_for_commandline_arg (this.filename)
-            .query_info ("standard::size", FileQueryInfoFlags.NONE)
-            .get_size ();
-        this.video_offset = file_size - reverse_offset;
+        file_size = File.new_for_commandline_arg (filename)
+            .query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+        var repaired_offset = file_size - reverse_offset;
+        if (this.oppo_compatible) {
+            OppoMetadata.ensure_mpf (filename, repaired_offset);
+            OppoMetadata.verify_tags (filename, reverse_offset, timestamp_to_write);
+            file_size = File.new_for_commandline_arg (filename)
+                .query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+            repaired_offset = file_size - reverse_offset;
+        }
+        return repaired_offset;
+    }
 
-        Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
+    int64 fallback_reverse_offset (int64 file_size, string filename) throws Error {
+        var offset = get_video_offset_fallback (filename);
+        if (offset < 0)
+            throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
+        return file_size - offset;
+    }
+
+    static void report_repaired (string filename, int64 video_offset) throws Error {
+        var file_size = File.new_for_commandline_arg (filename)
+            .query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+        Reporter.info ("Repaired", "The reverse video offset metadata is set to %s",
+                       (file_size - video_offset).to_string ());
     }
 
     // Writes the Container.Directory structure and its members, creating
     // only missing nodes (re-declaring an existing struct wipes its children)
-    void write_container_tags (string offset_string) throws Error {
-        if (!this.metadata.has_tag ("Xmp.Container.Directory")) {
-            this.metadata.set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
+    void write_container_tags (GExiv2.Metadata metadata, string offset_string) throws Error {
+        if (!metadata.has_tag ("Xmp.Container.Directory")) {
+            metadata.set_xmp_tag_struct ("Xmp.Container.Directory", GExiv2.StructureType.SEQ);
         }
-        if (!this.metadata.has_tag ("Xmp.Container.Directory[1]/Container:Item")) {
-            this.metadata.set_tag_string ("Xmp.Container.Directory[1]", "type=Struct");
-            this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
+        if (!metadata.has_tag ("Xmp.Container.Directory[1]/Container:Item")) {
+            metadata.set_tag_string ("Xmp.Container.Directory[1]", "type=Struct");
+            metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item", "type=Struct");
         }
-        if (!this.metadata.has_tag ("Xmp.Container.Directory[2]/Container:Item")) {
-            this.metadata.set_tag_string ("Xmp.Container.Directory[2]", "type=Struct");
-            this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
+        if (!metadata.has_tag ("Xmp.Container.Directory[2]/Container:Item")) {
+            metadata.set_tag_string ("Xmp.Container.Directory[2]", "type=Struct");
+            metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
         }
 
-        // Item 1: Primary Image (assuming JPEG based on typical output)
-        var image_mime_type = "image/jpeg"; // Default, could be refined based on actual extension
-        if (this.extension_name.down () == "heic" || this.extension_name.down () == "heif") {
-            image_mime_type = "image/heic";
-        } else if (this.extension_name.down () == "avif") {
-            image_mime_type = "image/avif";
+        var image_mime_type = "image/jpeg";
+        if (!this.oppo_compatible) {
+            if (this.extension_name.down () == "heic" || this.extension_name.down () == "heif") {
+                image_mime_type = "image/heic";
+            } else if (this.extension_name.down () == "avif") {
+                image_mime_type = "image/avif";
+            }
         }
-        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", image_mime_type);
-        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
-        // Item:Padding: For JPEG, optional (can be 0 or omitted). For HEIC/AVIF, must be 8.
-        // This example assumes JPEG or doesn't set padding. A more robust solution would check image_mime_type.
-        // if (image_mime_type == "image/heic" || image_mime_type == "image/avif") {
-        //    this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "8");
-        // }
-        // Item 2: Video (assuming MP4)
-        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
-        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
+        metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", image_mime_type);
+        metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
+        metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
+        metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
         try {
-            this.metadata.clear_tag ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
+            metadata.clear_tag ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
         } catch {}
-        this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", offset_string); // offset_string is reverse_offset, i.e., video_size
+        metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", offset_string);
     }
 
-    // Reads back the file and checks whether the video length key landed
-    bool container_length_present () throws Error {
+    bool container_length_present (string filename) throws Error {
         var check = new GExiv2.Metadata ();
-        check.open_path (this.filename);
+        check.open_path (filename);
         return check.has_tag ("Xmp.Container.Directory[2]/Container:Item/Item:Length");
     }
 
-    // Wipes the Container tree and writes it fresh, for nodes whose wrong
-    // type blocks the surgical writes
-    void rebuild_container_tree (string offset_string) throws Error {
-        foreach (unowned var tag in this.metadata.get_xmp_tags ()) {
+    void rebuild_container_tree (GExiv2.Metadata metadata, string offset_string) throws Error {
+        foreach (unowned var tag in metadata.get_xmp_tags ()) {
             if (tag.has_prefix ("Xmp.Container.")) {
                 try {
-                    this.metadata.clear_tag (tag);
+                    metadata.clear_tag (tag);
                 } catch {}
             }
         }
-        this.write_container_tags (offset_string);
+        write_container_tags (metadata, offset_string);
     }
 
     /**

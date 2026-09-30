@@ -230,6 +230,7 @@ public class LivePhotoConv.Application : Adw.Application {
     private FileDropArea make_video_area;
     private FileDropArea make_image_area;
     private Gtk.CheckButton make_export_metadata_check;
+    private Gtk.CheckButton make_oppo_compatible_check;
     private Gtk.Button make_button;
 
     // Extract page
@@ -244,6 +245,7 @@ public class LivePhotoConv.Application : Adw.Application {
     // Repair page
     private FileDropArea repair_live_photo_area;
     private Gtk.CheckButton repair_force_check;
+    private Gtk.CheckButton repair_oppo_compatible_check;
     private Gtk.SpinButton repair_video_size_spin;
     private Gtk.Button repair_button;
 
@@ -614,6 +616,7 @@ public class LivePhotoConv.Application : Adw.Application {
         var options_group = make_group (_("Options"));
         make_export_metadata_check = null;
         options_group.add (make_check_row (_("Export metadata"), out make_export_metadata_check, true));
+        options_group.add (make_check_row (_("OPPO compatibility (experimental)"), out make_oppo_compatible_check, false));
         box.append (options_group);
 
         return box;
@@ -652,6 +655,7 @@ public class LivePhotoConv.Application : Adw.Application {
                 }
                 bool export_metadata = make_export_metadata_check.active;
                 maker.export_original_metadata = export_metadata;
+                maker.oppo_compatible = make_oppo_compatible_check.active;
 
                 start_work (make_button, _("Processing…"));
 
@@ -791,6 +795,7 @@ public class LivePhotoConv.Application : Adw.Application {
             out repair_force_check, false,
             _("If enabled, skips validation of the existing video offset and\n"
             + "forces a full-file scan to re-discover the MP4 header position.")));
+        options_group.add (make_check_row (_("OPPO compatibility (experimental)"), out repair_oppo_compatible_check, false));
 
         box.append (options_group);
 
@@ -829,6 +834,11 @@ public class LivePhotoConv.Application : Adw.Application {
             valign = Gtk.Align.CENTER,
         });
         spin_box.append (repair_video_size_spin);
+        repair_oppo_compatible_check.toggled.connect (() => {
+            repair_video_size_spin.sensitive = !repair_oppo_compatible_check.active;
+            if (repair_oppo_compatible_check.active)
+                repair_video_size_spin.value = 0;
+        });
 
         expander.add_row (spin_box);
         advanced_group.add (expander);
@@ -846,6 +856,7 @@ public class LivePhotoConv.Application : Adw.Application {
 
         bool force = repair_force_check.active;
         uint video_size = (uint) repair_video_size_spin.value;
+        bool oppo_compatible = repair_oppo_compatible_check.active;
 
         var paths = new GenericArray<string> ();
         try {
@@ -857,7 +868,7 @@ public class LivePhotoConv.Application : Adw.Application {
         }
 
         start_work (repair_button, _("Repairing…"));
-        repair_batch_async.begin (files, paths, force, video_size, repair_button, (obj, res) => {
+        repair_batch_async.begin (files, paths, force, video_size, oppo_compatible, repair_button, (obj, res) => {
             try {
                 repair_batch_async.end (res);
                 end_work (repair_button, _("Repair"), repair_live_photo_area.files.length > 0);
@@ -981,7 +992,7 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     private async void repair_batch_async (GenericArray<File> files, GenericArray<string> paths,
-                                            bool force, uint video_size,
+                                            bool force, uint video_size, bool oppo_compatible,
                                             Gtk.Button button) throws Error {
         SourceFunc callback = repair_batch_async.callback;
         var sb = new StringBuilder ();
@@ -997,6 +1008,7 @@ public class LivePhotoConv.Application : Adw.Application {
                 unowned var path = paths[i];
                 try {
                     var live_photo = LivePhoto.create (path);
+                    live_photo.oppo_compatible = oppo_compatible;
                     live_photo.repair_live_metadata (force, video_size);
                     succeeded[i] = true;
                 } catch (Error e) {

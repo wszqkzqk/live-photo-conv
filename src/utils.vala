@@ -102,6 +102,17 @@ namespace LivePhotoConv.Utils {
         return Filename.canonicalize (path_a) == Filename.canonicalize (path_b);
     }
 
+    public string? get_int64_tag_string (GExiv2.Metadata metadata, string tag) {
+        try {
+            if (metadata.has_tag (tag)) {
+                var value = metadata.get_tag_string (tag);
+                if (value != null && int64.try_parse (value))
+                    return value;
+            }
+        } catch {}
+        return null;
+    }
+
     /**
      * Returns the effective locale directory at runtime.
      */
