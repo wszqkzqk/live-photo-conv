@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 04:38+0200\n"
+"POT-Creation-Date: 2026-09-30 10:18+0200\n"
 "PO-Revision-Date: 2026-05-04 14:06+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -23,15 +23,15 @@ msgid "%u file selected"
 msgid_plural "%u files selected"
 msgstr[0] "%u 個のファイルが選択されました"
 
-#: src/gui.vala:315 src/gui.vala:662 src/gui.vala:665
+#: src/gui.vala:315 src/gui.vala:665 src/gui.vala:668
 msgid "Make Live Photo"
 msgstr "Live Photo を作成"
 
-#: src/gui.vala:318 src/gui.vala:325 src/gui.vala:751 src/gui.vala:754
+#: src/gui.vala:318 src/gui.vala:325 src/gui.vala:754 src/gui.vala:757
 msgid "Extract"
 msgstr "抽出"
 
-#: src/gui.vala:321 src/gui.vala:326 src/gui.vala:860 src/gui.vala:863
+#: src/gui.vala:321 src/gui.vala:326 src/gui.vala:863 src/gui.vala:866
 msgid "Repair"
 msgstr "修復"
 
@@ -59,19 +59,19 @@ msgstr "外観"
 msgid "About"
 msgstr "このアプリについて"
 
-#: src/gui.vala:566
+#: src/gui.vala:569
 msgid "Source Files"
 msgstr "ソースファイル"
 
-#: src/gui.vala:567
+#: src/gui.vala:570
 msgid "Provide a video file (required) and a static image."
 msgstr "動画ファイル（必須）と静止画像を指定してください。"
 
-#: src/gui.vala:579
+#: src/gui.vala:582
 msgid "Video"
 msgstr "動画"
 
-#: src/gui.vala:583
+#: src/gui.vala:586
 msgid ""
 "Drop video here\n"
 "or click to browse"
@@ -79,11 +79,11 @@ msgstr ""
 "動画をここにドロップ\n"
 "またはクリックして参照"
 
-#: src/gui.vala:596
+#: src/gui.vala:599
 msgid "Main Image"
 msgstr "メイン画像"
 
-#: src/gui.vala:600
+#: src/gui.vala:603
 msgid ""
 "Drop image here\n"
 "or click to browse"
@@ -91,40 +91,40 @@ msgstr ""
 "画像をここにドロップ\n"
 "またはクリックして参照"
 
-#: src/gui.vala:611
+#: src/gui.vala:614
 msgid "Options"
 msgstr "オプション"
 
-#: src/gui.vala:613
+#: src/gui.vala:616
 msgid "Export metadata"
 msgstr "メタデータをエクスポート"
 
-#: src/gui.vala:624
+#: src/gui.vala:627
 msgid "Save Live Photo As"
 msgstr "Live Photo を保存"
 
-#: src/gui.vala:647 src/gui.vala:666 src/gui.vala:740 src/gui.vala:755
-#: src/gui.vala:852 src/gui.vala:864
+#: src/gui.vala:650 src/gui.vala:669 src/gui.vala:743 src/gui.vala:758
+#: src/gui.vala:855 src/gui.vala:867
 msgid "Error"
 msgstr "エラー"
 
-#: src/gui.vala:653
+#: src/gui.vala:656
 msgid "Processing…"
 msgstr "処理中…"
 
-#: src/gui.vala:663
+#: src/gui.vala:666
 msgid "Live photo created"
 msgstr "Live Photo が作成されました"
 
-#: src/gui.vala:684 src/gui.vala:769
+#: src/gui.vala:687 src/gui.vala:772
 msgid "Live Photo"
 msgstr "Live Photo"
 
-#: src/gui.vala:685
+#: src/gui.vala:688
 msgid "Select the live photo file to extract from."
 msgstr "抽出元の Live Photo ファイルを選択してください。"
 
-#: src/gui.vala:687 src/gui.vala:772
+#: src/gui.vala:690 src/gui.vala:775
 msgid ""
 "Drop live photo file here\n"
 "or click to browse"
@@ -132,69 +132,69 @@ msgstr ""
 "Live Photo ファイルをここにドロップ\n"
 "またはクリックして参照"
 
-#: src/gui.vala:700
+#: src/gui.vala:703
 msgid "Export Items"
 msgstr "エクスポート項目"
 
-#: src/gui.vala:701
+#: src/gui.vala:704
 msgid "Choose what to extract from the live photo."
 msgstr "Live Photo から抽出するものを選択してください。"
 
-#: src/gui.vala:703
+#: src/gui.vala:706
 msgid "Export Main Image"
 msgstr "メイン画像をエクスポート"
 
-#: src/gui.vala:704
+#: src/gui.vala:707
 msgid "Export Video"
 msgstr "動画をエクスポート"
 
-#: src/gui.vala:705
+#: src/gui.vala:708
 msgid "Export Frames as Photos"
 msgstr "フレームを写真としてエクスポート"
 
-#: src/gui.vala:706
+#: src/gui.vala:709
 msgid "Export Long Exposure Photo"
 msgstr "長時間露光写真をエクスポート"
 
-#: src/gui.vala:707
+#: src/gui.vala:710
 msgid "Image Format"
 msgstr "画像形式"
 
-#: src/gui.vala:707
+#: src/gui.vala:710
 msgid "auto"
 msgstr "自動"
 
-#: src/gui.vala:716 src/gui.vala:840
+#: src/gui.vala:719 src/gui.vala:843
 msgid "Please select a live photo file first"
 msgstr "先に Live Photo ファイルを選択してください"
 
-#: src/gui.vala:721
+#: src/gui.vala:724
 msgid "Select Output Directory"
 msgstr "出力ディレクトリを選択"
 
-#: src/gui.vala:744
+#: src/gui.vala:747
 msgid "Extracting…"
 msgstr "抽出中…"
 
-#: src/gui.vala:752
+#: src/gui.vala:755
 #, c-format
 msgid "%u file extracted"
 msgid_plural "%u files extracted"
 msgstr[0] "%u 個のファイルを抽出しました"
 
-#: src/gui.vala:770
+#: src/gui.vala:773
 msgid "Select the live photo file to repair its XMP metadata."
 msgstr "XMP メタデータを修復する Live Photo ファイルを選択してください。"
 
-#: src/gui.vala:785
+#: src/gui.vala:788
 msgid "Repair Options"
 msgstr "修復オプション"
 
-#: src/gui.vala:787
+#: src/gui.vala:790
 msgid "Force Repair"
 msgstr "強制修復"
 
-#: src/gui.vala:789
+#: src/gui.vala:792
 msgid ""
 "If enabled, skips validation of the existing video offset and\n"
 "forces a full-file scan to re-discover the MP4 header position."
@@ -203,19 +203,19 @@ msgstr ""
 "ファイル全体を強制的にスキャンして\n"
 "MP4 ヘッダーの位置を再検出します。"
 
-#: src/gui.vala:794
+#: src/gui.vala:797
 msgid "Advanced"
 msgstr "詳細"
 
-#: src/gui.vala:796
+#: src/gui.vala:799
 msgid "Manual Video Size"
 msgstr "動画サイズを手動指定"
 
-#: src/gui.vala:797
+#: src/gui.vala:800
 msgid "Specify the size of the embedded video in bytes"
 msgstr "埋め込み動画のサイズをバイト単位で指定"
 
-#: src/gui.vala:798
+#: src/gui.vala:801
 msgid ""
 "If the video size cannot be detected automatically,\n"
 "you can manually specify its size in bytes.\n"
@@ -225,7 +225,7 @@ msgstr ""
 "バイト単位で手動指定できます。\n"
 "0 のままにすると自動検出を使用します。"
 
-#: src/gui.vala:813
+#: src/gui.vala:816
 msgid ""
 "Enter the exact size of the video portion in bytes.\n"
 "Only needed if automatic detection fails."
@@ -233,25 +233,25 @@ msgstr ""
 "動画部分の正確なサイズをバイト単位で入力してください。\n"
 "自動検出が失敗した場合のみ必要です。"
 
-#: src/gui.vala:823
+#: src/gui.vala:826
 msgid "Video size in bytes"
 msgstr "動画サイズ（バイト）"
 
-#: src/gui.vala:856
+#: src/gui.vala:859
 msgid "Repairing…"
 msgstr "修復中…"
 
-#: src/gui.vala:861
+#: src/gui.vala:864
 #, c-format
 msgid "%u file repaired"
 msgid_plural "%u files repaired"
 msgstr[0] "%u 個のファイルを修復しました"
 
-#: src/gui.vala:900 src/gui.vala:926
+#: src/gui.vala:903 src/gui.vala:929
 msgid "Extracting"
 msgstr "抽出中"
 
-#: src/gui.vala:990 src/gui.vala:1006
+#: src/gui.vala:993 src/gui.vala:1009
 msgid "Repairing"
 msgstr "修復中"
 
