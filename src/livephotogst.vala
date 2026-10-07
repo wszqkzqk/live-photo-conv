@@ -103,7 +103,8 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     }
 
     public override void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 0) throws Error {
-        // Enpty args to Gst
+        this.ensure_supported (LivePhotoCapabilities.FRAMES);
+        // Empty args to Gst
         unowned string[] args = null;
         Gst.init (ref args);
 
@@ -135,38 +136,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
             slots.push (1);
         }, threads, false);
 
-        // NOTE: `giostreamsrc` does not support `seek` and will read from the beginning of the file,
-        // so use `appsrc` instead.
-        // Create a new thread to push data
-        Thread<ExportError?> push_thread = new Thread<ExportError?> ("file_pusher", () => {
-            try {
-                // Set the video source
-                var file = File.new_for_commandline_arg (this.filename);
-                var input_stream = file.read ();
-                input_stream.seek (this.video_offset, SeekType.SET);
-
-                // Push the data to appsrc
-                uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
-                ssize_t size;
-                while ((size = input_stream.read (buffer)) > 0) {
-                    buffer.length = (int) size;
-                    var gst_buffer = new Gst.Buffer.wrapped (buffer);
-                    var flow_ret = appsrc.push_buffer (gst_buffer);
-                    if (flow_ret != Gst.FlowReturn.OK) {
-                        appsrc.end_of_stream ();
-                        return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed, flow returned %s", flow_ret.to_string ());
-                    }
-                    buffer.length = Utils.BUFFER_SIZE;
-                }
-
-                // Send EOS to appsrc before returning
-                appsrc.end_of_stream ();
-                return null;
-            } catch (Error e) {
-                appsrc.end_of_stream ();
-                return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed: %s", e.message);
-            }
-        });
+        Thread<ExportError?> push_thread = push_video_to_appsrc (appsrc);
         pipeline.set_state (Gst.State.PLAYING);
 
         Gst.Sample sample;
@@ -177,7 +147,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                 "IMG" + this.basename_no_ext[5:] :
                 this.basename_no_ext)
         );
-        var extension = (output_format ?? this.extension_name).down ();
+        var extension = (output_format ?? this.default_derived_image_extension).down ();
         // for jpg, pixbuf requires the format to be "jpeg"
         var format = (extension == "jpg") ? "jpeg" : extension;
         while ((sample = appsink.pull_sample ()) != null) {
@@ -213,6 +183,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
     }
 
     public override void generate_long_exposure (string dest_path) throws Error {
+        this.ensure_supported (LivePhotoCapabilities.LONG_EXPOSURE);
         if (Utils.same_file (this.filename, dest_path))
             throw new ExportError.FILE_SAVE_ERROR ("`%s' and `%s' are the same file", this.filename, dest_path);
 
@@ -223,32 +194,8 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         var watch = new PipelineWatch (pipeline);
         var appsrc = pipeline.get_by_name ("src") as Gst.App.Src;
         var appsink = pipeline.get_by_name ("sink") as Gst.App.Sink;
-        Thread<ExportError?> push_thread = new Thread<ExportError?> ("file_pusher", () => {
-            try {
-                var file = File.new_for_commandline_arg (this.filename);
-                var input_stream = file.read ();
-                input_stream.seek (this.video_offset, SeekType.SET);
+        Thread<ExportError?> push_thread = push_video_to_appsrc (appsrc);
 
-                uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
-                ssize_t size;
-                while ((size = input_stream.read (buffer)) > 0) {
-                    buffer.length = (int) size;
-                    var gst_buffer = new Gst.Buffer.wrapped (buffer);
-                    var flow_ret = appsrc.push_buffer (gst_buffer);
-                    if (flow_ret != Gst.FlowReturn.OK) {
-                        appsrc.end_of_stream ();
-                        return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed, flow returned %s", flow_ret.to_string ());
-                    }
-                    buffer.length = Utils.BUFFER_SIZE;
-                }
-                appsrc.end_of_stream ();
-                return null;
-            } catch (Error e) {
-                appsrc.end_of_stream ();
-                return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed: %s", e.message);
-            }
-        });
-     
         pipeline.set_state (Gst.State.PLAYING);
 
         uint64[]? accumulator = null;
@@ -317,7 +264,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         string format;
         var last_dot = dest_path.last_index_of_char ('.');
         if (last_dot == -1 || last_dot + 1 >= dest_path.length) {
-            format = this.extension_name.down ();
+            format = this.default_derived_image_extension.down ();
         } else {
             format = dest_path[(last_dot + 1):].down ();
         }
@@ -334,5 +281,42 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         }
 
         Reporter.info_puts ("Exported long exposure image", dest_path);
+    }
+
+    Thread<ExportError?> push_video_to_appsrc (Gst.App.Src appsrc) {
+        return new Thread<ExportError?> ("file_pusher", () => {
+            try {
+                var file = File.new_for_commandline_arg (this.filename);
+                var input_stream = file.read ();
+                input_stream.seek (this.video_offset, SeekType.SET);
+
+                int64 remaining = this.video_length;
+                uint8[] buffer = new uint8[Utils.BUFFER_SIZE];
+                while (remaining > 0) {
+                    int chunk_size = (int) (remaining < Utils.BUFFER_SIZE ? remaining : Utils.BUFFER_SIZE);
+                    buffer.length = chunk_size;
+                    ssize_t size = input_stream.read (buffer);
+                    if (size == 0) {
+                        throw new IOError.FAILED (
+                            "Unexpected end of video data: %lld of %lld bytes remain to be read".printf (
+                                remaining, this.video_length));
+                    }
+                    buffer.length = (int) size;
+                    var gst_buffer = new Gst.Buffer.wrapped (buffer);
+                    var flow_ret = appsrc.push_buffer (gst_buffer);
+                    if (flow_ret != Gst.FlowReturn.OK) {
+                        return new ExportError.FILE_PUSH_ERROR (
+                            "Pushing to appsrc failed, flow returned %s", flow_ret.to_string ());
+                    }
+                    remaining -= size;
+                    buffer.length = Utils.BUFFER_SIZE;
+                }
+                return null;
+            } catch (Error e) {
+                return new ExportError.FILE_PUSH_ERROR ("Pushing to appsrc failed: %s", e.message);
+            } finally {
+                appsrc.end_of_stream ();
+            }
+        });
     }
 }

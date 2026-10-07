@@ -42,10 +42,10 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
     }
 
     public override void split_images_from_video (string? output_format = null, string? dest_dir = null, int threads = 1) throws Error {
-        /* Export the video of the live photo and split the video into images. */
+        this.ensure_supported (LivePhotoCapabilities.FRAMES);
         string name_base;
 
-        var format = (output_format ?? this.extension_name).down ();
+        var format = (output_format ?? this.default_derived_image_extension).down ();
 
         if (threads > 1) {
             Reporter.warning_puts ("NotImplementedWarning", "The `threads` parameter of FFmpeg mode is not implemented.");
@@ -134,11 +134,6 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         }
 
         var push_file_error = push_thread.join ();
-        // Report the error of data pushing,
-        // report here instead of throwing it to avoid zombie subprocess
-        if (push_file_error != null) {
-            Reporter.error_puts ("FilePushError", push_file_error.message);
-        }
         subprcs.wait ();
         stderr_thread.join ();
 
@@ -151,9 +146,12 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                 exit_code,
                 stderr_text ?? "Unknown error");
         }
+        if (push_file_error != null)
+            throw push_file_error;
     }
 
     public override void generate_long_exposure (string dest_path) throws Error {
+        this.ensure_supported (LivePhotoCapabilities.LONG_EXPOSURE);
         if (Utils.same_file (this.filename, dest_path))
             throw new ExportError.FILE_SAVE_ERROR ("`%s' and `%s' are the same file", this.filename, dest_path);
 
@@ -202,9 +200,6 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
         subprcs.wait ();
 
         var push_file_error = push_thread.join ();
-        if (push_file_error != null) {
-            Reporter.error_puts ("FilePushError", push_file_error.message);
-        }
         stderr_thread.join ();
 
         var exit_code = subprcs.get_exit_status ();
@@ -216,7 +211,9 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                 exit_code,
                 stderr_text ?? "Unknown error");
         }
-        
+        if (push_file_error != null)
+            throw push_file_error;
+
         if (export_original_metadata) {
             try {
                 this.metadata_for_export ().save_file (dest_path);
@@ -294,7 +291,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
                 var file = File.new_for_commandline_arg (this.filename);
                 var input_stream = file.read ();
                 input_stream.seek (this.video_offset, SeekType.SET);
-                Utils.write_stream (input_stream, pipe_stdin);
+                Utils.write_stream_exactly (input_stream, pipe_stdin, this.video_length);
             } catch (Error e) {
                 return new ExportError.FILE_PUSH_ERROR ("Pushing to subprocess failed: %s", e.message);
             } finally {

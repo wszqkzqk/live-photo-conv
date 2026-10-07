@@ -36,7 +36,7 @@ Live Photo Converter 是一个用于处理动态照片的跨平台的工具，�
 
 Android 的动态照片是一种逐渐普及的媒体文件格式，它可以将包含音频的视频与静态图片结合在一起，形成一个动态的照片。这种照片已经在多种机型上得到了支持，例如 Google 的 Pixel 系列、三星的 Galaxy 系列，以及小米等厂商的大部分机型。
 
-Android 动态照片本质上是在静态图片的末尾直接附加了一个视频文件，这个视频文件包含了音频与视频流。其中，视频文件的位置使用 `XMP` 元数据进行标记，这样在解析时可以快速找到视频文件的位置。这种格式的好处是可以在不改变原有图片的情况下，为图片添加动态效果。由于这一拓展并非图片格式的标准，因此在不支持的图片查看器上，这种图片只能被当作静态图片显示。
+常见的 JPEG 格式 Android 动态照片是在静态图片的末尾直接附加一个包含音频与视频流的视频文件。其中，视频文件的位置使用 `XMP` 元数据进行标记，这样在解析时可以快速找到视频文件的位置。这种格式的好处是可以在不改变原有图片的情况下，为图片添加动态效果。由于这一拓展并非图片格式的标准，因此在不支持的图片查看器上，这种图片只能被当作静态图片显示。Android Motion Photo 规范还为 HEIC、AVIF 等 ISOBMFF 图像定义了 `mpvd` box。三星也采用这一结构，并可能附加厂商特有的 `sefd` 元数据。
 
 本工具可以用于这种动态照片的提取、修复、编辑与合成等操作。
 
@@ -268,6 +268,12 @@ live-photo-extract -p /path/to/live_photo.jpg -l /path/to/long_exposure.jpg --mi
 
 主要选项：`-p`（动态照片，必需）、`-d`（输出目录）、`-i`（图片）、`-m`（视频）、`-l`（长曝光）、`--frame-to-photos`、`-f`（图片格式）、`-T`（线程数）、`--minimal`、`--drop-metadata`。
 
+对于视频存储在 `mpvd` box 中的 ISOBMFF Motion Photo（包括三星 HEIC 文件），目前支持提取视频、逐帧导出和生成长曝光。默认的静态主图导出会在警告后跳过；通过 `-i` 显式要求导出主图则会报错。仅提取视频可使用：
+
+```bash
+live-photo-extract -p /path/to/samsung_motion_photo.heic -m /path/to/video.mp4 --minimal
+```
+
 #### `live-photo-repair`
 
 ```bash
@@ -281,6 +287,8 @@ live-photo-repair -p /path/to/live_photo.jpg -f
 ```
 
 主要选项：`-p`（动态照片，必需）、`-f`（强制）、`-s`（手动指定视频大小）。
+
+元数据修复目前仅适用于末尾附加视频的 JPEG 动态照片，不支持修复 HEIC/`mpvd` 格式。
 
 #### `live-photo-conv`（通用命令）
 

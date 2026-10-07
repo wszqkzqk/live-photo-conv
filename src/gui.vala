@@ -750,9 +750,13 @@ public class LivePhotoConv.Application : Adw.Application {
                     extract_button,
                     (obj, res2) => {
                         try {
-                            extract_batch_async.end (res2);
+                            var skip_message = extract_batch_async.end (res2);
                             end_work (extract_button, _("Extract"), extract_live_photo_area.files.length > 0);
-                            show_toast (ngettext ("%u file extracted", "%u files extracted", (uint) files.length).printf ((uint) files.length));
+                            if (skip_message != null) {
+                                show_error_dialog (_("Extraction Completed with Skips"), skip_message);
+                            } else {
+                                show_toast (ngettext ("%u file extracted", "%u files extracted", (uint) files.length).printf ((uint) files.length));
+                            }
                         } catch (Error e) {
                             end_work (extract_button, _("Extract"), extract_live_photo_area.files.length > 0);
                             show_error_dialog (_("Error"), e.message);
@@ -876,14 +880,15 @@ public class LivePhotoConv.Application : Adw.Application {
         button.label = @"$(verb) $(current)/$(total)…";
     }
 
-    private async void extract_batch_async (GenericArray<File> files, GenericArray<string> paths,
-                                             File dest_folder,
-                                             bool do_image, bool do_video,
-                                             bool do_long, bool do_frames,
-                                             string? img_format,
-                                             Gtk.Button button) throws Error {
+    private async string? extract_batch_async (GenericArray<File> files, GenericArray<string> paths,
+                                                File dest_folder,
+                                                bool do_image, bool do_video,
+                                                bool do_long, bool do_frames,
+                                                string? img_format,
+                                                Gtk.Button button) throws Error {
         SourceFunc callback = extract_batch_async.callback;
         var sb = new StringBuilder ();
+        uint skipped_main_image_count = 0;
         int error_count = 0;
         int total = (int) paths.length;
         int processed = 0;
@@ -906,7 +911,28 @@ public class LivePhotoConv.Application : Adw.Application {
             foreach (unowned var path in paths) {
                 try {
                     var live_photo = LivePhoto.create (path, dest_dir);
-                    if (do_image)
+                    bool export_image = do_image;
+                    if (export_image && !live_photo.supports (LivePhotoCapabilities.MAIN_IMAGE)) {
+                        export_image = false;
+                        skipped_main_image_count += 1;
+                    }
+
+                    LivePhotoCapabilities required = (LivePhotoCapabilities) 0;
+                    if (export_image)
+                        required = required | LivePhotoCapabilities.MAIN_IMAGE;
+                    if (do_video)
+                        required = required | LivePhotoCapabilities.VIDEO;
+                    if (do_long)
+                        required = required | LivePhotoCapabilities.LONG_EXPOSURE;
+                    if (do_frames)
+                        required = required | LivePhotoCapabilities.FRAMES;
+                    if (required == 0 && (do_image || do_video || do_long || do_frames)) {
+                        throw new UnsupportedOperationError.UNSUPPORTED_OPERATION (
+                            _("None of the selected extraction operations are supported by this live photo."));
+                    }
+                    live_photo.ensure_supported (required);
+
+                    if (export_image)
                         live_photo.export_main_image ();
                     if (do_video)
                         live_photo.export_video ();
@@ -971,13 +997,25 @@ public class LivePhotoConv.Application : Adw.Application {
             if (needs_staging (files[i]))
                 cleanup_staged (paths[i]);
         }
+
+        string? skip_message = null;
+        if (skipped_main_image_count > 0) {
+            skip_message = ngettext (
+                "Main image export was skipped for %u file because its format does not support it.",
+                "Main image export was skipped for %u files because their formats do not support it.",
+                skipped_main_image_count).printf (skipped_main_image_count);
+        }
+
         if (error_count > 0) {
             unowned string detail = sb.str;
-            throw new ExportError.FILE_PUSH_ERROR (
-                error_count != total
-                    ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
-                    : detail);
+            string error_detail = error_count != total
+                ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
+                : detail;
+            if (skip_message != null)
+                error_detail = "%s\n\n%s".printf (skip_message, error_detail);
+            throw new ExportError.FILE_PUSH_ERROR ("%s", error_detail);
         }
+        return skip_message;
     }
 
     private async void repair_batch_async (GenericArray<File> files, GenericArray<string> paths,
@@ -985,9 +1023,11 @@ public class LivePhotoConv.Application : Adw.Application {
                                             Gtk.Button button) throws Error {
         SourceFunc callback = repair_batch_async.callback;
         var sb = new StringBuilder ();
+        var live_photos = new GenericArray<LivePhoto> ();
         int error_count = 0;
         int total = (int) paths.length;
         int processed = 0;
+        bool preflight_succeeded = true;
         var succeeded = new bool[paths.length];
 
         report_progress (button, _("Repairing"), 0, total);
@@ -997,18 +1037,33 @@ public class LivePhotoConv.Application : Adw.Application {
                 unowned var path = paths[i];
                 try {
                     var live_photo = LivePhoto.create (path);
-                    live_photo.repair_live_metadata (force, video_size);
-                    succeeded[i] = true;
+                    live_photo.ensure_supported (LivePhotoCapabilities.REPAIR);
+                    live_photos.add (live_photo);
                 } catch (Error e) {
+                    preflight_succeeded = false;
                     if (error_count > 0) sb.append_c ('\n');
                     sb.append_printf ("%s: %s", path, e.message);
                     error_count += 1;
                 }
-                var current = AtomicInt.add (ref processed, 1) + 1;
-                Idle.add (() => {
-                    report_progress (button, _("Repairing"), current, total);
-                    return false;
-                });
+            }
+
+            if (preflight_succeeded) {
+                for (int i = 0; i < paths.length; i += 1) {
+                    unowned var path = paths[i];
+                    try {
+                        live_photos[i].repair_live_metadata (force, video_size);
+                        succeeded[i] = true;
+                    } catch (Error e) {
+                        if (error_count > 0) sb.append_c ('\n');
+                        sb.append_printf ("%s: %s", path, e.message);
+                        error_count += 1;
+                    }
+                    var current = AtomicInt.add (ref processed, 1) + 1;
+                    Idle.add (() => {
+                        report_progress (button, _("Repairing"), current, total);
+                        return false;
+                    });
+                }
             }
             Idle.add ((owned) callback);
         });
@@ -1033,6 +1088,10 @@ public class LivePhotoConv.Application : Adw.Application {
 
         if (error_count > 0) {
             unowned string detail = sb.str;
+            if (!preflight_succeeded) {
+                throw new ExportError.FILE_PUSH_ERROR ("%s\n%s",
+                    _("Repair preflight failed; no files were modified:"), detail);
+            }
             throw new ExportError.FILE_PUSH_ERROR (
                 error_count != total
                     ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
