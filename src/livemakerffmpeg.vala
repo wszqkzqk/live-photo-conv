@@ -92,7 +92,7 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         return video_size;
     }
 
-    public override File export_main_image () throws Error {
+    public override File write_main_image () throws Error {
         var main_file = File.new_for_commandline_arg (this.main_image_path);
         var live_file = File.new_for_commandline_arg (this.dest);
 

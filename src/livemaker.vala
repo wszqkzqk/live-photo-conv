@@ -230,7 +230,7 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         }
 
         // Create the live photo file from the main image and then append the video
-        var live_file = this.export_main_image ();
+        var live_file = this.write_main_image ();
         var video_file = File.new_for_commandline_arg  (this.video_path);
 
         var video_size = video_file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
@@ -270,13 +270,13 @@ public abstract class LivePhotoConv.LiveMaker : Object {
     protected abstract int64 export_with_video_only () throws Error;
 
     /**
-     * Export the main image to the destination live photo file.
+     * Writes the main image to the destination live photo file.
      *
      * Copies or converts the main image to the destination path.
      * If the image format is not supported, it may be converted.
      *
      * @return The file handle of the created live photo.
-     * @throws Error if an error occurs during export.
+     * @throws Error if an error occurs during writing.
      */
-    protected abstract File export_main_image () throws Error;
+    protected abstract File write_main_image () throws Error;
 }
