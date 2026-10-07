@@ -109,6 +109,7 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         } else {
             // Convert the main image to supported format
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
+            bool heif_image = is_heif_image (main_file);
             string[] commands = {
                 "ffmpeg",
                 "-loglevel", "error",
@@ -143,11 +144,25 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
                     exit_code,
                     stderr_text ?? "Unknown error");
             }
-            if (this.export_original_metadata) {
+            if (this.export_original_metadata && heif_image) {
                 this.metadata.set_tag_string ("Exif.Image.Orientation", "1");
             }
         }
 
         return live_file;
+    }
+
+    static bool is_heif_image (File file) {
+        try {
+            var info = file.query_info ("standard::content-type", FileQueryInfoFlags.NONE);
+            var content_type = info.get_content_type ();
+            if (content_type == null) {
+                return false;
+            }
+            var mime_type = ContentType.get_mime_type (content_type);
+            return mime_type == "image/heic" || mime_type == "image/heif" || mime_type == "image/avif";
+        } catch (Error e) {
+            return false;
+        }
     }
 }

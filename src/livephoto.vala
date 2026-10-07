@@ -204,6 +204,9 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             this._video_length = file_size - this.video_offset;
             this._main_image_size = this.video_offset;
         }
+        this.notify["export-original-metadata"].connect (() => {
+            this.notify_property ("capabilities");
+        });
     }
 
     /**

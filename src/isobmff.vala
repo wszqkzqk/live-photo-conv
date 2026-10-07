@@ -82,8 +82,6 @@ namespace LivePhotoConv.IsoBmff {
         while (position < file_size) {
             Box box;
             read_box (input, position, file_size, out box);
-            if (box.type == SEFD)
-                break;
             if (box.type == MPVD) {
                 if (mpvd != null) {
                     throw new IsoBmffError.MULTIPLE_MPVD (
