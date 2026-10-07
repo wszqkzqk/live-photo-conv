@@ -17,16 +17,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
-namespace LivePhotoConv {
-    /** Operations supported by a particular live photo layout. */
-    [Flags]
-    public enum LivePhotoCapabilities {
-        MAIN_IMAGE = 1 << 0,
-        VIDEO = 1 << 1,
-        LONG_EXPOSURE = 1 << 2,
-        FRAMES = 1 << 3,
-        REPAIR = 1 << 4,
-    }
+/** Operations supported by a particular live photo layout. */
+[Flags]
+public enum LivePhotoConv.LivePhotoCapabilities {
+    MAIN_IMAGE = 1 << 0,
+    VIDEO = 1 << 1,
+    LONG_EXPOSURE = 1 << 2,
+    FRAMES = 1 << 3,
+    REPAIR = 1 << 4,
 }
 
 /**
@@ -77,7 +75,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 var result = LivePhotoCapabilities.VIDEO
                     | LivePhotoCapabilities.LONG_EXPOSURE
                     | LivePhotoCapabilities.FRAMES;
-                if (this.export_original_metadata && this._main_image_size > 0) {
+                if (this.export_original_metadata) {
                     result |= LivePhotoCapabilities.MAIN_IMAGE;
                 }
                 return result;

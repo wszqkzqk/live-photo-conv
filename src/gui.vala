@@ -750,13 +750,9 @@ public class LivePhotoConv.Application : Adw.Application {
                     extract_button,
                     (obj, res2) => {
                         try {
-                            var skip_message = extract_batch_async.end (res2);
+                            extract_batch_async.end (res2);
                             end_work (extract_button, _("Extract"), extract_live_photo_area.files.length > 0);
-                            if (skip_message != null) {
-                                show_error_dialog (_("Extraction Completed with Skips"), skip_message);
-                            } else {
-                                show_toast (ngettext ("%u file extracted", "%u files extracted", (uint) files.length).printf ((uint) files.length));
-                            }
+                            show_toast (ngettext ("%u file extracted", "%u files extracted", (uint) files.length).printf ((uint) files.length));
                         } catch (Error e) {
                             end_work (extract_button, _("Extract"), extract_live_photo_area.files.length > 0);
                             show_error_dialog (_("Error"), e.message);
@@ -880,7 +876,7 @@ public class LivePhotoConv.Application : Adw.Application {
         button.label = @"$(verb) $(current)/$(total)…";
     }
 
-    private async string? extract_batch_async (GenericArray<File> files, GenericArray<string> paths,
+    private async void extract_batch_async (GenericArray<File> files, GenericArray<string> paths,
                                                 File dest_folder,
                                                 bool do_image, bool do_video,
                                                 bool do_long, bool do_frames,
@@ -888,7 +884,6 @@ public class LivePhotoConv.Application : Adw.Application {
                                                 Gtk.Button button) throws Error {
         SourceFunc callback = extract_batch_async.callback;
         var sb = new StringBuilder ();
-        uint skipped_main_image_count = 0;
         int error_count = 0;
         int total = (int) paths.length;
         int processed = 0;
@@ -911,14 +906,8 @@ public class LivePhotoConv.Application : Adw.Application {
             foreach (unowned var path in paths) {
                 try {
                     var live_photo = LivePhoto.create (path, dest_dir);
-                    bool export_image = do_image;
-                    if (export_image && !live_photo.supports (LivePhotoCapabilities.MAIN_IMAGE)) {
-                        export_image = false;
-                        skipped_main_image_count += 1;
-                    }
-
                     LivePhotoCapabilities required = (LivePhotoCapabilities) 0;
-                    if (export_image)
+                    if (do_image)
                         required = required | LivePhotoCapabilities.MAIN_IMAGE;
                     if (do_video)
                         required = required | LivePhotoCapabilities.VIDEO;
@@ -932,7 +921,7 @@ public class LivePhotoConv.Application : Adw.Application {
                     }
                     live_photo.ensure_supported (required);
 
-                    if (export_image)
+                    if (do_image)
                         live_photo.export_main_image ();
                     if (do_video)
                         live_photo.export_video ();
@@ -998,24 +987,13 @@ public class LivePhotoConv.Application : Adw.Application {
                 cleanup_staged (paths[i]);
         }
 
-        string? skip_message = null;
-        if (skipped_main_image_count > 0) {
-            skip_message = ngettext (
-                "Main image export was skipped for %u file because its format does not support it.",
-                "Main image export was skipped for %u files because their formats do not support it.",
-                skipped_main_image_count).printf (skipped_main_image_count);
-        }
-
         if (error_count > 0) {
             unowned string detail = sb.str;
             string error_detail = error_count != total
                 ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
                 : detail;
-            if (skip_message != null)
-                error_detail = "%s\n\n%s".printf (skip_message, error_detail);
             throw new ExportError.FILE_PUSH_ERROR ("%s", error_detail);
         }
-        return skip_message;
     }
 
     private async void repair_batch_async (GenericArray<File> files, GenericArray<string> paths,

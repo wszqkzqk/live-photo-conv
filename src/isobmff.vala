@@ -26,7 +26,7 @@ internal errordomain LivePhotoConv.IsoBmffError {
 internal struct LivePhotoConv.MpvdVideoRange {
     public int64 offset;
     public int64 length;
-    /** Safe main-image prefix size, or -1 when data follows the mpvd box. */
+    /** Size of the main image data preceding the mpvd box. */
     public int64 main_image_size;
 }
 
@@ -97,7 +97,7 @@ namespace LivePhotoConv.IsoBmff {
                 "The ISO-BMFF container does not contain an mpvd video box");
         }
         var range = validate_mpvd (input, mpvd);
-        range.main_image_size = mpvd.end == file_size ? mpvd.offset : -1;
+        range.main_image_size = mpvd.offset;
         return range;
     }
 

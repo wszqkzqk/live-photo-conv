@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 10:14+0800\n"
+"POT-Creation-Date: 2026-10-07 19:38+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,11 +29,11 @@ msgstr[1] ""
 msgid "Make Live Photo"
 msgstr ""
 
-#: src/gui.vala:318 src/gui.vala:325 src/gui.vala:754 src/gui.vala:761
+#: src/gui.vala:318 src/gui.vala:325 src/gui.vala:754 src/gui.vala:757
 msgid "Extract"
 msgstr ""
 
-#: src/gui.vala:321 src/gui.vala:326 src/gui.vala:867 src/gui.vala:870
+#: src/gui.vala:321 src/gui.vala:326 src/gui.vala:863 src/gui.vala:866
 msgid "Repair"
 msgstr ""
 
@@ -101,8 +101,8 @@ msgstr ""
 msgid "Save Live Photo As"
 msgstr ""
 
-#: src/gui.vala:650 src/gui.vala:669 src/gui.vala:743 src/gui.vala:762
-#: src/gui.vala:859 src/gui.vala:871
+#: src/gui.vala:650 src/gui.vala:669 src/gui.vala:743 src/gui.vala:758
+#: src/gui.vala:855 src/gui.vala:867
 msgid "Error"
 msgstr ""
 
@@ -114,7 +114,7 @@ msgstr ""
 msgid "Live photo created"
 msgstr ""
 
-#: src/gui.vala:687 src/gui.vala:776
+#: src/gui.vala:687 src/gui.vala:772
 msgid "Live Photo"
 msgstr ""
 
@@ -122,7 +122,7 @@ msgstr ""
 msgid "Select the live photo file to extract from."
 msgstr ""
 
-#: src/gui.vala:690 src/gui.vala:779
+#: src/gui.vala:690 src/gui.vala:775
 msgid ""
 "Drop live photo file here\n"
 "or click to browse"
@@ -160,7 +160,7 @@ msgstr ""
 msgid "auto"
 msgstr ""
 
-#: src/gui.vala:719 src/gui.vala:847
+#: src/gui.vala:719 src/gui.vala:843
 msgid "Please select a live photo file first"
 msgstr ""
 
@@ -172,99 +172,84 @@ msgstr ""
 msgid "Extracting…"
 msgstr ""
 
-#: src/gui.vala:756
-msgid "Extraction Completed with Skips"
-msgstr ""
-
-#: src/gui.vala:758
+#: src/gui.vala:755
 #, c-format
 msgid "%u file extracted"
 msgid_plural "%u files extracted"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/gui.vala:777
+#: src/gui.vala:773
 msgid "Select the live photo file to repair its XMP metadata."
 msgstr ""
 
-#: src/gui.vala:792
+#: src/gui.vala:788
 msgid "Repair Options"
 msgstr ""
 
-#: src/gui.vala:794
+#: src/gui.vala:790
 msgid "Force Repair"
 msgstr ""
 
-#: src/gui.vala:796
+#: src/gui.vala:792
 msgid ""
 "If enabled, skips validation of the existing video offset and\n"
 "forces a full-file scan to re-discover the MP4 header position."
 msgstr ""
 
-#: src/gui.vala:801
+#: src/gui.vala:797
 msgid "Advanced"
 msgstr ""
 
-#: src/gui.vala:803
+#: src/gui.vala:799
 msgid "Manual Video Size"
 msgstr ""
 
-#: src/gui.vala:804
+#: src/gui.vala:800
 msgid "Specify the size of the embedded video in bytes"
 msgstr ""
 
-#: src/gui.vala:805
+#: src/gui.vala:801
 msgid ""
 "If the video size cannot be detected automatically,\n"
 "you can manually specify its size in bytes.\n"
 "Leave at 0 to use automatic detection."
 msgstr ""
 
-#: src/gui.vala:820
+#: src/gui.vala:816
 msgid ""
 "Enter the exact size of the video portion in bytes.\n"
 "Only needed if automatic detection fails."
 msgstr ""
 
-#: src/gui.vala:830
+#: src/gui.vala:826
 msgid "Video size in bytes"
 msgstr ""
 
-#: src/gui.vala:863
+#: src/gui.vala:859
 msgid "Repairing…"
 msgstr ""
 
-#: src/gui.vala:868
+#: src/gui.vala:864
 #, c-format
 msgid "%u file repaired"
 msgid_plural "%u files repaired"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/gui.vala:908 src/gui.vala:955
+#: src/gui.vala:903 src/gui.vala:944
 msgid "Extracting"
 msgstr ""
 
-#: src/gui.vala:931
+#: src/gui.vala:920
 msgid ""
 "None of the selected extraction operations are supported by this live photo."
 msgstr ""
 
-#: src/gui.vala:1004
-#, c-format
-msgid ""
-"Main image export was skipped for %u file because its format does not "
-"support it."
-msgid_plural ""
-"Main image export was skipped for %u files because their formats do not "
-"support it."
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/gui.vala:1033 src/gui.vala:1063
+#: src/gui.vala:1011 src/gui.vala:1041
 msgid "Repairing"
 msgstr ""
 
-#: src/gui.vala:1093
+#: src/gui.vala:1071
 msgid "Repair preflight failed; no files were modified:"
 msgstr ""

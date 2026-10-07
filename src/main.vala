@@ -272,11 +272,6 @@ class LivePhotoConv.Main {
 
         bool export_main_image = (!minimal_export) || main_image_path != null;
         bool export_video = (!minimal_export) || video_path != null;
-        bool skip_main_image = export_main_image && main_image_path == null
-            && !live_photo.supports (LivePhotoCapabilities.MAIN_IMAGE);
-        if (skip_main_image) {
-            export_main_image = false;
-        }
 
         LivePhotoCapabilities required = (LivePhotoCapabilities) 0;
         if (repair_live_photo) {
@@ -296,10 +291,6 @@ class LivePhotoConv.Main {
         }
         live_photo.ensure_supported (required);
 
-        if (skip_main_image) {
-            Reporter.warning_puts ("UnsupportedOperationWarning",
-                "The default main image export is not supported by this live photo; skipping it.");
-        }
         if (repair_live_photo) {
             live_photo.repair_live_metadata (force_repair, repair_with_video_size);
         }
