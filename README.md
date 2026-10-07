@@ -274,7 +274,7 @@ live-photo-extract -p /path/to/live_photo.jpg -l /path/to/long_exposure.jpg --mi
 
 Key options: `-p` (live photo, required), `-d` (output directory), `-i` (image), `-m` (video), `-l` (long exposure), `--frame-to-photos`, `-f` (image format), `-T` (threads), `--minimal`, `--drop-metadata`.
 
-ISOBMFF Motion Photos with an `mpvd` box, including Samsung HEIC files, support video extraction, frame export, and long-exposure generation. The implicit main-image export is skipped with a warning; explicitly requesting it with `-i` returns an error. To export only the video:
+ISOBMFF Motion Photos with an `mpvd` box, including Samsung HEIC files, support lossless main-image and video extraction, frame export, and long-exposure generation. Main-image extraction preserves the original metadata, as permitted by the Motion Photo specification. Exporting the main image with `--drop-metadata` is not supported; in that case, the implicit main-image export is skipped with a warning, while explicitly requesting it with `-i` returns an error. To export only the video:
 
 ```bash
 live-photo-extract -p /path/to/samsung_motion_photo.heic -m /path/to/video.mp4 --minimal

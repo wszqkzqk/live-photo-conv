@@ -32,9 +32,9 @@ namespace LivePhotoConv {
 /**
  * Represents a live photo.
  *
- * This class provides operations to extract a live photo's video, derive
- * images from it, and, for JPEG appended layouts, export the main image or
- * repair the XMP. Use {@link capabilities} or {@link supports} to preflight operations.
+ * This class provides operations to extract a live photo's main image and
+ * video, derive images from the video, and, for JPEG appended layouts, repair
+ * the XMP. Use {@link capabilities} or {@link supports} to preflight operations.
  */
 public abstract class LivePhotoConv.LivePhoto : Object {
 
@@ -59,6 +59,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     protected string dest_dir;
     protected int64 video_offset;
     int64 _video_length;
+    int64 _main_image_size;
     Layout layout;
 
     protected string default_derived_image_extension {
@@ -69,13 +70,17 @@ public abstract class LivePhotoConv.LivePhoto : Object {
         get { return this._video_length; }
     }
 
-    /** The operations supported by this live photo's storage layout. */
+    /** The operations supported by this live photo's storage layout and export options. */
     public LivePhotoCapabilities capabilities {
         get {
             if (this.layout == Layout.MPVD) {
-                return LivePhotoCapabilities.VIDEO
+                var result = LivePhotoCapabilities.VIDEO
                     | LivePhotoCapabilities.LONG_EXPOSURE
                     | LivePhotoCapabilities.FRAMES;
+                if (this.export_original_metadata && this._main_image_size > 0) {
+                    result |= LivePhotoCapabilities.MAIN_IMAGE;
+                }
+                return result;
             }
             return LivePhotoCapabilities.MAIN_IMAGE
                 | LivePhotoCapabilities.VIDEO
@@ -186,6 +191,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             this.layout = Layout.MPVD;
             this.video_offset = mpvd_video.offset;
             this._video_length = mpvd_video.length;
+            this._main_image_size = mpvd_video.main_image_size;
         } else {
             this.layout = Layout.JPEG_APPENDED;
             this.video_offset = this.get_video_offset ();
@@ -196,6 +202,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 .query_info ("standard::size", FileQueryInfoFlags.NONE)
                 .get_size ();
             this._video_length = file_size - this.video_offset;
+            this._main_image_size = this.video_offset;
         }
     }
 
@@ -356,7 +363,8 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * Export the main image of the live photo.
      *
      * The destination path for the exported main image can be specified.
-     * If not provided, a default path will be used.
+     * If not provided, a default path will be used. MPVD extraction preserves
+     * the original metadata; dropping metadata is unsupported for that layout.
      *
      * @param dest The destination path for the exported main image. If null, a default path will be used.
      * @throws Error if there is an error during the export process.
@@ -364,7 +372,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     */
     public string export_main_image (string? dest = null) throws Error {
         this.ensure_supported (LivePhotoCapabilities.MAIN_IMAGE);
-        // Export the bytes before `video_offset`
         var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
         string main_image_filename;
@@ -382,13 +389,18 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             throw new ExportError.FILE_SAVE_ERROR (
                 "`%s' and `%s' are the same file", this.filename, main_image_filename);
 
-        // Write the bytes before `video_offset`
         {
             var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
-            Utils.write_stream_before (input_stream, output_stream, this.video_offset);
-        } // Close the stream (renaming into place) before the metadata rewrite
+            Utils.write_stream_before (input_stream, output_stream, this._main_image_size);
+        } // Close the stream (renaming into place) before any metadata rewrite
 
         Reporter.info_puts ("Exported main image", main_image_filename);
+
+        // The Motion Photo specification requires readers to tolerate residual
+        // XMP after the video is removed, so MPVD extraction preserves it as-is.
+        if (this.layout == Layout.MPVD) {
+            return (owned) main_image_filename;
+        }
 
         // Rewrite the metadata: XMP stripped when exporting, dropped entirely otherwise
         try {
@@ -547,12 +559,13 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             }
         }
 
-        // Refresh the video range; the metadata rewrite may change the file size
+        // Refresh the ranges; the metadata rewrite may change the file size
         file_size = File.new_for_commandline_arg (this.filename)
             .query_info ("standard::size", FileQueryInfoFlags.NONE)
             .get_size ();
         this.video_offset = file_size - reverse_offset;
         this._video_length = reverse_offset;
+        this._main_image_size = this.video_offset;
 
         Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
     }

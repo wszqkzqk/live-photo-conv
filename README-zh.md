@@ -268,7 +268,7 @@ live-photo-extract -p /path/to/live_photo.jpg -l /path/to/long_exposure.jpg --mi
 
 主要选项：`-p`（动态照片，必需）、`-d`（输出目录）、`-i`（图片）、`-m`（视频）、`-l`（长曝光）、`--frame-to-photos`、`-f`（图片格式）、`-T`（线程数）、`--minimal`、`--drop-metadata`。
 
-对于视频存储在 `mpvd` box 中的 ISOBMFF Motion Photo（包括三星 HEIC 文件），目前支持提取视频、逐帧导出和生成长曝光。默认的静态主图导出会在警告后跳过；通过 `-i` 显式要求导出主图则会报错。仅提取视频可使用：
+对于视频存储在 `mpvd` box 中的 ISOBMFF Motion Photo（包括三星 HEIC 文件），目前支持无损提取静态主图和视频、逐帧导出以及生成长曝光。主图提取会按照 Motion Photo 规范保留原始元数据。使用 `--drop-metadata` 时无法导出主图：默认的主图导出会在警告后跳过，通过 `-i` 显式要求导出则会报错。仅提取视频可使用：
 
 ```bash
 live-photo-extract -p /path/to/samsung_motion_photo.heic -m /path/to/video.mp4 --minimal
