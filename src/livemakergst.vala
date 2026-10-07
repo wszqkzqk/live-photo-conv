@@ -98,10 +98,35 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             var main_file_stream = main_file.read ();
             var pixbuf = new Gdk.Pixbuf.from_stream (main_file_stream, null);
+            bool has_embedded_orientation = pixbuf.get_option ("orientation") != null;
+            if (has_embedded_orientation) {
+                pixbuf = pixbuf.apply_embedded_orientation ();
+            }
+            bool display_oriented = has_embedded_orientation
+                || decoder_applies_display_orientation (main_file);
+            if (display_oriented && this.export_original_metadata) {
+                this.metadata.set_tag_string ("Exif.Image.Orientation", "1");
+            }
             var output_stream = live_file.replace (null, this.make_backup, this.file_create_flags);
             pixbuf.save_to_stream (output_stream, "jpeg");
         }
 
         return live_file;
+    }
+
+    static bool decoder_applies_display_orientation (File file) {
+        try {
+            var info = file.query_info ("standard::content-type", FileQueryInfoFlags.NONE);
+            var content_type = info.get_content_type ();
+            if (content_type == null) {
+                return false;
+            }
+            var mime_type = ContentType.get_mime_type (content_type);
+            // The HEIF and TIFF loaders apply orientation during decoding.
+            return mime_type == "image/heic" || mime_type == "image/heif" || mime_type == "image/avif"
+                || mime_type == "image/tiff";
+        } catch (Error e) {
+            return false;
+        }
     }
 }

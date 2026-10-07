@@ -143,6 +143,9 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
                     exit_code,
                     stderr_text ?? "Unknown error");
             }
+            if (this.export_original_metadata) {
+                this.metadata.set_tag_string ("Exif.Image.Orientation", "1");
+            }
         }
 
         return live_file;
