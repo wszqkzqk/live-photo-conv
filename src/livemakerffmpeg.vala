@@ -110,7 +110,6 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
             // Convert the main image to supported format
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             bool display_oriented = this.export_original_metadata
-                && is_heif_image (main_file)
                 && has_display_transform (this.main_image_path);
             string[] commands = {
                 "ffmpeg",
@@ -153,20 +152,6 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         }
 
         return live_file;
-    }
-
-    static bool is_heif_image (File file) {
-        try {
-            var info = file.query_info ("standard::content-type", FileQueryInfoFlags.NONE);
-            var content_type = info.get_content_type ();
-            if (content_type == null) {
-                return false;
-            }
-            var mime_type = ContentType.get_mime_type (content_type);
-            return mime_type == "image/heic" || mime_type == "image/heif" || mime_type == "image/avif";
-        } catch (Error e) {
-            return false;
-        }
     }
 
     static bool has_display_transform (string input_path) throws Error {

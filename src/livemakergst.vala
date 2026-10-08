@@ -132,9 +132,6 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
         if (mime_type == "image/tiff") {
             return true;
         }
-        if (mime_type != "image/heic" && mime_type != "image/heif" && mime_type != "image/avif") {
-            return false;
-        }
 
         var filename = file.get_path () ?? file.get_uri ();
         return IsoBmff.primary_has_display_transform (filename);

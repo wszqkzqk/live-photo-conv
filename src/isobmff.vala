@@ -121,6 +121,15 @@ namespace LivePhotoConv.IsoBmff {
         }
 
         var input = file.read ();
+        uint8[] signature = new uint8[8];
+        size_t signature_size;
+        input.read_all (signature, out signature_size, null);
+        if (signature_size != signature.length
+            || (signature[0] == 0xff && signature[1] == 0xd8)
+            || !is_bmff_start (read_be32 (signature, 4))) {
+            return false;
+        }
+
         Box? meta = null;
         int64 position = 0;
         while (position < file_size) {
@@ -137,8 +146,7 @@ namespace LivePhotoConv.IsoBmff {
         }
 
         if (meta == null) {
-            throw new IsoBmffError.MALFORMED_CONTAINER (
-                "The HEIF container does not contain a top-level meta box");
+            return false;
         }
 
         uint8[] meta_header = new uint8[4];
@@ -173,8 +181,7 @@ namespace LivePhotoConv.IsoBmff {
         }
 
         if (!has_pitm) {
-            throw new IsoBmffError.MALFORMED_CONTAINER (
-                "The meta box does not contain a pitm primary item box");
+            return false;
         }
         if (iprp == null) {
             return false;
