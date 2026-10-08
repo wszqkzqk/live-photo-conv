@@ -288,23 +288,30 @@ namespace LivePhotoConv.IsoBmff {
             position += 1;
             for (int association = 0; association < association_count; association++) {
                 uint32 property_index;
+                bool essential_property;
                 if (wide_property_indices) {
                     read_exact (input, position, ipma.end, bytes2, "ipma property association");
+                    essential_property = (read_be16 (bytes2, 0) & 0x8000) != 0;
                     property_index = (uint32) (read_be16 (bytes2, 0) & 0x7fff);
                     position += 2;
                 } else {
                     read_exact (input, position, ipma.end, bytes1, "ipma property association");
+                    essential_property = (bytes1[0] & 0x80) != 0;
                     property_index = (uint32) (bytes1[0] & 0x7f);
                     position += 1;
                 }
 
-                if (property_index == 0 || (int64) property_index > property_count) {
+                if (essential_property && property_index == 0) {
+                    throw new IsoBmffError.MALFORMED_CONTAINER (
+                        "ipma contains an essential association with no property");
+                }
+                if (item_id != primary_item_id || property_index == 0) {
+                    continue;
+                }
+                if ((int64) property_index > property_count) {
                     throw new IsoBmffError.MALFORMED_CONTAINER (
                         "ipma property index %u is outside the ipco property array".printf (
                             property_index));
-                }
-                if (item_id != primary_item_id) {
-                    continue;
                 }
 
                 Box property;

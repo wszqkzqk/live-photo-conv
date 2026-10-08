@@ -94,7 +94,8 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
             var main_input_stream = main_file.read ();
             Utils.write_stream (main_input_stream, output_stream);
         } else {
-            bool decoder_applies_orientation = decoder_applies_display_orientation (main_file);
+            bool decoder_applies_orientation = this.export_original_metadata
+                && decoder_applies_display_orientation (main_file);
             // Convert the main image to supported format
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             var main_file_stream = main_file.read ();

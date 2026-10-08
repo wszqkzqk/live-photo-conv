@@ -111,7 +111,7 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             bool display_oriented = this.export_original_metadata
                 && is_heif_image (main_file)
-                && IsoBmff.primary_has_display_transform (this.main_image_path);
+                && has_display_transform (this.main_image_path);
             string[] commands = {
                 "ffmpeg",
                 "-loglevel", "error",
@@ -167,5 +167,37 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         } catch (Error e) {
             return false;
         }
+    }
+
+    static bool has_display_transform (string input_path) throws Error {
+        if (!IsoBmff.primary_has_display_transform (input_path)) {
+            return false;
+        }
+
+        string[] commands = { "ffmpeg", "-version", null };
+        var subprcs = new Subprocess.newv (commands,
+            SubprocessFlags.STDOUT_PIPE | SubprocessFlags.STDERR_PIPE);
+        string stdout_text;
+        string stderr_text;
+        subprcs.communicate_utf8 (null, null, out stdout_text, out stderr_text);
+        var exit_code = subprcs.get_exit_status ();
+        if (exit_code != 0) {
+            throw new ExportError.FFMPEG_EXIED_WITH_ERROR (
+                "Command `%s' failed with %d - `%s'",
+                string.joinv (" ", commands), exit_code, stderr_text);
+        }
+
+        var first_line = stdout_text.strip ().split ("\n")[0];
+        var fields = first_line.split (" ");
+        if (fields.length < 3 || fields[0] != "ffmpeg" || fields[1] != "version") {
+            throw new ExportError.FILE_PUSH_ERROR (
+                "Unexpected ffmpeg version output: %s", first_line);
+        }
+        int major_version;
+        if (!int.try_parse (fields[2].split (".")[0], out major_version)) {
+            throw new ExportError.FILE_PUSH_ERROR (
+                "Unexpected ffmpeg version output: %s", first_line);
+        }
+        return major_version >= 8;
     }
 }
