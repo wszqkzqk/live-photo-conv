@@ -305,13 +305,13 @@ namespace LivePhotoConv.IsoBmff {
                     throw new IsoBmffError.MALFORMED_CONTAINER (
                         "ipma contains an essential association with no property");
                 }
-                if (item_id != primary_item_id || property_index == 0) {
-                    continue;
-                }
                 if ((int64) property_index > property_count) {
                     throw new IsoBmffError.MALFORMED_CONTAINER (
                         "ipma property index %u is outside the ipco property array".printf (
                             property_index));
+                }
+                if (item_id != primary_item_id || property_index == 0) {
+                    continue;
                 }
 
                 Box property;

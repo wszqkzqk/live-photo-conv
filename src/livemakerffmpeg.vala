@@ -193,6 +193,13 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
             throw new ExportError.FILE_PUSH_ERROR (
                 "Unexpected ffmpeg version output: %s", first_line);
         }
+        if (fields[2].length >= 2 && fields[2][0] == 'N' && fields[2][1] == '-') {
+            return true;
+        }
+        if (fields[2][0] == 'n' || fields[2][0] == 'N') {
+            fields[2] = fields[2].substring (1);
+        }
+
         int major_version;
         if (!int.try_parse (fields[2].split (".")[0], out major_version)) {
             throw new ExportError.FILE_PUSH_ERROR (
