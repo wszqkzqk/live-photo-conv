@@ -120,7 +120,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
 
         // Create a threadpool to process the images
         int export_errors = 0;
-        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
+        var export_meta = export_original_metadata ? this.metadata_for_derived_images () : null;
         // Bound the in-flight frame backlog with token slots
         var slots = new AsyncQueue<ulong> ();
         for (int i = 0; i < 2 * threads; i += 1) {
@@ -274,7 +274,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         pixbuf.save (dest_path, format);
         if (export_original_metadata) {
             try {
-                this.metadata_for_export ().save_file (dest_path);
+                this.metadata_for_derived_images ().save_file (dest_path);
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
             }

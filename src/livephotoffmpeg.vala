@@ -87,7 +87,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
             };
         }
 
-        var export_meta = export_original_metadata ? this.metadata_for_export () : null;
+        var export_meta = export_original_metadata ? this.metadata_for_derived_images () : null;
 
         var subprcs = new Subprocess.newv (commands,
             SubprocessFlags.STDOUT_PIPE |
@@ -216,7 +216,7 @@ internal class LivePhotoConv.LivePhotoFFmpeg : LivePhotoConv.LivePhoto {
 
         if (export_original_metadata) {
             try {
-                this.metadata_for_export ().save_file (dest_path);
+                this.metadata_for_derived_images ().save_file (dest_path);
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
             }

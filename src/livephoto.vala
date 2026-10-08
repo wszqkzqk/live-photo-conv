@@ -361,6 +361,20 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     }
 
     /**
+     * Returns metadata for decoded video-derived images with orientation normalized.
+     *
+     * @return A fresh metadata copy for frame and long-exposure export use.
+     * @throws Error if the source file's metadata cannot be read.
+     */
+    internal GExiv2.Metadata metadata_for_derived_images () throws Error {
+        var meta = this.metadata_for_export ();
+        if (meta.has_tag ("Exif.Image.Orientation")) {
+            meta.set_tag_string ("Exif.Image.Orientation", "1");
+        }
+        return meta;
+    }
+
+    /**
      * Export the main image of the live photo.
      *
      * The destination path for the exported main image can be specified.
