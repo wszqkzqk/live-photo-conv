@@ -33,15 +33,9 @@ internal struct LivePhotoConv.MpvdVideoRange {
 /** Structured, bounded access to the MP4 embedded in an ISO-BMFF mpvd box. */
 namespace LivePhotoConv.IsoBmff {
     const uint32 FTYP = 0x66747970;
-    const uint32 STYP = 0x73747970;
     const uint32 MOOV = 0x6d6f6f76;
     const uint32 MDAT = 0x6d646174;
     const uint32 META = 0x6d657461;
-    const uint32 FREE = 0x66726565;
-    const uint32 SKIP = 0x736b6970;
-    const uint32 WIDE = 0x77696465;
-    const uint32 UUID = 0x75756964;
-    const uint32 PDIN = 0x7064696e;
     const uint32 MPVD = 0x6d707664;
     const uint32 SEFD = 0x73656664;
     const uint32 IPRP = 0x69707270;
@@ -379,9 +373,7 @@ namespace LivePhotoConv.IsoBmff {
     }
 
     bool is_bmff_start (uint32 type) {
-        return type == FTYP || type == STYP || type == MOOV || type == MDAT
-            || type == META || type == FREE || type == SKIP || type == WIDE
-            || type == UUID || type == PDIN || type == MPVD;
+        return type == FTYP;
     }
 
     MpvdVideoRange validate_mpvd (FileInputStream input, Box mpvd) throws Error {
