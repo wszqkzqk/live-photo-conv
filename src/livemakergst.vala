@@ -94,6 +94,7 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
             var main_input_stream = main_file.read ();
             Utils.write_stream (main_input_stream, output_stream);
         } else {
+            bool decoder_applies_orientation = decoder_applies_display_orientation (main_file);
             // Convert the main image to supported format
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             var main_file_stream = main_file.read ();
@@ -102,8 +103,7 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
             if (has_embedded_orientation) {
                 pixbuf = pixbuf.apply_embedded_orientation ();
             }
-            bool display_oriented = has_embedded_orientation
-                || decoder_applies_display_orientation (main_file);
+            bool display_oriented = has_embedded_orientation || decoder_applies_orientation;
             if (display_oriented && this.export_original_metadata) {
                 this.metadata.set_tag_string ("Exif.Image.Orientation", "1");
             }
@@ -114,19 +114,27 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
         return live_file;
     }
 
-    static bool decoder_applies_display_orientation (File file) {
+    static bool decoder_applies_display_orientation (File file) throws Error {
+        string? mime_type = null;
         try {
             var info = file.query_info ("standard::content-type", FileQueryInfoFlags.NONE);
             var content_type = info.get_content_type ();
             if (content_type == null) {
                 return false;
             }
-            var mime_type = ContentType.get_mime_type (content_type);
-            // The HEIF and TIFF loaders apply orientation during decoding.
-            return mime_type == "image/heic" || mime_type == "image/heif" || mime_type == "image/avif"
-                || mime_type == "image/tiff";
+            mime_type = ContentType.get_mime_type (content_type);
         } catch (Error e) {
             return false;
         }
+
+        if (mime_type == "image/tiff") {
+            return true;
+        }
+        if (mime_type != "image/heic" && mime_type != "image/heif" && mime_type != "image/avif") {
+            return false;
+        }
+
+        var filename = file.get_path () ?? file.get_uri ();
+        return IsoBmff.primary_has_display_transform (filename);
     }
 }

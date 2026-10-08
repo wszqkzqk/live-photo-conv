@@ -44,6 +44,12 @@ namespace LivePhotoConv.IsoBmff {
     const uint32 PDIN = 0x7064696e;
     const uint32 MPVD = 0x6d707664;
     const uint32 SEFD = 0x73656664;
+    const uint32 IPRP = 0x69707270;
+    const uint32 PITM = 0x7069746d;
+    const uint32 IPCO = 0x6970636f;
+    const uint32 IPMA = 0x69706d61;
+    const uint32 IROT = 0x69726f74;
+    const uint32 IMIR = 0x696d6972;
 
     struct Box {
         int64 offset;
@@ -99,6 +105,263 @@ namespace LivePhotoConv.IsoBmff {
         var range = validate_mpvd (input, mpvd);
         range.main_image_size = mpvd.offset;
         return range;
+    }
+
+    /**
+     * Returns whether the primary HEIF item has a non-identity display transform.
+     *
+     * This examines item properties directly and does not require an mpvd box.
+     */
+    internal bool primary_has_display_transform (string filename) throws Error {
+        var file = File.new_for_commandline_arg (filename);
+        var file_size = file.query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+        if (file_size < 8) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "Truncated ISO-BMFF container: no complete top-level box header");
+        }
+
+        var input = file.read ();
+        Box? meta = null;
+        int64 position = 0;
+        while (position < file_size) {
+            Box box;
+            read_box (input, position, file_size, out box);
+            if (box.type == META) {
+                if (meta != null) {
+                    throw new IsoBmffError.MALFORMED_CONTAINER (
+                        "The ISO-BMFF container contains more than one top-level meta box");
+                }
+                meta = box;
+            }
+            position = box.end;
+        }
+
+        if (meta == null) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "The HEIF container does not contain a top-level meta box");
+        }
+
+        uint8[] meta_header = new uint8[4];
+        read_exact (input, meta.payload_offset, meta.end, meta_header, "meta FullBox header");
+        if (meta_header[0] != 0) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "Unsupported meta box version %u".printf (meta_header[0]));
+        }
+
+        Box? iprp = null;
+        bool has_pitm = false;
+        uint32 primary_item_id = 0;
+        position = meta.payload_offset + 4;
+        while (position < meta.end) {
+            Box box;
+            read_box (input, position, meta.end, out box);
+            if (box.type == PITM) {
+                if (has_pitm) {
+                    throw new IsoBmffError.MALFORMED_CONTAINER (
+                        "The meta box contains more than one pitm box");
+                }
+                primary_item_id = read_primary_item_id (input, box);
+                has_pitm = true;
+            } else if (box.type == IPRP) {
+                if (iprp != null) {
+                    throw new IsoBmffError.MALFORMED_CONTAINER (
+                        "The meta box contains more than one iprp box");
+                }
+                iprp = box;
+            }
+            position = box.end;
+        }
+
+        if (!has_pitm) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "The meta box does not contain a pitm primary item box");
+        }
+        if (iprp == null) {
+            return false;
+        }
+        return primary_iprp_has_display_transform (input, iprp, primary_item_id);
+    }
+
+    uint32 read_primary_item_id (FileInputStream input, Box pitm) throws Error {
+        uint8[] header = new uint8[4];
+        read_exact (input, pitm.payload_offset, pitm.end, header, "pitm FullBox header");
+
+        if (header[0] == 0) {
+            uint8[] item_id_bytes = new uint8[2];
+            read_exact (input, pitm.payload_offset + 4, pitm.end, item_id_bytes,
+                "pitm primary item ID");
+            return read_be16 (item_id_bytes, 0);
+        }
+        if (header[0] == 1) {
+            uint8[] item_id_bytes = new uint8[4];
+            read_exact (input, pitm.payload_offset + 4, pitm.end, item_id_bytes,
+                "pitm primary item ID");
+            return read_be32 (item_id_bytes, 0);
+        }
+        throw new IsoBmffError.MALFORMED_CONTAINER (
+            "Unsupported pitm box version %u".printf (header[0]));
+    }
+
+    bool primary_iprp_has_display_transform (FileInputStream input, Box iprp,
+                                             uint32 primary_item_id) throws Error {
+        Box? ipco = null;
+        int64 position = iprp.payload_offset;
+        while (position < iprp.end) {
+            Box box;
+            read_box (input, position, iprp.end, out box);
+            if (box.type == IPCO) {
+                if (ipco != null) {
+                    throw new IsoBmffError.MALFORMED_CONTAINER (
+                        "The iprp box contains more than one ipco box");
+                }
+                ipco = box;
+            }
+            position = box.end;
+        }
+
+        if (ipco == null) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "The iprp box does not contain an ipco property container");
+        }
+
+        int64 property_count = count_ipco_properties (input, ipco);
+        bool has_transform = false;
+        position = iprp.payload_offset;
+        while (position < iprp.end) {
+            Box box;
+            read_box (input, position, iprp.end, out box);
+            if (box.type == IPMA
+                && primary_ipma_has_display_transform (input, box, ipco, property_count,
+                    primary_item_id)) {
+                has_transform = true;
+            }
+            position = box.end;
+        }
+        return has_transform;
+    }
+
+    int64 count_ipco_properties (FileInputStream input, Box ipco) throws Error {
+        int64 property_count = 0;
+        int64 position = ipco.payload_offset;
+        while (position < ipco.end) {
+            Box property;
+            read_box (input, position, ipco.end, out property);
+            property_count++;
+            position = property.end;
+        }
+        return property_count;
+    }
+
+    bool primary_ipma_has_display_transform (FileInputStream input, Box ipma, Box ipco,
+                                             int64 property_count, uint32 primary_item_id) throws Error {
+        uint8[] bytes1 = new uint8[1];
+        uint8[] bytes2 = new uint8[2];
+        uint8[] bytes4 = new uint8[4];
+        read_exact (input, ipma.payload_offset, ipma.end, bytes4, "ipma FullBox header");
+        uint32 full_box = read_be32 (bytes4, 0);
+        uint8 version = (uint8) (full_box >> 24);
+        if (version > 1) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "Unsupported ipma box version %u".printf (version));
+        }
+        bool wide_property_indices = (full_box & 1) != 0;
+
+        read_exact (input, ipma.payload_offset + 4, ipma.end, bytes4, "ipma entry count");
+        uint32 entry_count = read_be32 (bytes4, 0);
+        int64 position = ipma.payload_offset + 8;
+        bool has_transform = false;
+
+        for (uint64 entry = 0; entry < (uint64) entry_count; entry++) {
+            uint32 item_id;
+            if (version == 0) {
+                read_exact (input, position, ipma.end, bytes2, "ipma item ID");
+                item_id = read_be16 (bytes2, 0);
+                position += 2;
+            } else {
+                read_exact (input, position, ipma.end, bytes4, "ipma item ID");
+                item_id = read_be32 (bytes4, 0);
+                position += 4;
+            }
+
+            read_exact (input, position, ipma.end, bytes1, "ipma association count");
+            int association_count = bytes1[0];
+            position += 1;
+            for (int association = 0; association < association_count; association++) {
+                uint32 property_index;
+                if (wide_property_indices) {
+                    read_exact (input, position, ipma.end, bytes2, "ipma property association");
+                    property_index = (uint32) (read_be16 (bytes2, 0) & 0x7fff);
+                    position += 2;
+                } else {
+                    read_exact (input, position, ipma.end, bytes1, "ipma property association");
+                    property_index = (uint32) (bytes1[0] & 0x7f);
+                    position += 1;
+                }
+
+                if (property_index == 0 || (int64) property_index > property_count) {
+                    throw new IsoBmffError.MALFORMED_CONTAINER (
+                        "ipma property index %u is outside the ipco property array".printf (
+                            property_index));
+                }
+                if (item_id != primary_item_id) {
+                    continue;
+                }
+
+                Box property;
+                find_ipco_property (input, ipco, property_index, out property);
+                if (property.type == IROT) {
+                    read_exact (input, property.payload_offset, property.end, bytes1,
+                        "irot property payload");
+                    if ((bytes1[0] & 0x03) != 0) {
+                        has_transform = true;
+                    }
+                } else if (property.type == IMIR) {
+                    read_exact (input, property.payload_offset, property.end, bytes1,
+                        "imir property payload");
+                    has_transform = true;
+                }
+            }
+        }
+        return has_transform;
+    }
+
+    void find_ipco_property (FileInputStream input, Box ipco, uint32 property_index,
+                             out Box result) throws Error {
+        int64 current_index = 1;
+        int64 position = ipco.payload_offset;
+        while (position < ipco.end) {
+            Box property;
+            read_box (input, position, ipco.end, out property);
+            if (current_index == (int64) property_index) {
+                result = property;
+                return;
+            }
+            current_index++;
+            position = property.end;
+        }
+        throw new IsoBmffError.MALFORMED_CONTAINER (
+            "ipma property index %u does not identify an ipco property".printf (property_index));
+    }
+
+    void read_exact (FileInputStream input, int64 offset, int64 limit,
+                     uint8[] data, string description) throws Error {
+        if (offset < 0 || limit < offset || (int64) data.length > limit - offset) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "%s is truncated or exceeds its enclosing boundary at offset %lld".printf (
+                    description, offset));
+        }
+
+        input.seek (offset, SeekType.SET);
+        size_t bytes_read;
+        input.read_all (data, out bytes_read, null);
+        if (bytes_read != data.length) {
+            throw new IsoBmffError.MALFORMED_CONTAINER (
+                "Truncated %s at offset %lld".printf (description, offset));
+        }
+    }
+
+    uint16 read_be16 (uint8[] data, int offset) {
+        return ((uint16) data[offset] << 8) | (uint16) data[offset + 1];
     }
 
     bool is_bmff_start (uint32 type) {
