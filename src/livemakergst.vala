@@ -99,7 +99,8 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
             var main_file_stream = main_file.read ();
             var pixbuf = new Gdk.Pixbuf.from_stream (main_file_stream, null);
-            bool has_embedded_orientation = pixbuf.get_option ("orientation") != null;
+            bool has_embedded_orientation = pixbuf.get_option ("orientation") != null
+                && pixbuf.get_option ("orientation") != "1";
             if (has_embedded_orientation) {
                 pixbuf = pixbuf.apply_embedded_orientation ();
             }
