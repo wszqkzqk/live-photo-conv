@@ -915,10 +915,6 @@ public class LivePhotoConv.Application : Adw.Application {
                         required = required | LivePhotoCapabilities.LONG_EXPOSURE;
                     if (do_frames)
                         required = required | LivePhotoCapabilities.FRAMES;
-                    if (required == 0 && (do_image || do_video || do_long || do_frames)) {
-                        throw new UnsupportedOperationError.UNSUPPORTED_OPERATION (
-                            _("None of the selected extraction operations are supported by this live photo."));
-                    }
                     live_photo.ensure_supported (required);
 
                     if (do_image)

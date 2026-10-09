@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: live-photo-conv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 19:38+0800\n"
+"POT-Creation-Date: 2026-10-09 09:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -237,19 +237,14 @@ msgid_plural "%u files repaired"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/gui.vala:903 src/gui.vala:944
+#: src/gui.vala:903 src/gui.vala:940
 msgid "Extracting"
 msgstr ""
 
-#: src/gui.vala:920
-msgid ""
-"None of the selected extraction operations are supported by this live photo."
-msgstr ""
-
-#: src/gui.vala:1011 src/gui.vala:1041
+#: src/gui.vala:1007 src/gui.vala:1037
 msgid "Repairing"
 msgstr ""
 
-#: src/gui.vala:1071
+#: src/gui.vala:1067
 msgid "Repair preflight failed; no files were modified:"
 msgstr ""
