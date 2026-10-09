@@ -153,5 +153,4 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
 
         return live_file;
     }
-
 }
