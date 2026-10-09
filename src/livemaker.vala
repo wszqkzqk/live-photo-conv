@@ -45,6 +45,11 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         set;
         default = true;
     }
+    public bool oppo_compatible {
+        get;
+        set;
+        default = false;
+    }
     
     /**
      * Derives the default destination path: MVIMG_<stem>.jpg next to the source.
@@ -135,6 +140,12 @@ public abstract class LivePhotoConv.LiveMaker : Object {
      * @throws Error if there is an error during the process.
     */
     public void export () throws Error {
+        if (this.oppo_compatible) {
+            OppoMetadata.validate_video (this.video_path);
+            if (this.main_image_path != null)
+                OppoMetadata.validate_main_image (this.main_image_path);
+        }
+
         int64 video_size = 0;
         if (this.main_image_path != null) {
             video_size = this.export_with_main_image ();
@@ -142,27 +153,14 @@ public abstract class LivePhotoConv.LiveMaker : Object {
             video_size = this.export_with_video_only ();
         }
 
-        string presentation_timestamp_us_to_write = "-1";
-        string? existing_motion_photo_ts = null;
-        string? existing_gcamera_ts = null;
-
-        // this.metadata could be populated from main_image_path if export_original_metadata is true
-        try {
-            // has_tag guards an empty-valued node, whose get_tag_string returns the next node's value
-            if (this.metadata.has_tag ("Xmp.GCamera.MotionPhotoPresentationTimestampUs"))
-                existing_motion_photo_ts = this.metadata.get_tag_string("Xmp.GCamera.MotionPhotoPresentationTimestampUs");
-        } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
-
-        try {
-            if (this.metadata.has_tag ("Xmp.GCamera.MicroVideoPresentationTimestampUs"))
-                existing_gcamera_ts = this.metadata.get_tag_string("Xmp.GCamera.MicroVideoPresentationTimestampUs");
-        } catch (Error e) { /* ignore, tag might not exist or metadata was cleared */ }
-
-        if (existing_motion_photo_ts != null && int64.try_parse (existing_motion_photo_ts)) {
-            presentation_timestamp_us_to_write = existing_motion_photo_ts;
-        } else if (existing_gcamera_ts != null && int64.try_parse (existing_gcamera_ts)) {
-            presentation_timestamp_us_to_write = existing_gcamera_ts;
-        }
+        string? timestamp = null;
+        if (this.oppo_compatible)
+            timestamp = Utils.get_int64_tag_string (this.metadata, "Xmp.OpCamera.MotionPhotoPrimaryPresentationTimestampUs");
+        if (timestamp == null)
+            timestamp = Utils.get_int64_tag_string (this.metadata, "Xmp.GCamera.MotionPhotoPresentationTimestampUs");
+        if (timestamp == null)
+            timestamp = Utils.get_int64_tag_string (this.metadata, "Xmp.GCamera.MicroVideoPresentationTimestampUs");
+        var presentation_timestamp_us_to_write = timestamp ?? (this.oppo_compatible ? "0" : "-1");
 
         // Clear previous XMP metadata to avoid conflicts
         this.metadata.clear_xmp ();
@@ -191,9 +189,20 @@ public abstract class LivePhotoConv.LiveMaker : Object {
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Length", video_size.to_string ());
 
+        if (this.oppo_compatible)
+            OppoMetadata.write_tags (this.metadata, video_size, presentation_timestamp_us_to_write);
+
         try {
-            this.metadata.save_file (this.dest);
-        }  catch (Error e) {
+            if (!this.metadata.save_file (this.dest)) {
+                throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save metadata to `%s'", this.dest);
+            }
+            if (this.oppo_compatible) {
+                var file_size = File.new_for_commandline_arg (this.dest)
+                    .query_info ("standard::size", FileQueryInfoFlags.NONE).get_size ();
+                OppoMetadata.ensure_mpf (this.dest, file_size - video_size);
+                OppoMetadata.verify_tags (this.dest, video_size, presentation_timestamp_us_to_write);
+            }
+        } catch (Error e) {
             throw new ExportError.METADATA_EXPORT_ERROR ("Cannot save metadata to `%s': %s", this.dest, e.message);
         }
         Reporter.info_puts ("Exported live photo", this.dest);

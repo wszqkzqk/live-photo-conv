@@ -250,7 +250,7 @@ Convert a video directly to a live photo:
 live-photo-make -m /path/to/video.mp4 -o /path/to/output.jpg
 ```
 
-Key options: `-i` (image), `-m` (video, required), `-o` (output), `--drop-metadata`, `--use-ffmpeg` / `--use-gst`.
+Key options: `-i` (image), `-m` (video, required), `-o` (output), `--drop-metadata`, `--oppo-compatible`, `--use-ffmpeg` / `--use-gst`.
 
 #### `live-photo-extract`
 
@@ -288,7 +288,7 @@ Force repair:
 live-photo-repair -p /path/to/live_photo.jpg -f
 ```
 
-Key options: `-p` (live photo, required), `-f` (force), `-s` (manual video size).
+Key options: `-p` (live photo, required), `-f` (force), `-s` (manual video size), `--oppo-compatible`.
 
 #### `live-photo-conv` (Generic Command)
 
@@ -299,6 +299,17 @@ live-photo-conv --make -i /path/to/image.jpg -m /path/to/video.mp4 -p /path/to/o
 live-photo-conv --extract -p /path/to/live_photo.jpg -d /path/to/dest
 live-photo-conv --repair -p /path/to/live_photo.jpg
 ```
+
+#### OPPO compatibility
+
+Use `--oppo-compatible` when creating or repairing a live photo for OPPO devices:
+
+```bash
+live-photo-make --oppo-compatible -i /path/to/image.jpg -m /path/to/video.mp4 -o /path/to/output.jpg
+live-photo-repair --oppo-compatible -p /path/to/live_photo.jpg
+```
+
+OPPO repair currently supports a single, unpadded JPEG followed by an MP4 with no vendor trailer. Unsupported files are left unchanged. Validate compatibility on the target device.
 
 #### `copy-img-meta`
 

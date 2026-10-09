@@ -40,8 +40,15 @@ namespace LivePhotoConv {
             GExiv2.initialize ();
             try {
                 GExiv2.Metadata.register_xmp_namespace ("http://ns.google.com/photos/1.0/camera/", "GCamera");
+            } catch {}
+            try {
                 GExiv2.Metadata.register_xmp_namespace ("http://ns.google.com/photos/1.0/container/", "Container");
+            } catch {}
+            try {
                 GExiv2.Metadata.register_xmp_namespace ("http://ns.google.com/photos/1.0/container/item/", "Item");
+            } catch {}
+            try {
+                GExiv2.Metadata.register_xmp_namespace ("http://ns.oplus.com/photos/1.0/camera/", "OpCamera");
             } catch {}
             Once.init_leave (&exiv2_once, 1);
         }

@@ -39,6 +39,7 @@ class LivePhotoConv.Main {
     static bool export_metadata = true;
     static bool frame_to_photo = false;
     static bool minimal_export = false;
+    static bool oppo_compatible = false;
     static int threads = 0;
     static Backend backend = Backend.AUTO;
 
@@ -62,6 +63,7 @@ class LivePhotoConv.Main {
         { "output", 'o', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The output live photo file path", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
+        { "oppo-compatible", '\0', OptionFlags.NONE, OptionArg.NONE, ref oppo_compatible, "Write OPPO compatibility metadata and MPF", null },
         { "use-ffmpeg", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_ffmpeg, "Use FFmpeg to make instead of GStreamer", null },
         { "use-gst", '\0', OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) opt_use_gst, "Use GStreamer to make instead of FFmpeg", null },
         null
@@ -96,6 +98,7 @@ class LivePhotoConv.Main {
         { "live-photo", 'p', OptionFlags.NONE, OptionArg.FILENAME, ref live_photo_path, "The live photo file to repair (required)", "PATH" },
         { "force", 'f', OptionFlags.NONE, OptionArg.NONE, ref force_repair, "Force to update video offset in XMP metadata and repair", null },
         { "video-size", 's', OptionFlags.NONE, OptionArg.INT, ref repair_with_video_size, "Force repair with the specified video size", "SIZE" },
+        { "oppo-compatible", '\0', OptionFlags.NONE, OptionArg.NONE, ref oppo_compatible, "Also repair OPPO metadata and MPF", null },
         null
     };
 
@@ -115,6 +118,7 @@ class LivePhotoConv.Main {
         { "dest-dir", 'd', OptionFlags.NONE, OptionArg.FILENAME, ref dest_dir, "The destination directory to export", "PATH" },
         { "export-metadata", '\0', OptionFlags.NONE, OptionArg.NONE, ref export_metadata, "Export metadata (default)", null },
         { "drop-metadata", '\0', OptionFlags.REVERSE, OptionArg.NONE, ref export_metadata, "Do not export metadata", null },
+        { "oppo-compatible", '\0', OptionFlags.NONE, OptionArg.NONE, ref oppo_compatible, "Write OPPO compatibility metadata and MPF in make or repair mode", null },
         { "frame-to-photos", '\0', OptionFlags.NONE, OptionArg.NONE, ref frame_to_photo, "Export every frame of a live photo's video as a photo", null },
         { "img-format", 'f', OptionFlags.NONE, OptionArg.STRING, ref img_format, "The format of the image exported from video, defaults to automatic detection", "FORMAT" },
         { "long-exposure", 'l', OptionFlags.NONE, OptionArg.FILENAME, ref long_exposure_path, "Convert the embedded video to a long exposure photo", "PATH" },
@@ -190,6 +194,10 @@ class LivePhotoConv.Main {
         if (force_repair || repair_with_video_size > 0) {
             repair_live_photo = true;
         }
+        if (oppo_compatible && require_live_photo && !repair_live_photo) {
+            Reporter.error_puts ("OptionError", "`--oppo-compatible' is only supported in make and repair modes");
+            return 1;
+        }
 
         if (show_version) {
             Reporter.info_puts ("Live Photo Converter", VERSION);
@@ -262,11 +270,13 @@ class LivePhotoConv.Main {
     static void live_photo_make () throws Error {
         var live_maker = LiveMaker.create (video_path, main_image_path, live_photo_path, backend);
         live_maker.export_original_metadata = export_metadata;
+        live_maker.oppo_compatible = oppo_compatible;
         live_maker.export ();
     }
 
     static void live_photo_repair () throws Error {
         LivePhoto live_photo = prepare_live_photo_obj ();
+        live_photo.oppo_compatible = oppo_compatible;
         live_photo.repair_live_metadata (force_repair, repair_with_video_size);
     }
 
