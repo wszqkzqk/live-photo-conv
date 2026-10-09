@@ -277,7 +277,7 @@ Key options: `-p` (live photo, required), `-d` (output directory), `-i` (image),
 ISOBMFF Motion Photos with an `mpvd` box, including Samsung HEIC files, support lossless main-image and video extraction, frame export, and long-exposure generation. Main-image extraction preserves the original metadata, as permitted by the Motion Photo specification. Exporting the main image with `--drop-metadata` is not supported. Use `--minimal` with `-m` to export only the video in that mode:
 
 ```bash
-live-photo-extract -p /path/to/samsung_motion_photo.heic -m /path/to/video.mp4 --minimal
+live-photo-extract -p /path/to/motion_photo.heic -m /path/to/video.mp4 --minimal
 ```
 
 #### `live-photo-repair`
