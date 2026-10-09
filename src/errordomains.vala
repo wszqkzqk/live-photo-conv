@@ -23,6 +23,10 @@ namespace LivePhotoConv {
         OFFSET_NOT_FOUND_ERROR, // The offset of the video data in the live photo is not found.
     }
 
+    public errordomain UnsupportedOperationError {
+        UNSUPPORTED_OPERATION, // The live photo layout does not support the requested operation.
+    }
+
     public errordomain ExportError {
         FFMPEG_EXIED_WITH_ERROR, // FFmpeg failed to split the video into images.
         METADATA_EXPORT_ERROR, // Failed to export the metadata.

@@ -877,11 +877,11 @@ public class LivePhotoConv.Application : Adw.Application {
     }
 
     private async void extract_batch_async (GenericArray<File> files, GenericArray<string> paths,
-                                             File dest_folder,
-                                             bool do_image, bool do_video,
-                                             bool do_long, bool do_frames,
-                                             string? img_format,
-                                             Gtk.Button button) throws Error {
+                                                File dest_folder,
+                                                bool do_image, bool do_video,
+                                                bool do_long, bool do_frames,
+                                                string? img_format,
+                                                Gtk.Button button) throws Error {
         SourceFunc callback = extract_batch_async.callback;
         var sb = new StringBuilder ();
         int error_count = 0;
@@ -906,6 +906,17 @@ public class LivePhotoConv.Application : Adw.Application {
             foreach (unowned var path in paths) {
                 try {
                     var live_photo = LivePhoto.create (path, dest_dir);
+                    LivePhotoCapabilities required = (LivePhotoCapabilities) 0;
+                    if (do_image)
+                        required = required | LivePhotoCapabilities.MAIN_IMAGE;
+                    if (do_video)
+                        required = required | LivePhotoCapabilities.VIDEO;
+                    if (do_long)
+                        required = required | LivePhotoCapabilities.LONG_EXPOSURE;
+                    if (do_frames)
+                        required = required | LivePhotoCapabilities.FRAMES;
+                    live_photo.ensure_supported (required);
+
                     if (do_image)
                         live_photo.export_main_image ();
                     if (do_video)
@@ -971,12 +982,13 @@ public class LivePhotoConv.Application : Adw.Application {
             if (needs_staging (files[i]))
                 cleanup_staged (paths[i]);
         }
+
         if (error_count > 0) {
             unowned string detail = sb.str;
-            throw new ExportError.FILE_PUSH_ERROR (
-                error_count != total
-                    ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
-                    : detail);
+            string error_detail = error_count != total
+                ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)
+                : detail;
+            throw new ExportError.FILE_PUSH_ERROR ("%s", error_detail);
         }
     }
 
@@ -985,9 +997,11 @@ public class LivePhotoConv.Application : Adw.Application {
                                             Gtk.Button button) throws Error {
         SourceFunc callback = repair_batch_async.callback;
         var sb = new StringBuilder ();
+        var live_photos = new GenericArray<LivePhoto> ();
         int error_count = 0;
         int total = (int) paths.length;
         int processed = 0;
+        bool preflight_succeeded = true;
         var succeeded = new bool[paths.length];
 
         report_progress (button, _("Repairing"), 0, total);
@@ -997,18 +1011,33 @@ public class LivePhotoConv.Application : Adw.Application {
                 unowned var path = paths[i];
                 try {
                     var live_photo = LivePhoto.create (path);
-                    live_photo.repair_live_metadata (force, video_size);
-                    succeeded[i] = true;
+                    live_photo.ensure_supported (LivePhotoCapabilities.REPAIR);
+                    live_photos.add (live_photo);
                 } catch (Error e) {
+                    preflight_succeeded = false;
                     if (error_count > 0) sb.append_c ('\n');
                     sb.append_printf ("%s: %s", path, e.message);
                     error_count += 1;
                 }
-                var current = AtomicInt.add (ref processed, 1) + 1;
-                Idle.add (() => {
-                    report_progress (button, _("Repairing"), current, total);
-                    return false;
-                });
+            }
+
+            if (preflight_succeeded) {
+                for (int i = 0; i < paths.length; i += 1) {
+                    unowned var path = paths[i];
+                    try {
+                        live_photos[i].repair_live_metadata (force, video_size);
+                        succeeded[i] = true;
+                    } catch (Error e) {
+                        if (error_count > 0) sb.append_c ('\n');
+                        sb.append_printf ("%s: %s", path, e.message);
+                        error_count += 1;
+                    }
+                    var current = AtomicInt.add (ref processed, 1) + 1;
+                    Idle.add (() => {
+                        report_progress (button, _("Repairing"), current, total);
+                        return false;
+                    });
+                }
             }
             Idle.add ((owned) callback);
         });
@@ -1033,6 +1062,10 @@ public class LivePhotoConv.Application : Adw.Application {
 
         if (error_count > 0) {
             unowned string detail = sb.str;
+            if (!preflight_succeeded) {
+                throw new ExportError.FILE_PUSH_ERROR ("%s\n%s",
+                    _("Repair preflight failed; no files were modified:"), detail);
+            }
             throw new ExportError.FILE_PUSH_ERROR (
                 error_count != total
                     ? "%u of %u files failed:\n%s".printf ((uint) error_count, (uint) total, detail)

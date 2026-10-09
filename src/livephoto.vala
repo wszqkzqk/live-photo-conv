@@ -17,11 +17,22 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
+/** Operations supported by a particular live photo layout. */
+[Flags]
+public enum LivePhotoConv.LivePhotoCapabilities {
+    MAIN_IMAGE = 1 << 0,
+    VIDEO = 1 << 1,
+    LONG_EXPOSURE = 1 << 2,
+    FRAMES = 1 << 3,
+    REPAIR = 1 << 4,
+}
+
 /**
  * Represents a live photo.
  *
- * This class provides a set of functions to extract the main image and video from a live photo.
- * Also, it can split the video into images.
+ * This class provides operations to extract a live photo's main image and
+ * video, derive images from the video, and, for JPEG appended layouts, repair
+ * the XMP. Use {@link capabilities} or {@link supports} to preflight operations.
  */
 public abstract class LivePhotoConv.LivePhoto : Object {
 
@@ -33,6 +44,11 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     // See also: http://www.ftyps.com/
     const int LENGTH_BEFORE_FTYP = 4;
 
+    enum Layout {
+        JPEG_APPENDED,
+        MPVD,
+    }
+
     protected string basename;
     protected string basename_no_ext;
     protected string extension_name;
@@ -40,6 +56,76 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     protected GExiv2.Metadata metadata;
     protected string dest_dir;
     protected int64 video_offset;
+    int64 _video_length;
+    int64 _main_image_size;
+    Layout layout;
+
+    protected string default_derived_image_extension {
+        get { return this.layout == Layout.MPVD ? "jpg" : this.extension_name; }
+    }
+
+    protected int64 video_length {
+        get { return this._video_length; }
+    }
+
+    /** The operations supported by this live photo's storage layout and export options. */
+    public LivePhotoCapabilities capabilities {
+        get {
+            if (this.layout == Layout.MPVD) {
+                var result = LivePhotoCapabilities.VIDEO
+                    | LivePhotoCapabilities.LONG_EXPOSURE
+                    | LivePhotoCapabilities.FRAMES;
+                if (this.export_original_metadata) {
+                    result |= LivePhotoCapabilities.MAIN_IMAGE;
+                }
+                return result;
+            }
+            return LivePhotoCapabilities.MAIN_IMAGE
+                | LivePhotoCapabilities.VIDEO
+                | LivePhotoCapabilities.LONG_EXPOSURE
+                | LivePhotoCapabilities.FRAMES
+                | LivePhotoCapabilities.REPAIR;
+        }
+    }
+
+    /** Returns whether all requested operations are supported. */
+    public bool supports (LivePhotoCapabilities required) {
+        return (this.capabilities & required) == required;
+    }
+
+    /**
+     * Checks that all requested operations are supported.
+     *
+     * @throws UnsupportedOperationError if any requested operation is unavailable.
+     */
+    public void ensure_supported (LivePhotoCapabilities required) throws UnsupportedOperationError {
+        LivePhotoCapabilities missing = required & ~this.capabilities;
+        if (missing != 0) {
+            if (this.layout == Layout.MPVD) {
+                throw new UnsupportedOperationError.UNSUPPORTED_OPERATION (
+                    "The requested operation is not supported for mpvd-based motion photos (missing: %s)",
+                    capability_names (missing));
+            }
+            throw new UnsupportedOperationError.UNSUPPORTED_OPERATION (
+                "The requested operation is not supported by this live photo (missing: %s)",
+                capability_names (missing));
+        }
+    }
+
+    static string capability_names (LivePhotoCapabilities capabilities) {
+        string[] names = {};
+        if ((capabilities & LivePhotoCapabilities.MAIN_IMAGE) != 0)
+            names += "main image export";
+        if ((capabilities & LivePhotoCapabilities.VIDEO) != 0)
+            names += "video export";
+        if ((capabilities & LivePhotoCapabilities.LONG_EXPOSURE) != 0)
+            names += "long exposure";
+        if ((capabilities & LivePhotoCapabilities.FRAMES) != 0)
+            names += "frame extraction";
+        if ((capabilities & LivePhotoCapabilities.REPAIR) != 0)
+            names += "metadata repair";
+        return names.length > 0 ? string.joinv (", ", names) : "unknown operation";
+    }
 
     public bool make_backup {
         get;
@@ -75,8 +161,6 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     protected LivePhoto (string filename, string? dest_dir = null) throws Error {
         ensure_exiv2_init ();
         this.metadata = new GExiv2.Metadata ();
-        this.metadata.open_path (filename);
-
         this.filename = filename;
         this.basename = Path.get_basename (filename);
         var last_dot = this.basename.last_index_of_char ('.');
@@ -97,10 +181,30 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             this.dest_dir = Path.get_dirname (filename);
         }
 
-        this.video_offset = this.get_video_offset ();
-        if (this.video_offset <= 0) {
-            throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
+        // Probe the container before consulting XMP so that a top-level ftyp
+        // is never mistaken for an appended video.
+        var mpvd_video = IsoBmff.find_mpvd_video (filename);
+        this.metadata.open_path (filename);
+        if (mpvd_video != null) {
+            this.layout = Layout.MPVD;
+            this.video_offset = mpvd_video.offset;
+            this._video_length = mpvd_video.length;
+            this._main_image_size = mpvd_video.main_image_size;
+        } else {
+            this.layout = Layout.JPEG_APPENDED;
+            this.video_offset = this.get_video_offset ();
+            if (this.video_offset <= 0) {
+                throw new NotLivePhotosError.OFFSET_NOT_FOUND_ERROR ("The offset of the video data in the live photo is not found.");
+            }
+            var file_size = File.new_for_commandline_arg (this.filename)
+                .query_info ("standard::size", FileQueryInfoFlags.NONE)
+                .get_size ();
+            this._video_length = file_size - this.video_offset;
+            this._main_image_size = this.video_offset;
         }
+        this.notify["export-original-metadata"].connect (() => {
+            this.notify_property ("capabilities");
+        });
     }
 
     /**
@@ -257,17 +361,32 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     }
 
     /**
+     * Returns metadata for decoded video-derived images with orientation normalized.
+     *
+     * @return A fresh metadata copy for frame and long-exposure export use.
+     * @throws Error if the source file's metadata cannot be read.
+     */
+    internal GExiv2.Metadata metadata_for_derived_images () throws Error {
+        var meta = this.metadata_for_export ();
+        if (meta.has_tag ("Exif.Image.Orientation")) {
+            meta.set_tag_string ("Exif.Image.Orientation", "1");
+        }
+        return meta;
+    }
+
+    /**
      * Export the main image of the live photo.
      *
      * The destination path for the exported main image can be specified.
-     * If not provided, a default path will be used.
+     * If not provided, a default path will be used. MPVD extraction preserves
+     * the original metadata; dropping metadata is unsupported for that layout.
      *
      * @param dest The destination path for the exported main image. If null, a default path will be used.
      * @throws Error if there is an error during the export process.
      * @return The path of the exported main image.
     */
     public string export_main_image (string? dest = null) throws Error {
-        // Export the bytes before `video_offset`
+        this.ensure_supported (LivePhotoCapabilities.MAIN_IMAGE);
         var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
         string main_image_filename;
@@ -285,13 +404,18 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             throw new ExportError.FILE_SAVE_ERROR (
                 "`%s' and `%s' are the same file", this.filename, main_image_filename);
 
-        // Write the bytes before `video_offset`
         {
             var output_stream = File.new_for_commandline_arg  (main_image_filename).replace (null, make_backup, file_create_flags);
-            Utils.write_stream_before (input_stream, output_stream, this.video_offset);
-        } // Close the stream (renaming into place) before the metadata rewrite
+            Utils.write_stream_before (input_stream, output_stream, this._main_image_size);
+        } // Close the stream (renaming into place) before any metadata rewrite
 
         Reporter.info_puts ("Exported main image", main_image_filename);
+
+        // The Motion Photo specification requires readers to tolerate residual
+        // XMP after the video is removed, so MPVD extraction preserves it as-is.
+        if (this.layout == Layout.MPVD) {
+            return (owned) main_image_filename;
+        }
 
         // Rewrite the metadata: XMP stripped when exporting, dropped entirely otherwise
         try {
@@ -323,8 +447,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @return The path of the exported video file.
     */
     public string export_video (string? dest = null) throws Error {
-        /* Export the video of the live photo. */
-        // Export the bytes after `video_offset`
+        this.ensure_supported (LivePhotoCapabilities.VIDEO);
         var file = File.new_for_commandline_arg  (this.filename);
         var input_stream = file.read ();
         string video_filename;
@@ -345,9 +468,8 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                 "`%s' and `%s' are the same file", this.filename, video_filename);
 
         var output_stream = File.new_for_commandline_arg (video_filename).replace (null, make_backup, file_create_flags);
-        // Write the bytes after `video_offset` to the video file
         input_stream.seek (this.video_offset, SeekType.SET);
-        Utils.write_stream (input_stream, output_stream);
+        Utils.write_stream_exactly (input_stream, output_stream, this.video_length);
 
         Reporter.info_puts ("Exported video file", video_filename);
 
@@ -357,16 +479,17 @@ public abstract class LivePhotoConv.LivePhoto : Object {
     /**
      * Repairs the video offset metadata for the current file.
      *
-     * This function attempts to repair the video offset metadata by either using
-     * a fallback method or the standard method to retrieve the offset. If the
-     * offset is valid (non-negative), it updates the relevant metadata tags and
-     * saves the changes to the file.
+     * This JPEG-appended-only operation attempts to repair the video offset by
+     * either using a fallback method or the standard XMP value. If the offset
+     * is valid (non-negative), it updates the relevant metadata tags and saves
+     * the changes to the file. Other layouts fail before any metadata write.
      *
      * @param force If true, forces the use of the fallback method to get the video offset.
      * @param manual_video_size If greater than 0, uses this value as the video size instead of calculating it.
      * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
     */
     public void repair_live_metadata (bool force = false, uint manual_video_size = 0) throws Error {
+        this.ensure_supported (LivePhotoCapabilities.REPAIR);
         var file_size = File.new_for_commandline_arg  (this.filename)
             .query_info ("standard::size", FileQueryInfoFlags.NONE)
             .get_size ();
@@ -451,11 +574,13 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             }
         }
 
-        // Refresh the video_offset field; the metadata rewrite may change the file size
+        // Refresh the ranges; the metadata rewrite may change the file size
         file_size = File.new_for_commandline_arg (this.filename)
             .query_info ("standard::size", FileQueryInfoFlags.NONE)
             .get_size ();
         this.video_offset = file_size - reverse_offset;
+        this._video_length = reverse_offset;
+        this._main_image_size = this.video_offset;
 
         Reporter.info ("Repaired", "The reverse video offset metadata is set to %s", offset_string);
     }
@@ -475,21 +600,10 @@ public abstract class LivePhotoConv.LivePhoto : Object {
             this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item", "type=Struct");
         }
 
-        // Item 1: Primary Image (assuming JPEG based on typical output)
-        var image_mime_type = "image/jpeg"; // Default, could be refined based on actual extension
-        if (this.extension_name.down () == "heic" || this.extension_name.down () == "heif") {
-            image_mime_type = "image/heic";
-        } else if (this.extension_name.down () == "avif") {
-            image_mime_type = "image/avif";
-        }
-        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", image_mime_type);
+        // Metadata repair is intentionally limited to JPEG appended layouts.
+        this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Mime", "image/jpeg");
         this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Semantic", "Primary");
-        // Item:Padding: For JPEG, optional (can be 0 or omitted). For HEIC/AVIF, must be 8.
-        // This example assumes JPEG or doesn't set padding. A more robust solution would check image_mime_type.
-        // if (image_mime_type == "image/heic" || image_mime_type == "image/avif") {
-        //    this.metadata.set_tag_string ("Xmp.Container.Directory[1]/Container:Item/Item:Padding", "8");
-        // }
-        // Item 2: Video (assuming MP4)
+        // Item 2: Video (MP4)
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Mime", "video/mp4");
         this.metadata.set_tag_string ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto");
         try {
@@ -526,6 +640,7 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      * @throws Error if there is an issue with retrieving the video offset or saving the metadata.
      */
     public async void repair_live_metadata_async (bool force = false, uint manual_video_size = 0) throws Error {
+        this.ensure_supported (LivePhotoCapabilities.REPAIR);
         SourceFunc callback = repair_live_metadata_async.callback;
         Error? repair_error = null;
         var thread = new Thread<void> ("live-photo-repair", () => {
@@ -561,6 +676,17 @@ public abstract class LivePhotoConv.LivePhoto : Object {
                                             bool do_long_exposure, bool do_frames,
                                             string? long_exposure_dest,
                                             string? img_format = null, int threads = 0) throws Error {
+        LivePhotoCapabilities required = (LivePhotoCapabilities) 0;
+        if (do_image)
+            required = required | LivePhotoCapabilities.MAIN_IMAGE;
+        if (do_video)
+            required = required | LivePhotoCapabilities.VIDEO;
+        if (do_long_exposure)
+            required = required | LivePhotoCapabilities.LONG_EXPOSURE;
+        if (do_frames)
+            required = required | LivePhotoCapabilities.FRAMES;
+        this.ensure_supported (required);
+
         SourceFunc callback = extract_items_async.callback;
         Error? extract_error = null;
         var thread = new Thread<void> ("live-photo-extract", () => {
@@ -600,12 +726,12 @@ public abstract class LivePhotoConv.LivePhoto : Object {
      *
      * The video of the live photo is split into frames, which are saved
      * to the destination directory with the specified output format.
-     * If the output format is not provided, the default extension name
-     * of the live photo will be used. The filenames are generated based
-     * on the basename of the live photo.
+     * If the output format is not provided, a layout-appropriate image
+     * extension is used: the source extension for JPEG appended layouts and
+     * JPEG for MPVD layouts. The filenames are based on the live photo's basename.
      *
      * @param output_format The format of the output images. If not provided,
-     *                      the default extension name will be used.
+     *                      the layout's default derived image extension will be used.
      * @param dest_dir The destination directory where the images will be saved.
      *                 If not provided, the default destination directory will be used.
      * @param threads The number of threads to use for parallel processing.

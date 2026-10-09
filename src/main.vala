@@ -218,12 +218,14 @@ class LivePhotoConv.Main {
                     // Repair mode: perform repair first and enable minimal export
                     // so no image/video is exported unless user explicitly set paths.
                     minimal_export = true;
-                    live_photo_repair ();
                 }
 
-                live_photo_extract ();
+                live_photo_process ();
             } catch (NotLivePhotosError e) {
                 Reporter.error_puts ("NotLivePhotosError", e.message);
+                return 1;
+            } catch (UnsupportedOperationError e) {
+                Reporter.error_puts ("UnsupportedOperationError", e.message);
                 return 1;
             } catch (Error e) {
                 Reporter.error_puts ("Error", e.message);
@@ -265,18 +267,37 @@ class LivePhotoConv.Main {
         live_maker.export ();
     }
 
-    static void live_photo_repair () throws Error {
-        LivePhoto live_photo = prepare_live_photo_obj ();
-        live_photo.repair_live_metadata (force_repair, repair_with_video_size);
-    }
-
-    static void live_photo_extract () throws Error {
+    static void live_photo_process () throws Error {
         LivePhoto live_photo = prepare_live_photo_obj ();
 
-        if ((!minimal_export) || main_image_path != null) {
+        bool export_main_image = (!minimal_export) || main_image_path != null;
+        bool export_video = (!minimal_export) || video_path != null;
+
+        LivePhotoCapabilities required = (LivePhotoCapabilities) 0;
+        if (repair_live_photo) {
+            required = required | LivePhotoCapabilities.REPAIR;
+        }
+        if (export_main_image) {
+            required = required | LivePhotoCapabilities.MAIN_IMAGE;
+        }
+        if (export_video) {
+            required = required | LivePhotoCapabilities.VIDEO;
+        }
+        if (long_exposure_path != null) {
+            required = required | LivePhotoCapabilities.LONG_EXPOSURE;
+        }
+        if (frame_to_photo) {
+            required = required | LivePhotoCapabilities.FRAMES;
+        }
+        live_photo.ensure_supported (required);
+
+        if (repair_live_photo) {
+            live_photo.repair_live_metadata (force_repair, repair_with_video_size);
+        }
+        if (export_main_image) {
             live_photo.export_main_image (main_image_path);
         }
-        if ((!minimal_export) || video_path != null) {
+        if (export_video) {
             live_photo.export_video (video_path);
         }
         if (long_exposure_path != null) {
