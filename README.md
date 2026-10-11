@@ -121,7 +121,7 @@ HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install --HEAD wszqkzqk/live-photo-conv/liv
   * GTK4, LibAdwaita (required by the GUI)
   * GStreamer (`gstreamer`, `gst-plugins-base-libs`, `gst-plugins-good`, `gst-plugins-bad`) — required when built with GStreamer; `gst-plugin-va` optional, for hardware acceleration
   * gdk-pixbuf2 — required when built with GStreamer; optional format loaders: `libavif` (.avif), `libheif` (.heif/.heic/.avif), `libjxl` (.jxl), `webp-pixbuf-loader` (.webp)
-  * FFmpeg (5.1 or later) — optional, required when not built with GStreamer and need to export images from videos
+  * FFmpeg (8.0 or later) — optional, required when not built with GStreamer and need to export images from videos
 
 For example, to install dependencies on Arch Linux:
 
