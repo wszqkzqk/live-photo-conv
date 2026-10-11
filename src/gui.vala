@@ -1064,7 +1064,7 @@ public class LivePhotoConv.Application : Adw.Application {
             unowned string detail = sb.str;
             if (!preflight_succeeded) {
                 throw new ExportError.FILE_PUSH_ERROR ("%s\n%s",
-                    _("Repair preflight failed; no files were modified:"), detail);
+                    _("Repair preflight failed. No files were modified."), detail);
             }
             throw new ExportError.FILE_PUSH_ERROR (
                 error_count != total
