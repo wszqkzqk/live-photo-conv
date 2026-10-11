@@ -109,9 +109,12 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
         } else {
             // Convert the main image to supported format
             Reporter.warning_puts ("FormatWarning", "Image format is not supported, converting to JPEG");
+            bool display_oriented = this.export_original_metadata
+                && IsoBmff.primary_has_display_transform (this.main_image_path);
             string[] commands = {
                 "ffmpeg",
                 "-loglevel", "error",
+                "-autorotate",
                 "-i", this.main_image_path,
                 "-frames:v", "1",
                 "-f", "image2pipe",
@@ -142,6 +145,9 @@ internal class LivePhotoConv.LiveMakerFFmpeg : LivePhotoConv.LiveMaker {
                     string.joinv (" ", commands),
                     exit_code,
                     stderr_text ?? "Unknown error");
+            }
+            if (this.export_original_metadata && display_oriented) {
+                this.metadata.set_tag_string ("Exif.Image.Orientation", "1");
             }
         }
 

@@ -36,7 +36,7 @@ It can combine a static image and a video into a live photo, convert a video dir
 
 Android live photos are a gradually popularizing media file format that combines a video with audio and a static image to form a live photo. This type of photo is supported on various devices, such as Google's Pixel series, Samsung's Galaxy series, and most models from manufacturers like Xiaomi.
 
-Essentially, an Android live photo appends a video file directly to the end of a static image. This video file contains both audio and video streams. The position of the video file is marked using `XMP` metadata, allowing quick location of the video file during parsing. The advantage of this format is that it adds dynamic effects to the image without altering the original image. Since this extension is not a standard for image formats, such images will only be displayed as static images in unsupported image viewers.
+In the common JPEG-based form, an Android live photo appends a video file directly to the end of a static image. This video file contains both audio and video streams. The position of the video file is marked using `XMP` metadata, allowing quick location of the video file during parsing. The advantage of this format is that it adds dynamic effects to the image without altering the original image. Since this extension is not a standard for image formats, such images will only be displayed as static images in unsupported image viewers. The Android Motion Photo specification also defines an `mpvd` box for ISOBMFF images such as HEIC and AVIF. Samsung uses this structure and may add vendor-specific `sefd` metadata.
 
 This tool can be used for extracting, repairing, editing, and composing such live photos.
 
@@ -274,6 +274,12 @@ live-photo-extract -p /path/to/live_photo.jpg -l /path/to/long_exposure.jpg --mi
 
 Key options: `-p` (live photo, required), `-d` (output directory), `-i` (image), `-m` (video), `-l` (long exposure), `--frame-to-photos`, `-f` (image format), `-T` (threads), `--minimal`, `--drop-metadata`.
 
+ISOBMFF Motion Photos with an `mpvd` box, including Samsung HEIC files, support lossless main-image and video extraction, frame export, and long-exposure generation. Main-image extraction preserves the original metadata, as permitted by the Motion Photo specification. Exporting the main image with `--drop-metadata` is not supported. Use `--minimal` with `-m` to export only the video in that mode:
+
+```bash
+live-photo-extract -p /path/to/motion_photo.heic -m /path/to/video.mp4 --minimal
+```
+
 #### `live-photo-repair`
 
 Repair a live photo:
@@ -289,6 +295,8 @@ live-photo-repair -p /path/to/live_photo.jpg -f
 ```
 
 Key options: `-p` (live photo, required), `-f` (force), `-s` (manual video size).
+
+Metadata repair currently requires a JPEG-based live photo with an appended video; HEIC/`mpvd` repair is not supported.
 
 #### `live-photo-conv` (Generic Command)
 

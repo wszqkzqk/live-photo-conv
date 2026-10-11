@@ -64,28 +64,50 @@ namespace LivePhotoConv.Utils {
     }
 
     /**
-     * Writes data from an input stream to an output stream until a specified end position is reached.
+     * Copies an exact number of bytes from an input stream to an output stream.
+     *
+     * Unlike a copy to EOF, this never consumes bytes beyond `length` and
+     * reports an error if the input ends before the requested range is copied.
+     *
+     * @param input_stream The input stream to read from.
+     * @param output_stream The output stream to write to.
+     * @param length The exact number of bytes to copy.
+     * @throws IOError if the copy fails, the length is negative, or EOF is reached early.
+     */
+    public void write_stream_exactly (InputStream input_stream, OutputStream output_stream,
+                                      int64 length) throws IOError {
+        if (length < 0)
+            throw new IOError.INVALID_ARGUMENT ("Cannot copy a negative number of bytes");
+
+        int64 remaining = length;
+        var buffer = new uint8[BUFFER_SIZE];
+        while (remaining > 0) {
+            int chunk_size = (int) (remaining < BUFFER_SIZE ? remaining : BUFFER_SIZE);
+            buffer.length = chunk_size;
+            ssize_t bytes_read = input_stream.read (buffer);
+            if (bytes_read == 0) {
+                throw new IOError.FAILED (
+                    "Unexpected end of stream: %lld of %lld bytes remain to be copied".printf (
+                        remaining, length));
+            }
+            buffer.length = (int) bytes_read;
+            output_stream.write_all (buffer, null);
+            remaining -= bytes_read;
+            buffer.length = BUFFER_SIZE;
+        }
+    }
+
+    /**
+     * Writes a specified number of bytes from the stream's current position.
      *
      * @param input_stream The input stream to read data from.
      * @param output_stream The output stream to write data to.
-     * @param end The position in the input stream to stop writing data at.
+     * @param end The number of bytes to write.
      *
-     * @throws IOError if an error occurs while reading from or writing to the streams.
+     * @throws IOError if an error occurs while reading or writing, or EOF is reached early.
     */
     public void write_stream_before (InputStream input_stream, OutputStream output_stream, int64 end) throws IOError {
-        var bytes_to_write = end;
-        var buffer = new uint8[BUFFER_SIZE];
-        ssize_t bytes_read;
-        while ((bytes_read = input_stream.read (buffer)) > 0 && bytes_to_write > 0) {
-            if (bytes_read > bytes_to_write) {
-                buffer.length = (int) bytes_to_write;
-            } else {
-                buffer.length = (int) bytes_read;
-            }
-            output_stream.write_all (buffer, null);
-            buffer.length = BUFFER_SIZE;
-            bytes_to_write -= bytes_read;
-        }
+        write_stream_exactly (input_stream, output_stream, end);
     }
 
     /**
