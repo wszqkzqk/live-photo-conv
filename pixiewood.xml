@@ -41,6 +41,7 @@
       <option>-Dgir=disabled</option>
       <option>-Dmanpages=disabled</option>
       <option>-Ddocs=disabled</option>
+      <option>-Dfontconfig:tests=disabled</option>
       <option>-Dgdk-pixbuf:man=false</option>
       <option>-Dgexiv2android:introspection=false</option>
       <option>-Dgexiv2android:vapi=false</option>
