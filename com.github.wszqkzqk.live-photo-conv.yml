@@ -4,6 +4,9 @@ runtime-version: '50'
 sdk: org.gnome.Sdk
 command: live-photo-conv-gtk
 
+build-options:
+  libdir: lib
+
 finish-args:
   - --share=ipc
   - --socket=fallback-x11
@@ -26,7 +29,6 @@ modules:
     buildsystem: cmake-ninja
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
-      - -DCMAKE_INSTALL_LIBDIR=lib
       - -DEXIV2_BUILD_EXIV2_COMMAND=OFF
       - -DEXIV2_BUILD_SAMPLES=OFF
       - -DEXIV2_ENABLE_BMFF=ON
@@ -41,7 +43,6 @@ modules:
   - name: gexiv2
     buildsystem: meson
     config-opts:
-      - -Dlibdir=lib
       - -Dpython3=false
       - -Dvapi=true
     sources:
@@ -56,7 +57,6 @@ modules:
   - name: live-photo-conv
     buildsystem: meson
     config-opts:
-      - -Dlibdir=lib
       - -Dgst=enabled
       - -Dgui=enabled
       - -Dgir=enabled
