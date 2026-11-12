@@ -73,7 +73,7 @@
       <option>-DFFmpeg:default_library=static</option>
       <option>-Dgstreamer-full:gst-full=enabled</option>
       <option>-Dgstreamer-full:gst-full-target-type=static_library</option>
-      <option>-Dgstreamer-full:gst-full-libraries=gstreamer-app-1.0</option>
+      <option>-Dgstreamer-full:gst-full-libraries=gstreamer-app-1.0,gstreamer-video-1.0</option>
       <!-- Per-subproject auto_features is a no-op in meson; disable
            unneeded monorepo features one by one. -->
       <option>-Dgstreamer-full:ugly=disabled</option>

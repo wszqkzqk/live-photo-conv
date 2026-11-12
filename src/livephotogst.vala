@@ -208,29 +208,20 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                 break;
             }
 
+            var frame = new PackedRgbFrame (sample);
             if (accumulator == null) {
-                unowned var caps = sample.get_caps ();
-                unowned var info = caps.get_structure (0);
-                info.get_int ("width", out width);
-                info.get_int ("height", out height);
-                accumulator = new uint64[width * height * 3];
+                width = frame.width;
+                height = frame.height;
+                accumulator = new uint64[frame.data.length];
+            } else if (frame.width != width || frame.height != height) {
+                throw new ExportError.GST_ERROR ("Video dimensions changed during decoding");
             }
 
-            Gst.MapInfo map;
-            var buf = sample.get_buffer ();
-            if (buf.map (out map, Gst.MapFlags.READ)) {
-                unowned uint8[] data = map.data;
-                int len = data.length;
-                if (len > accumulator.length) {
-                    len = accumulator.length;
-                }
-
-                for (int i = 0; i < len ; i += 1) {
-                    accumulator[i] += data[i];
-                }
-                buf.unmap (map);
-                frames += 1;
+            unowned uint8[] data = frame.data;
+            for (int i = 0; i < data.length; i++) {
+                accumulator[i] += data[i];
             }
+            frames += 1;
         }
 
         pipeline.set_state (Gst.State.NULL);

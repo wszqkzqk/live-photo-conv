@@ -87,10 +87,12 @@ if is_android
   require_gst = true
   gst = dependency('gstreamer-full-1.0', fallback: ['gstreamer-full', 'gst_full_dep'])
   gst_app = gst
+  gst_video = gst
   gdk_pixbuf = dependency('gdk-pixbuf-2.0')
 else
   gst = dependency('gstreamer-1.0', required: require_gst)
   gst_app = dependency('gstreamer-app-1.0', required: require_gst)
+  gst_video = dependency('gstreamer-video-1.0', required: require_gst)
   gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: require_gst)
 endif
 
@@ -100,18 +102,20 @@ android_vala_args = []
 android_gui_vala_args = []
 if is_android
   foreach pkg : ['gio-2.0', 'gmodule-2.0', 'gexiv2',
-                 'gstreamer-1.0', 'gstreamer-app-1.0', 'gdk-pixbuf-2.0']
+                 'gstreamer-1.0', 'gstreamer-app-1.0', 'gstreamer-video-1.0',
+                 'gdk-pixbuf-2.0']
     android_vala_args += ['--pkg', pkg]
   endforeach
   android_gui_vala_args = android_vala_args + ['--pkg', 'gtk4', '--pkg', 'libadwaita-1']
 endif
 
-with_gst = gst.found() and gst_app.found() and gdk_pixbuf.found()
+with_gst = gst.found() and gst_app.found() and gst_video.found() and gdk_pixbuf.found()
 if with_gst
   add_project_arguments('-D', 'ENABLE_GST', language: 'vala')
   lib_deps += [
     gst,
     gst_app,
+    gst_video,
     gdk_pixbuf
   ]
 endif

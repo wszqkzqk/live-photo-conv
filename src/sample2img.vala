@@ -64,29 +64,8 @@ internal class LivePhotoConv.Sample2Img : Object {
         this.filename = filename;
         this.output_format = output_format;
 
-        unowned var buffer = sample.get_buffer ();
-        unowned var caps = sample.get_caps ();
-        unowned var info = caps.get_structure (0);
-        int width, height;
-        info.get_int ("width", out width);
-        info.get_int ("height", out height);
-
-        Gst.MapInfo map;
-        if (!buffer.map (out map, Gst.MapFlags.READ)) {
-            throw new ExportError.GST_ERROR ("Cannot map the video frame buffer");
-        }
-
-        // The pixbuf owns a copy of the pixels, so the buffer can be unmapped right away
-        pixbuf = new Gdk.Pixbuf.from_data (
-            map.data,
-            Gdk.Colorspace.RGB,
-            false,
-            8,
-            width,
-            height,
-            width * 3
-        );
-        buffer.unmap (map);
+        var frame = new PackedRgbFrame (sample);
+        pixbuf = frame.to_pixbuf ();
         pixbuf = pixbuf_with_opaque_alpha (pixbuf);
     }
 
