@@ -202,30 +202,38 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         int width = 0, height = 0;
         uint64 frames = 0;
 
-        while (true) {
-            var sample = appsink.pull_sample ();
-            if (sample == null) {
-                break;
-            }
+        Error? decode_error = null;
+        try {
+            while (true) {
+                var sample = appsink.pull_sample ();
+                if (sample == null) {
+                    break;
+                }
 
-            var frame = new PackedRgbFrame (sample);
-            if (accumulator == null) {
-                width = frame.width;
-                height = frame.height;
-                accumulator = new uint64[frame.data.length];
-            } else if (frame.width != width || frame.height != height) {
-                throw new ExportError.GST_ERROR ("Video dimensions changed during decoding");
-            }
+                var frame = new PackedRgbFrame (sample);
+                if (accumulator == null) {
+                    width = frame.width;
+                    height = frame.height;
+                    accumulator = new uint64[frame.data.length];
+                } else if (frame.width != width || frame.height != height) {
+                    throw new ExportError.GST_ERROR ("Video dimensions changed during decoding");
+                }
 
-            unowned uint8[] data = frame.data;
-            for (int i = 0; i < data.length; i++) {
-                accumulator[i] += data[i];
+                unowned uint8[] data = frame.data;
+                for (int i = 0; i < data.length; i++) {
+                    accumulator[i] += data[i];
+                }
+                frames += 1;
             }
-            frames += 1;
+        } catch (Error e) {
+            decode_error = e;
         }
 
         pipeline.set_state (Gst.State.NULL);
         var push_error = push_thread.join ();
+        if (decode_error != null) {
+            throw decode_error;
+        }
         if (watch.error != null) {
             throw watch.error;
         }
