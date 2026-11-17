@@ -27,6 +27,7 @@ if with_gst
   lib_common_sources += [
     'livemakergst.vala',
     'livephotogst.vala',
+    'packedrgbframe.vala',
     'sample2img.vala'
   ]
 endif
