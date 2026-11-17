@@ -2,29 +2,27 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """
 Cross-platform script to create symlinks/copies of the main binary with different names.
-On Windows: creates copies
-On Unix-like systems: creates symbolic links
+Copies are created for Windows targets; symbolic links are created for other targets.
 
 Copyright 2024-2026 Zhou Qiankang <wszqkzqk@qq.com>
 """
 
 import sys
 import shutil
-import platform
 from pathlib import Path
 
 
-def create_binary_symlink(source_binary, target_name):
+def create_binary_symlink(source_binary, target_system, target_name):
     """Create a symlink or copy of the source binary with the target name."""
     source_path = Path(source_binary)
     target_path = Path(target_name)
-    
-    # Remove target if it already exists
-    if target_path.exists():
+
+    # Remove the target if it already exists, including a dangling symlink
+    if target_path.exists() or target_path.is_symlink():
         target_path.unlink()
-    
+
     try:
-        if platform.system() == 'Windows':
+        if target_system == 'windows':
             # On Windows, create a copy
             shutil.copy2(source_path, target_path)
             print(f"Created copy: {target_path}")
@@ -34,7 +32,7 @@ def create_binary_symlink(source_binary, target_name):
             source_name = source_path.name
             target_path.symlink_to(source_name)
             print(f"Created symlink: {target_path} -> {source_name}")
-        
+
         return True
     except Exception as e:
         print(f"Error creating link/copy {target_path}: {e}", file=sys.stderr)
@@ -42,18 +40,19 @@ def create_binary_symlink(source_binary, target_name):
 
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: create_binary_links.py <source_binary> <target1> [target2] ...", file=sys.stderr)
+    if len(sys.argv) < 4:
+        print("Usage: create-binary-symlinks.py <source_binary> <target_system> <target1> [target2] ...", file=sys.stderr)
         sys.exit(1)
-    
+
     source_binary = sys.argv[1]
-    target_names = sys.argv[2:]
+    target_system = sys.argv[2]
+    target_names = sys.argv[3:]
 
     success = True
     for target_name in target_names:
-        if not create_binary_symlink(source_binary, target_name):
+        if not create_binary_symlink(source_binary, target_system, target_name):
             success = False
-    
+
     if not success:
         sys.exit(1)
 

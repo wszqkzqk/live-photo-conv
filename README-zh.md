@@ -112,13 +112,13 @@ HOMEBREW_NO_REQUIRE_TAP_TRUST=1 brew install --HEAD wszqkzqk/live-photo-conv/liv
 
 * 构建依赖
   * Meson、Vala、GExiv2
-  * GTK4、LibAdwaita（可选，GUI 需要）
+  * GTK4（4.10 及以上）、LibAdwaita（1.5 及以上）（可选，GUI 需要）
   * GStreamer（`gstreamer`, `gst-plugins-base-libs`）— 可选，用于从视频导出图片，否则使用 FFmpeg
   * gdk-pixbuf2 — 可选，同上
   * gobject-introspection — 可选，用于生成 GObject Introspection 信息
 * 运行依赖
   * GLib（GObject, GIO）、GExiv2
-  * GTK4、LibAdwaita（GUI 需要）
+  * GTK4（4.10 及以上）、LibAdwaita（1.5 及以上）（GUI 需要）
   * GStreamer（`gstreamer`, `gst-plugins-base-libs`, `gst-plugins-good`, `gst-plugins-bad`）— GStreamer 构建时需要；`gst-plugin-va` 可选，用于硬件加速
   * gdk-pixbuf2 — GStreamer 构建时需要；可选格式加载器：`libavif` (.avif)、`libheif` (.heif/.heic/.avif)、`libjxl` (.jxl)、`webp-pixbuf-loader` (.webp)
   * FFmpeg（8.0 及以上）— 可选，未使用 GStreamer 构建时从视频导出图片需要
