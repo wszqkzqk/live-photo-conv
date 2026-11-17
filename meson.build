@@ -74,8 +74,8 @@ if is_android
   # On Android the GUI *is* the application
   require_gui = true
 endif
-gtk4_dep = dependency('gtk4', required: require_gui)
-libadwaita_dep = dependency('libadwaita-1', required: require_gui)
+gtk4_dep = dependency('gtk4', version: '>= 4.10', required: require_gui)
+libadwaita_dep = dependency('libadwaita-1', version: '>= 1.5', required: require_gui)
 with_gui = gtk4_dep.found() and libadwaita_dep.found()
 
 # Optional GStreamer dependencies
