@@ -22,9 +22,9 @@ if git.found()
 endif
 
 # Platform-specific flags
-is_windows = target_machine.system() == 'windows'
-is_darwin = target_machine.system() == 'darwin'
-is_android = target_machine.system() == 'android'
+is_windows = host_machine.system() == 'windows'
+is_darwin = host_machine.system() == 'darwin'
+is_android = host_machine.system() == 'android'
 is_freedesktop = not is_windows and not is_darwin and not is_android  # Linux, BSD, etc.
 if is_windows
   add_project_arguments('-D', 'WINDOWS', language: 'vala')
@@ -40,7 +40,7 @@ if is_android
   add_project_link_arguments('-Wl,-Bsymbolic', language: ['c', 'cpp'])
   # exiv2/gexiv2 need the C++ runtime; ship it in the APK
   libcpp = meson.get_external_property('sys_root') / 'usr' / 'lib' / (
-    target_machine.cpu_family() + '-linux-android') / 'libc++_shared.so'
+    host_machine.cpu_family() + '-linux-android') / 'libc++_shared.so'
   install_data(libcpp, install_dir: get_option('libdir'), install_tag: 'runtime')
   # Consumed by pixiewood.xml via a build:// include
   configure_file(
