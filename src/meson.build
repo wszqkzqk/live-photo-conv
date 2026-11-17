@@ -189,6 +189,7 @@ if not is_android
         python,
         symlink_script,
         main_exe_bin.full_path(),
+        host_machine.system(),
         '@OUTPUT@',
       ],
       depends: main_exe_bin,
