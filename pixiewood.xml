@@ -98,13 +98,13 @@
       <option>-Dgst-plugins-base:audioresample=enabled</option>
       <option>-Dgst-plugins-base:typefind=enabled</option>
       <option>-Dgst-plugins-base:gio=enabled</option>
-      <!-- androidmedia links against gstgl, but no GL plugins are needed
-           for decoding into system memory. -->
+      <!-- androidmedia requires gstgl and the GL dependency from bad;
+           decoders can still output system memory when supported. -->
       <option>-Dgst-plugins-base:gl=enabled</option>
       <option>-Dgst-plugins-good:isomp4=enabled</option>
       <option>-Dgst-plugins-good:audioparsers=enabled</option>
       <option>-Dgst-plugins-bad:videoparsers=enabled</option>
-      <option>-Dgst-plugins-bad:gl=disabled</option>
+      <option>-Dgst-plugins-bad:gl=enabled</option>
       <option>-Dgst-plugins-bad:androidmedia=enabled</option>
       <!-- Redundant with gst-libav's decoders (and fdkaac has licensing
            issues) -->
