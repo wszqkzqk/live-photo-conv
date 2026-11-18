@@ -61,6 +61,7 @@ internal class LivePhotoConv.LiveMakerGst : LivePhotoConv.LiveMaker {
         // Only the first frame is needed
         pipeline.set_state (Gst.State.PLAYING);
         var sample = appsink.pull_sample ();
+        report_android_video_decoder (appsink);
         pipeline.set_state (Gst.State.NULL);
         if (watch.error != null) {
             throw watch.error;
