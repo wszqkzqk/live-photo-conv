@@ -84,7 +84,7 @@
       <option>-Dgstreamer-full:webrtc=disabled</option>
       <option>-Dgstreamer-full:libnice=disabled</option>
       <option>-Dgstreamer-full:python=disabled</option>
-      <option>-Dgstreamer-full:orc=disabled</option>
+      <option>-Dgstreamer-full:orc=enabled</option>
       <option>-Dgstreamer-full:tools=disabled</option>
       <option>-Dgstreamer-full:tests=disabled</option>
       <option>-Dgstreamer-full:introspection=disabled</option>
@@ -98,12 +98,14 @@
       <option>-Dgst-plugins-base:audioresample=enabled</option>
       <option>-Dgst-plugins-base:typefind=enabled</option>
       <option>-Dgst-plugins-base:gio=enabled</option>
-      <option>-Dgst-plugins-base:gl=disabled</option>
+      <!-- androidmedia requires gstgl and the GL dependency from bad;
+           decoders can still output system memory when supported. -->
+      <option>-Dgst-plugins-base:gl=enabled</option>
       <option>-Dgst-plugins-good:isomp4=enabled</option>
       <option>-Dgst-plugins-good:audioparsers=enabled</option>
       <option>-Dgst-plugins-bad:videoparsers=enabled</option>
-      <option>-Dgst-plugins-bad:gl=disabled</option>
-      <option>-Dgst-plugins-bad:androidmedia=disabled</option>
+      <option>-Dgst-plugins-bad:gl=enabled</option>
+      <option>-Dgst-plugins-bad:androidmedia=enabled</option>
       <!-- Redundant with gst-libav's decoders (and fdkaac has licensing
            issues) -->
       <option>-Dgst-plugins-bad:fdkaac=disabled</option>

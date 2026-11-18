@@ -38,6 +38,7 @@ if is_android
   add_project_arguments('--vapidir', meson.project_source_root() / 'android' / 'vapi', language: 'vala')
   # Make statically linked FFmpeg NEON asm linkable into shared objects
   add_project_link_arguments('-Wl,-Bsymbolic', language: ['c', 'cpp'])
+  add_project_link_arguments('-llog', language: 'c')
   # exiv2/gexiv2 need the C++ runtime; ship it in the APK
   libcpp = meson.get_external_property('sys_root') / 'usr' / 'lib' / (
     host_machine.cpu_family() + '-linux-android') / 'libc++_shared.so'

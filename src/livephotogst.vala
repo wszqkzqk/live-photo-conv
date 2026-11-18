@@ -17,6 +17,60 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+namespace LivePhotoConv {
+#if ANDROID
+    [CCode (cname = "ANDROID_LOG_INFO", cheader_filename = "android/log.h")]
+    private extern const int ANDROID_LOG_INFO;
+    [CCode (cname = "__android_log_print", cheader_filename = "android/log.h")]
+    private extern int android_log_print (int priority, string tag, string format, ...);
+#endif
+
+    /** Logs the video decoder producing frames on Android; does nothing elsewhere. */
+    internal void report_android_video_decoder (Gst.App.Sink appsink) {
+#if ANDROID
+        Gst.Element? element = appsink;
+        while (element != null && element.sinkpads != null) {
+            if (element is Gst.Bin) {
+                var iterator = ((Gst.Bin) element).iterate_recurse ();
+                if (iterator == null) {
+                    break;
+                }
+                while (true) {
+                    var item = GLib.Value (typeof (Gst.Element));
+                    var result = iterator.next (out item);
+                    if (result == Gst.IteratorResult.RESYNC) {
+                        iterator.resync ();
+                        continue;
+                    }
+                    if (result != Gst.IteratorResult.OK) {
+                        break;
+                    }
+
+                    unowned var child = (Gst.Element) item.get_object ();
+                    unowned var factory = child.get_factory ();
+                    if (factory != null) {
+                        unowned string? klass = factory.get_metadata ("klass");
+                        if (klass != null && klass.has_prefix ("Codec/Decoder/Video")) {
+                            android_log_print (ANDROID_LOG_INFO, "LivePhotoConv",
+                                "Video decoder: %s (%s)", factory.name, klass);
+                            return;
+                        }
+                    }
+                }
+                break;
+            }
+
+            unowned var sink_pad = element.sinkpads.data;
+            var peer = sink_pad.get_peer ();
+            if (peer == null) {
+                break;
+            }
+            element = peer.get_parent_element ();
+        }
+#endif
+    }
+}
+
 /** Watches a pipeline's bus for errors and warnings. */
 internal class LivePhotoConv.PipelineWatch : Object {
     /** The first bus error received, if any. */
@@ -140,6 +194,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         pipeline.set_state (Gst.State.PLAYING);
 
         Gst.Sample sample;
+        bool decoder_reported = false;
         uint index = 1;
         string filename_no_index_ext = Path.build_filename (
             (dest_dir == null) ? this.dest_dir : dest_dir,
@@ -151,6 +206,10 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         // for jpg, pixbuf requires the format to be "jpeg"
         var format = (extension == "jpg") ? "jpeg" : extension;
         while ((sample = appsink.pull_sample ()) != null) {
+            if (!decoder_reported) {
+                report_android_video_decoder (appsink);
+                decoder_reported = true;
+            }
             string filename = filename_no_index_ext + "_%u.".printf (index) + extension;
             try {
                 var item = new Sample2Img (sample, filename, format);
@@ -201,6 +260,7 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
         uint64[]? accumulator = null;
         int width = 0, height = 0;
         uint64 frames = 0;
+        bool decoder_reported = false;
 
         Error? decode_error = null;
         try {
@@ -208,6 +268,11 @@ internal class LivePhotoConv.LivePhotoGst : LivePhotoConv.LivePhoto {
                 var sample = appsink.pull_sample ();
                 if (sample == null) {
                     break;
+                }
+
+                if (!decoder_reported) {
+                    report_android_video_decoder (appsink);
+                    decoder_reported = true;
                 }
 
                 var frame = new PackedRgbFrame (sample);
